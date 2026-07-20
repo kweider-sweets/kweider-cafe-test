@@ -1,5 +1,688 @@
-<!doctype html><html lang="en" dir="ltr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#000"><title>Kweider Rewards Staff</title><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png"><link rel="stylesheet" href="assets/css/app-shell.css"></head><body class="app-page"><main class="app-shell"><div class="app-topbar"><a class="app-brand" href="index.html"><img src="logo.webp"><span class="demo-badge">STAFF DEMO</span></a><a href="index.html" class="app-back">← Menu</a></div><header class="page-heading"><h1>Rewards Staff</h1><p>Add points and redeem rewards. This first build stores test data in this browser only.</p></header><section id="loginCard" class="app-card"><h2>Staff access</h2><div class="field"><label>Development PIN</label><input id="staffPin" type="password" inputmode="numeric" autocomplete="off"></div><div class="form-actions"><button id="staffLogin" class="primary-btn">Open staff panel</button></div><div class="notice info">Testing PIN: <strong>1969</strong>. Replace this with secure server authentication before public launch.</div></section><section id="staffPanel" class="hidden"><div class="app-card"><h2>Find member</h2><div class="field"><label>Member ID or phone number</label><input id="memberSearch" placeholder="KW-..., 07..., +44... or 0044..."></div><div class="form-actions"><button id="findMember" class="primary-btn">Find member</button><button id="scanQr" class="ghost-btn">Scan QR</button></div><div id="scanArea" class="hidden"><video id="scannerVideo" class="scanner-video" playsinline muted></video><div class="form-actions"><button id="stopScan" class="danger-btn">Stop camera</button></div></div><div id="staffMessage"></div></div><div id="memberPanel" class="hidden"><div class="app-card"><div class="split"><div><h2 id="staffMemberName"></h2><p id="staffMemberMeta" style="color:#bbb;line-height:1.7"></p></div><div class="metric"><strong id="staffPoints">0</strong><span>CURRENT POINTS</span></div></div></div><div class="app-card"><h3>Add purchase points</h3><div class="form-grid"><div class="field"><label>Purchase amount (£)</label><input id="purchaseAmount" type="number" min="0.01" step="0.01"></div><div class="field"><label>Receipt number</label><input id="earnReceipt"></div></div><div class="form-actions"><button id="addPoints" class="primary-btn">Add points</button></div></div><div class="app-card"><h3>Redeem reward</h3><div class="form-grid"><div class="field"><label>Number of £5 rewards</label><select id="rewardCount"><option value="1">1 × £5</option><option value="2">2 × £5</option><option value="3">3 × £5</option></select></div><div class="field"><label>Receipt/reference</label><input id="redeemReceipt"></div></div><div class="form-actions"><button id="redeemReward" class="gold-btn">Redeem</button></div></div></div></section></main><script src="assets/js/loyalty-service.js?v=2.0.0"></script><script src="assets/js/app-shell.js"></script><script>
-const $=id=>document.getElementById(id);let member=null,stream=null,scanning=false;function msg(t,type='info'){$('staffMessage').innerHTML=`<div class="notice ${type}">${t}</div>`}function render(m){member=m;$('memberPanel').classList.remove('hidden');$('staffMemberName').textContent=m.firstName;$('staffMemberMeta').textContent=`${m.id} · ${m.phone}`;$('staffPoints').textContent=m.points||0}function search(v){v=String(v||'').replace(/^KWEIDER-LOYALTY:/,'');const m=KweiderRewards.getMember(v);if(!m){member=null;$('memberPanel').classList.add('hidden');msg('Member not found.','error');return}render(m);msg('Member found. Check the name before continuing.','ok')}
-$('staffLogin').onclick=()=>{if($('staffPin').value!=='1969'){alert('Incorrect development PIN.');return}$('loginCard').classList.add('hidden');$('staffPanel').classList.remove('hidden')};$('findMember').onclick=()=>search($('memberSearch').value);$('addPoints').onclick=()=>{if(!member)return;try{const r=KweiderRewards.addPoints(member.id,$('purchaseAmount').value,$('earnReceipt').value,'Staff Demo');render(r.member);msg(`${r.transaction.points} points added successfully.`,'ok');$('purchaseAmount').value='';$('earnReceipt').value=''}catch(e){msg(e.message,'error')}};$('redeemReward').onclick=()=>{if(!member)return;const count=Number($('rewardCount').value);if(!confirm(`Redeem £${count*5} for ${member.firstName}?`))return;try{const r=KweiderRewards.redeem(member.id,count,$('redeemReceipt').value,'Staff Demo');render(r.member);msg('Reward redeemed successfully.','ok');$('redeemReceipt').value=''}catch(e){msg(e.message,'error')}};
-async function stopCamera(){scanning=false;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('scanArea').classList.add('hidden')}$('stopScan').onclick=stopCamera;$('scanQr').onclick=async()=>{if(!('BarcodeDetector'in window)){msg('Camera QR scanning is not supported by this browser. Enter the member ID manually.','error');return}try{const formats=await BarcodeDetector.getSupportedFormats();if(!formats.includes('qr_code'))throw new Error('QR scanning is unavailable.');const detector=new BarcodeDetector({formats:['qr_code']});stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});$('scannerVideo').srcObject=stream;await $('scannerVideo').play();$('scanArea').classList.remove('hidden');scanning=true;const loop=async()=>{if(!scanning)return;try{const codes=await detector.detect($('scannerVideo'));if(codes.length){$('memberSearch').value=codes[0].rawValue;await stopCamera();search(codes[0].rawValue);return}}catch(e){}requestAnimationFrame(loop)};loop()}catch(e){msg('Could not open the camera. Enter the member ID manually.','error')}};
-</script></body></html>
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000">
+  <title>Kweider Rewards Staff</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="assets/css/app-shell.css">
+  <style>
+    .staff-session-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .staff-session-bar p{margin:4px 0;color:#bbb}
+    .staff-actions-inline{display:flex;gap:10px;flex-wrap:wrap}
+    .button-busy{opacity:.65;pointer-events:none}
+    .transaction-list{display:grid;gap:10px;margin-top:16px}
+    .transaction-item{display:flex;justify-content:space-between;gap:16px;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.025)}
+    .transaction-item strong,.transaction-item span{display:block}
+    .transaction-item small{display:block;margin-top:5px;color:#aaa;line-height:1.45}
+    .transaction-points{min-width:78px;text-align:right;font-weight:700}
+    .transaction-points.positive{color:#8fe3a5}
+    .transaction-points.negative{color:#f1c46b}
+    .member-reward-note{margin-top:10px;color:#d7b665}
+    .qr-reader-shell{margin-top:18px;padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:#080808}
+    #qrReader{width:100%;overflow:hidden;border-radius:12px;background:#000}
+    #qrReader video{width:100%!important;max-height:62vh;object-fit:cover;border-radius:12px}
+    .scanner-help{margin:10px 0 0;color:#bbb;text-align:center;line-height:1.55}
+    @media(max-width:640px){.transaction-item{align-items:flex-start}.transaction-points{min-width:64px}}
+  </style>
+</head>
+<body class="app-page">
+  <main class="app-shell">
+    <div class="app-topbar">
+      <a class="app-brand" href="index.html">
+        <img src="logo.webp" alt="Kweider Sweets">
+        <span class="demo-badge">STAFF</span>
+      </a>
+      <a href="index.html" class="app-back">← Menu</a>
+    </div>
+
+    <header class="page-heading">
+      <h1>Rewards Staff</h1>
+      <p>Secure staff access for finding members, adding purchase points and redeeming rewards.</p>
+    </header>
+
+    <section id="configurationCard" class="app-card hidden">
+      <h2>Configuration required</h2>
+      <div class="notice error">
+        Add the Supabase Publishable key to the marked line inside <strong>staff.html</strong>, then upload the file again.
+      </div>
+    </section>
+
+    <section id="loginCard" class="app-card">
+      <h2>Staff sign in</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="staffEmail">Email</label>
+          <input id="staffEmail" type="email" autocomplete="username" value="qw.co.uk@gmail.com">
+        </div>
+        <div class="field">
+          <label for="staffPassword">Password</label>
+          <input id="staffPassword" type="password" autocomplete="current-password">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button id="staffLogin" class="primary-btn">Sign in</button>
+      </div>
+      <div id="loginMessage" aria-live="polite"></div>
+    </section>
+
+    <section id="staffPanel" class="hidden">
+      <div class="app-card">
+        <div class="staff-session-bar">
+          <div>
+            <h2 id="signedInName">Staff</h2>
+            <p id="signedInRole"></p>
+          </div>
+          <div class="staff-actions-inline">
+            <button id="staffLogout" class="ghost-btn">Sign out</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-card">
+        <h2>Find member</h2>
+        <div class="field">
+          <label for="memberSearch">Membership code or phone number</label>
+          <input id="memberSearch" placeholder="KW-..., 07..., +44... or 0044..." autocomplete="off">
+        </div>
+        <div class="form-actions">
+          <button id="findMember" class="primary-btn">Find member</button>
+          <button id="scanQr" class="ghost-btn">Scan QR</button>
+        </div>
+        <div id="scanArea" class="hidden qr-reader-shell">
+          <div id="qrReader"></div>
+          <p class="scanner-help">
+            Point the rear camera at the customer's Kweider QR code.<br>
+            Keep the QR code clear and around 15–30 cm from the camera.
+          </p>
+          <div class="form-actions">
+            <button id="stopScan" class="danger-btn">Stop camera</button>
+          </div>
+        </div>
+        <div id="staffMessage" aria-live="polite"></div>
+      </div>
+
+      <div id="memberPanel" class="hidden">
+        <div class="app-card">
+          <div class="split">
+            <div>
+              <h2 id="staffMemberName"></h2>
+              <p id="staffMemberMeta" style="color:#bbb;line-height:1.7"></p>
+              <p id="staffRewardSummary" class="member-reward-note"></p>
+            </div>
+            <div class="metric">
+              <strong id="staffPoints">0</strong>
+              <span>CURRENT POINTS</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <h3>Add purchase points</h3>
+          <div class="form-grid">
+            <div class="field">
+              <label for="purchaseAmount">Purchase amount (£)</label>
+              <input id="purchaseAmount" type="number" min="0.01" step="0.01" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label for="earnReceipt">Receipt number</label>
+              <input id="earnReceipt" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button id="addPoints" class="primary-btn">Add points</button>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <h3>Redeem reward</h3>
+          <div class="form-grid">
+            <div class="field">
+              <label for="rewardCount">Number of £5 rewards</label>
+              <select id="rewardCount">
+                <option value="1">1 × £5</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="redeemReceipt">Receipt/reference</label>
+              <input id="redeemReceipt" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button id="redeemReward" class="gold-btn">Redeem</button>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <h3>Recent activity</h3>
+          <div id="transactionList" class="transaction-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+  <script src="assets/js/app-shell.js"></script>
+  <script>
+    'use strict';
+
+    const SUPABASE_URL = 'https://fwjiceleybxhgetsvsvp.supabase.co';
+
+    // REQUIRED: replace only the text between the quotation marks below.
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_yNgSShCyeQ6FfSy30T6-hg_9dLXXpwk';
+
+    const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/kweider-rewards-api`;
+    const SESSION_KEY = 'kweiderRewards.staffSession.v1';
+    const $ = (id) => document.getElementById(id);
+
+    let session = null;
+    let staff = null;
+    let member = null;
+    let memberTransactions = [];
+    let settings = { pointsPerPound: 1, pointsPerReward: 100, rewardValue: 5 };
+    let qrScanner = null;
+    let scanning = false;
+    let scanHandled = false;
+
+    function hasConfiguration() {
+      return SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_');
+    }
+
+    function message(targetId, text, type = 'info') {
+      $(targetId).innerHTML = text ? `<div class="notice ${type}">${escapeHtml(text)}</div>` : '';
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function setBusy(button, busy, busyText) {
+      if (!button.dataset.normalText) button.dataset.normalText = button.textContent;
+      button.disabled = busy;
+      button.classList.toggle('button-busy', busy);
+      button.textContent = busy ? busyText : button.dataset.normalText;
+    }
+
+    function saveSession(nextSession) {
+      session = nextSession;
+      if (nextSession) sessionStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
+      else sessionStorage.removeItem(SESSION_KEY);
+    }
+
+    function loadSession() {
+      try {
+        const raw = sessionStorage.getItem(SESSION_KEY);
+        session = raw ? JSON.parse(raw) : null;
+      } catch {
+        session = null;
+        sessionStorage.removeItem(SESSION_KEY);
+      }
+    }
+
+    async function readJson(response) {
+      const text = await response.text();
+      if (!text) return {};
+      try { return JSON.parse(text); }
+      catch { return { message: text }; }
+    }
+
+    async function authRequest(path, body, accessToken = '') {
+      const headers = {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        'Content-Type': 'application/json'
+      };
+      if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
+      const response = await fetch(`${SUPABASE_URL}${path}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body)
+      });
+      const data = await readJson(response);
+      if (!response.ok) throw new Error(data.message || data.error_description || data.error || 'Authentication failed.');
+      return data;
+    }
+
+    async function signIn(email, password) {
+      const data = await authRequest('/auth/v1/token?grant_type=password', { email, password });
+      if (!data.access_token || !data.refresh_token) throw new Error('The staff session could not be created.');
+      saveSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: data.expires_at || Math.floor(Date.now() / 1000) + Number(data.expires_in || 3600),
+        user: data.user || null
+      });
+    }
+
+    async function refreshSession() {
+      if (!session?.refresh_token) throw new Error('The staff session has expired. Sign in again.');
+      const data = await authRequest('/auth/v1/token?grant_type=refresh_token', {
+        refresh_token: session.refresh_token
+      });
+      if (!data.access_token || !data.refresh_token) throw new Error('The staff session has expired. Sign in again.');
+      saveSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: data.expires_at || Math.floor(Date.now() / 1000) + Number(data.expires_in || 3600),
+        user: data.user || session.user || null
+      });
+    }
+
+    async function ensureFreshSession() {
+      if (!session?.access_token) throw new Error('Sign in with an authorised staff account.');
+      const expiresAt = Number(session.expires_at || 0);
+      if (expiresAt && expiresAt <= Math.floor(Date.now() / 1000) + 60) await refreshSession();
+    }
+
+    async function apiRequest(payload, allowRefresh = true) {
+      await ensureFreshSession();
+      const response = await fetch(FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await readJson(response);
+
+      if (response.status === 401 && allowRefresh && session?.refresh_token) {
+        await refreshSession();
+        return apiRequest(payload, false);
+      }
+
+      if (!response.ok || data.ok === false) {
+        const error = new Error(data.message || 'The rewards request failed.');
+        error.code = data.code || '';
+        error.status = response.status;
+        throw error;
+      }
+      return data;
+    }
+
+    function resetMember() {
+      member = null;
+      memberTransactions = [];
+      $('memberPanel').classList.add('hidden');
+      $('transactionList').innerHTML = '';
+    }
+
+    function renderStaff() {
+      $('signedInName').textContent = staff?.displayName || 'Staff';
+      $('signedInRole').textContent = staff?.role ? `Role: ${staff.role}` : '';
+      $('loginCard').classList.add('hidden');
+      $('staffPanel').classList.remove('hidden');
+    }
+
+    function renderRewardOptions(availableRewards) {
+      const select = $('rewardCount');
+      select.innerHTML = '';
+      const count = Math.max(0, Number(availableRewards || 0));
+      if (!count) {
+        const option = document.createElement('option');
+        option.value = '0';
+        option.textContent = 'No rewards available';
+        select.appendChild(option);
+        $('redeemReward').disabled = true;
+        return;
+      }
+      $('redeemReward').disabled = false;
+      for (let i = 1; i <= count; i += 1) {
+        const option = document.createElement('option');
+        option.value = String(i);
+        option.textContent = `${i} × £${(i * Number(settings.rewardValue || 5)).toFixed(0)}`;
+        select.appendChild(option);
+      }
+    }
+
+    function renderTransactions(transactions) {
+      const list = $('transactionList');
+      if (!transactions?.length) {
+        list.innerHTML = '<div class="notice info">No activity recorded yet.</div>';
+        return;
+      }
+
+      list.innerHTML = transactions.map((transaction) => {
+        const points = Number(transaction.pointsDelta || 0);
+        const isRedeem = transaction.type === 'redeem' || points < 0;
+        const title = isRedeem
+          ? `Reward redeemed${transaction.rewardValue ? ` · £${Number(transaction.rewardValue).toFixed(2)}` : ''}`
+          : `Purchase points${transaction.purchaseAmount !== null ? ` · £${Number(transaction.purchaseAmount).toFixed(2)}` : ''}`;
+        const date = transaction.createdAt ? new Date(transaction.createdAt).toLocaleString('en-GB') : '';
+        const details = [transaction.receiptReference, transaction.performedByName, date].filter(Boolean).join(' · ');
+        const pointsText = `${points > 0 ? '+' : ''}${points} pts`;
+        return `
+          <div class="transaction-item">
+            <div>
+              <strong>${escapeHtml(title)}</strong>
+              <small>${escapeHtml(details || transaction.notes || '')}</small>
+            </div>
+            <div class="transaction-points ${points < 0 ? 'negative' : 'positive'}">${escapeHtml(pointsText)}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderMember(bundle) {
+      member = bundle.member;
+      memberTransactions = bundle.transactions || [];
+      settings = bundle.settings || settings;
+
+      $('memberPanel').classList.remove('hidden');
+      $('staffMemberName').textContent = member.firstName || 'Member';
+      $('staffMemberMeta').textContent = `${member.memberCode} · ${member.phone}`;
+      $('staffPoints').textContent = Number(member.points || 0);
+      $('staffRewardSummary').textContent = member.availableRewards
+        ? `${member.availableRewards} reward(s) available · £${Number(member.availableRewardValue || 0).toFixed(2)} total value`
+        : `${Number(settings.pointsPerReward || 100) - (Number(member.points || 0) % Number(settings.pointsPerReward || 100))} points until the next £${Number(settings.rewardValue || 5).toFixed(0)} reward`;
+
+      renderRewardOptions(member.availableRewards);
+      renderTransactions(memberTransactions);
+    }
+
+    function cleanMemberSearch(value) {
+      return String(value || '')
+        .trim()
+        .replace(/^KWEIDER-LOYALTY:/i, '')
+        .replace(/^KWEIDER-REWARDS:/i, '');
+    }
+
+    async function findMember(value) {
+      const search = cleanMemberSearch(value);
+      if (!search) throw new Error('Enter a membership code or phone number.');
+      const data = await apiRequest({ action: 'staff_find_member', memberSearch: search });
+      renderMember(data);
+      message('staffMessage', 'Member found. Check the name before continuing.', 'ok');
+    }
+
+    async function stopCamera() {
+      scanning = false;
+      scanHandled = false;
+
+      if (qrScanner) {
+        try {
+          await qrScanner.stop();
+        } catch {}
+        try {
+          qrScanner.clear();
+        } catch {}
+        qrScanner = null;
+      }
+
+      $('scanArea').classList.add('hidden');
+      $('qrReader').innerHTML = '';
+      $('scanQr').disabled = false;
+    }
+
+    $('staffLogin').addEventListener('click', async () => {
+      const button = $('staffLogin');
+      const email = $('staffEmail').value.trim();
+      const password = $('staffPassword').value;
+      message('loginMessage', '');
+
+      if (!email || !password) {
+        message('loginMessage', 'Enter the staff email and password.', 'error');
+        return;
+      }
+
+      setBusy(button, true, 'Signing in...');
+      try {
+        await signIn(email, password);
+        const data = await apiRequest({ action: 'staff_me' });
+        staff = data.staff;
+        $('staffPassword').value = '';
+        renderStaff();
+      } catch (error) {
+        saveSession(null);
+        message('loginMessage', error.message || 'Sign-in failed.', 'error');
+      } finally {
+        setBusy(button, false, 'Signing in...');
+      }
+    });
+
+    $('staffPassword').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') $('staffLogin').click();
+    });
+
+    $('staffLogout').addEventListener('click', async () => {
+      const token = session?.access_token || '';
+      try {
+        if (token) await authRequest('/auth/v1/logout', {}, token);
+      } catch {}
+      await stopCamera();
+      saveSession(null);
+      staff = null;
+      resetMember();
+      $('staffPanel').classList.add('hidden');
+      $('loginCard').classList.remove('hidden');
+      message('loginMessage', 'Signed out successfully.', 'ok');
+    });
+
+    $('findMember').addEventListener('click', async () => {
+      const button = $('findMember');
+      setBusy(button, true, 'Searching...');
+      message('staffMessage', '');
+      try {
+        await findMember($('memberSearch').value);
+      } catch (error) {
+        resetMember();
+        message('staffMessage', error.message || 'Member search failed.', 'error');
+      } finally {
+        setBusy(button, false, 'Searching...');
+      }
+    });
+
+    $('memberSearch').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') $('findMember').click();
+    });
+
+    $('addPoints').addEventListener('click', async () => {
+      if (!member) return;
+      const button = $('addPoints');
+      const purchaseAmount = Number($('purchaseAmount').value);
+      const receiptReference = $('earnReceipt').value.trim();
+
+      if (!Number.isFinite(purchaseAmount) || purchaseAmount <= 0) {
+        message('staffMessage', 'Enter a valid purchase amount.', 'error');
+        return;
+      }
+      if (!receiptReference) {
+        message('staffMessage', 'Receipt number is required.', 'error');
+        return;
+      }
+
+      setBusy(button, true, 'Adding...');
+      try {
+        const data = await apiRequest({
+          action: 'staff_add_purchase_points',
+          memberId: member.id,
+          purchaseAmount,
+          receiptReference,
+          idempotencyKey: crypto.randomUUID()
+        });
+        renderMember(data);
+        $('purchaseAmount').value = '';
+        $('earnReceipt').value = '';
+        const duplicateText = data.operation?.duplicate ? ' This request had already been recorded.' : '';
+        message('staffMessage', `${Number(data.operation?.pointsAdded || 0)} points added successfully.${duplicateText}`, 'ok');
+      } catch (error) {
+        message('staffMessage', error.message || 'Points could not be added.', 'error');
+      } finally {
+        setBusy(button, false, 'Adding...');
+      }
+    });
+
+    $('redeemReward').addEventListener('click', async () => {
+      if (!member) return;
+      const numberOfRewards = Number($('rewardCount').value);
+      const receiptReference = $('redeemReceipt').value.trim();
+      const rewardValue = numberOfRewards * Number(settings.rewardValue || 5);
+
+      if (!Number.isInteger(numberOfRewards) || numberOfRewards < 1) {
+        message('staffMessage', 'The member does not have an available reward.', 'error');
+        return;
+      }
+      if (!receiptReference) {
+        message('staffMessage', 'Receipt/reference is required.', 'error');
+        return;
+      }
+      if (!confirm(`Redeem £${rewardValue.toFixed(2)} for ${member.firstName}?`)) return;
+
+      const button = $('redeemReward');
+      setBusy(button, true, 'Redeeming...');
+      try {
+        const data = await apiRequest({
+          action: 'staff_redeem_rewards',
+          memberId: member.id,
+          numberOfRewards,
+          receiptReference,
+          idempotencyKey: crypto.randomUUID()
+        });
+        renderMember(data);
+        $('redeemReceipt').value = '';
+        message('staffMessage', `£${Number(data.operation?.rewardValue || rewardValue).toFixed(2)} reward redeemed successfully.`, 'ok');
+      } catch (error) {
+        message('staffMessage', error.message || 'Reward could not be redeemed.', 'error');
+      } finally {
+        setBusy(button, false, 'Redeeming...');
+      }
+    });
+
+    $('stopScan').addEventListener('click', stopCamera);
+
+    $('scanQr').addEventListener('click', async () => {
+      message('staffMessage', '');
+
+      if (!window.isSecureContext) {
+        message(
+          'staffMessage',
+          'Camera access requires the secure GitHub Pages address beginning with https://. It may not work when staff.html is opened directly from the device files.',
+          'error'
+        );
+        return;
+      }
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        message('staffMessage', 'This browser cannot access the camera. Use Chrome or the latest Huawei Browser.', 'error');
+        return;
+      }
+
+      if (typeof Html5Qrcode === 'undefined') {
+        message('staffMessage', 'The QR scanner library did not load. Check the internet connection and reload the page.', 'error');
+        return;
+      }
+
+      await stopCamera();
+      $('scanArea').classList.remove('hidden');
+      $('scanQr').disabled = true;
+      scanning = true;
+      scanHandled = false;
+
+      qrScanner = new Html5Qrcode(
+        'qrReader',
+        { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] },
+        false
+      );
+
+      const onScanSuccess = async (decodedText) => {
+        if (!scanning || scanHandled) return;
+
+        const rawValue = String(decodedText || '').trim();
+        const value = cleanMemberSearch(rawValue);
+        const isKweiderCode =
+          /^KWEIDER-(LOYALTY|REWARDS):/i.test(rawValue) ||
+          /^KW-/i.test(value);
+
+        if (!isKweiderCode) {
+          message('staffMessage', 'This is not a Kweider Rewards QR code. Please scan the customer membership card.', 'error');
+          return;
+        }
+
+        scanHandled = true;
+        $('memberSearch').value = value;
+
+        try {
+          await stopCamera();
+          await findMember(value);
+        } catch (error) {
+          resetMember();
+          message('staffMessage', error.message || 'The membership QR code could not be opened.', 'error');
+        }
+      };
+
+      try {
+        await qrScanner.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: (viewfinderWidth, viewfinderHeight) => {
+              const size = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.72);
+              const safeSize = Math.max(180, Math.min(size, 320));
+              return { width: safeSize, height: safeSize };
+            },
+            aspectRatio: 1.333334,
+            disableFlip: false
+          },
+          onScanSuccess,
+          () => {}
+        );
+
+        message('staffMessage', 'Camera ready. Point it at the customer QR code.', 'info');
+      } catch (error) {
+        await stopCamera();
+
+        const text = String(error?.message || error || '').toLowerCase();
+        let userMessage = 'Could not open the camera. Allow camera permission, then try again.';
+
+        if (text.includes('notallowed') || text.includes('permission')) {
+          userMessage = 'Camera permission was blocked. Allow camera access for this site in the browser settings, then try again.';
+        } else if (text.includes('notfound') || text.includes('requested device not found')) {
+          userMessage = 'No usable rear camera was found on this device.';
+        } else if (text.includes('notreadable') || text.includes('trackstart')) {
+          userMessage = 'The camera is being used by another app. Close other camera apps and try again.';
+        }
+
+        message('staffMessage', userMessage, 'error');
+      }
+    });
+
+    window.addEventListener('pagehide', () => {
+      stopCamera();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && scanning) stopCamera();
+    });
+
+    async function start() {
+      if (!hasConfiguration()) {
+        $('loginCard').classList.add('hidden');
+        $('configurationCard').classList.remove('hidden');
+        return;
+      }
+
+      loadSession();
+      if (!session?.access_token) return;
+
+      try {
+        const data = await apiRequest({ action: 'staff_me' });
+        staff = data.staff;
+        renderStaff();
+      } catch {
+        saveSession(null);
+      }
+    }
+
+    start();
+  </script>
+</body>
+</html>

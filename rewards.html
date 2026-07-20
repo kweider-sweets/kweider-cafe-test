@@ -1,72 +1,481 @@
-<!doctype html><html lang="en" dir="ltr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#000000"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Kweider"><title>Kweider Rewards</title><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png"><link rel="stylesheet" href="assets/css/app-shell.css"></head><body class="app-page"><div id="appLoading" class="loading-layer"><img src="logo.webp" alt="Kweider"></div><main class="app-shell"><div class="app-topbar"><a href="index.html" class="app-brand"><img src="logo.webp" alt="Kweider"><span class="demo-badge">REWARDS</span></a><a href="index.html" class="app-back">← Menu</a></div><header class="page-heading"><h1>Kweider Rewards</h1><p>Earn one point for every £1 spent. Every 100 points unlocks a £5 reward.</p><p dir="rtl">اكسب نقطة مقابل كل جنيه إسترليني. كل 100 نقطة تمنحك مكافأة بقيمة 5 باوند.</p></header><section id="registrationCard" class="app-card"><h2 id="formTitle">Join or open your membership</h2><p id="formHelp" style="color:#bbb;line-height:1.6">Use the same phone number each time. UK numbers may be entered as 07, +44 or 0044.</p><form id="memberForm"><div class="form-grid"><div class="field"><label>First name *</label><input id="firstName" autocomplete="given-name" required maxlength="50"></div><div class="field"><label>Phone number *</label><input id="phone" type="tel" autocomplete="tel" required placeholder="+44..."></div><div class="field"><label>Email (optional)</label><input id="email" type="email" autocomplete="email"></div><div class="field"><label>Birthday (optional)</label><input id="birthday" type="date"></div><label class="consent-row field full"><input id="marketingConsent" type="checkbox"><span>I agree to receive Kweider offers by SMS, WhatsApp or email. I can withdraw this consent at any time.</span></label></div><div class="form-actions"><button class="primary-btn" type="submit" id="submitMember">Create / Open Card</button><button class="ghost-btn" type="button" id="showCurrent">My saved card</button><button class="ghost-btn hidden" type="button" id="cancelForm">Cancel</button></div></form><div id="formMessage"></div></section><section id="membershipArea" class="hidden"><div class="loyalty-card"><div class="loyalty-head"><img src="logo.webp" alt="Kweider"><div class="loyalty-tier">KWEIDER<br>REWARDS</div></div><div id="memberName" class="member-name"></div><div id="memberId" class="member-id"></div><div class="points-panel"><div class="metric"><strong id="memberPoints">0</strong><span>POINTS · النقاط</span></div><div class="metric"><strong id="rewardAvailable">£0</strong><span>AVAILABLE · متاح</span></div></div></div><div class="app-card"><h3>Next reward</h3><div class="reward-progress"><span id="rewardProgress"></span></div><p id="progressText" style="color:#ccc;text-align:center"></p><div id="qrCode" class="qr-wrap"></div><div class="qr-caption">Show this QR code to a member of staff at checkout.<br><span dir="rtl">أظهر رمز العضوية للموظف عند الدفع.</span></div></div><div class="app-card"><h3>Recent activity</h3><ul id="transactions" class="transaction-list"></ul></div><div class="app-card"><h3>Your details</h3><div id="profileDetails" style="line-height:1.9;color:#ddd;direction:ltr"></div><div class="form-actions"><button class="ghost-btn" id="editProfile">Edit details</button><button class="ghost-btn" id="switchMembership">Switch membership · تبديل العضوية</button></div></div></section><div id="installToast" class="install-toast hidden"><span><strong>Install Kweider</strong><br>Add the menu and rewards card to your home screen.</span><button class="gold-btn" data-install-app>Install</button></div></main><nav class="bottom-nav"><a href="index.html">Menu · المنيو</a><a href="rewards.html" class="active">Rewards · الولاء</a></nav><script src="assets/vendor/qrcode-local.js"></script><script src="assets/js/loyalty-service.js?v=2.0.0"></script><script src="assets/js/app-shell.js"></script><script>
-const $=id=>document.getElementById(id);
-let active=null;
-let formMode='open';
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kweider">
+  <title>Kweider Rewards</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="assets/css/app-shell.css">
+</head>
+<body class="app-page">
+  <div id="appLoading" class="loading-layer">
+    <img src="logo.webp" alt="Kweider">
+  </div>
 
-function msg(text,type='info'){$('formMessage').innerHTML=`<div class="notice ${type}">${text}</div>`}
-function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-function clearForm(){$('memberForm').reset();$('formMessage').innerHTML=''}
-function showForm(mode='open'){
-  formMode=mode;
-  $('registrationCard').classList.remove('hidden');
-  $('membershipArea').classList.add('hidden');
-  $('cancelForm').classList.toggle('hidden',mode==='open'&&!active);
-  if(mode==='edit'&&active){
-    $('formTitle').textContent='Edit your membership details';
-    $('formHelp').textContent='Your member ID and points will stay unchanged.';
-    $('submitMember').textContent='Save changes';
-    $('firstName').value=active.firstName||'';
-    $('phone').value=active.phone||'';
-    $('email').value=active.email||'';
-    $('birthday').value=active.birthday||'';
-    $('marketingConsent').checked=!!active.marketingConsent;
-  }else{
-    clearForm();
-    $('formTitle').textContent='Join or open your membership';
-    $('formHelp').textContent='Use the same phone number each time. UK numbers may be entered as 07, +44 or 0044.';
-    $('submitMember').textContent='Create / Open Card';
-  }
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-function render(m){
-  if(!m||!m.id){showForm('open');msg('No membership is saved on this device yet.','info');return}
-  active=m;
-  $('registrationCard').classList.add('hidden');
-  $('membershipArea').classList.remove('hidden');
-  $('memberName').textContent=m.firstName;
-  $('memberId').textContent=m.id;
-  $('memberPoints').textContent=m.points||0;
-  const rewardCount=Math.floor((m.points||0)/KweiderRewards.settings.pointsPerReward);
-  $('rewardAvailable').textContent=`£${rewardCount*KweiderRewards.settings.rewardValue}`;
-  const toward=(m.points||0)%KweiderRewards.settings.pointsPerReward;
-  $('rewardProgress').style.width=`${toward}%`;
-  $('progressText').textContent=rewardCount?`${rewardCount} reward${rewardCount>1?'s':''} available. ${100-toward} points to the next reward.`:`${100-toward} points to your first £5 reward.`;
-  $('profileDetails').innerHTML=`<strong>Phone:</strong> ${esc(m.phone)}<br><strong>Email:</strong> ${esc(m.email||'—')}<br><strong>Birthday:</strong> ${esc(m.birthday||'—')}<br><strong>Marketing:</strong> ${m.marketingConsent?'Opted in':'Not opted in'}`;
-  const list=(m.transactions||[]).slice(0,10);
-  $('transactions').innerHTML=list.length?list.map(t=>`<li><div class="transaction-main"><strong>${esc(t.label)}</strong><span>${new Date(t.createdAt).toLocaleString('en-GB')}${t.receipt?` · Receipt ${esc(t.receipt)}`:''}</span></div><div class="tx-points ${(t.points||0)>=0?'positive':'negative'}">${(t.points||0)>0?'+':''}${t.points||0}</div></li>`).join(''):'<li>No activity yet.</li>';
-  $('qrCode').innerHTML='';
-  if(window.QRCode)new QRCode($('qrCode'),{text:`KWEIDER-LOYALTY:${m.id}`,width:190,height:190,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
-  else $('qrCode').innerHTML=`<div style="color:#000;padding:20px">${esc(m.id)}</div>`;
-}
+  <main class="app-shell">
+    <div class="app-topbar">
+      <a href="index.html" class="app-brand">
+        <img src="logo.webp" alt="Kweider">
+        <span class="demo-badge">REWARDS</span>
+      </a>
+      <a href="index.html" class="app-back">← Menu</a>
+    </div>
 
-$('memberForm').addEventListener('submit',e=>{
-  e.preventDefault();
-  try{
-    const payload={firstName:$('firstName').value,phone:$('phone').value,email:$('email').value,birthday:$('birthday').value,marketingConsent:$('marketingConsent').checked};
-    const member=formMode==='edit'&&active?KweiderRewards.updateMember(active.id,payload):KweiderRewards.register(payload);
-    render(member);
-  }catch(err){msg(esc(err.message),'error')}
-});
-$('showCurrent').onclick=()=>render(KweiderRewards.getCurrent());
-$('editProfile').onclick=()=>showForm('edit');
-$('switchMembership').onclick=()=>showForm('switch');
-$('cancelForm').onclick=()=>active?render(KweiderRewards.getMember(active.id)):showForm('open');
+    <header class="page-heading">
+      <h1>Kweider Rewards</h1>
+      <p>Earn one point for every £1 spent. Every 100 points unlocks a £5 reward.</p>
+      <p dir="rtl">اكسب نقطة مقابل كل جنيه إسترليني. كل 100 نقطة تمنحك مكافأة بقيمة 5 باوند.</p>
+    </header>
 
-document.addEventListener('DOMContentLoaded',()=>{
-  const member=KweiderRewards.getCurrent();
-  if(member&&member.id)render(member);else showForm('open');
-});
-function refreshActive(){if(active&&active.id){const fresh=KweiderRewards.getMember(active.id);if(fresh)render(fresh)}}
-window.addEventListener('storage',refreshActive);
-window.addEventListener('kweider-rewards-updated',refreshActive);
-</script></body></html>
+    <section id="registrationCard" class="app-card hidden">
+      <h2>Join Kweider Rewards</h2>
+      <p style="color:#bbb;line-height:1.6">
+        Create your membership once. Your secure card will then be saved on this device.
+      </p>
+
+      <form id="memberForm">
+        <div class="form-grid">
+          <div class="field">
+            <label>First name *</label>
+            <input id="firstName" autocomplete="given-name" required maxlength="50">
+          </div>
+
+          <div class="field">
+            <label>Phone number *</label>
+            <input id="phone" type="tel" autocomplete="tel" required placeholder="+44...">
+          </div>
+
+          <div class="field">
+            <label>Email (optional)</label>
+            <input id="email" type="email" autocomplete="email">
+          </div>
+
+          <div class="field">
+            <label>Birthday (optional)</label>
+            <input id="birthday" type="date">
+          </div>
+
+          <label class="consent-row field full">
+            <input id="marketingConsent" type="checkbox">
+            <span>
+              I agree to receive Kweider offers by SMS, WhatsApp or email.
+              I can withdraw this consent at any time.
+            </span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button class="primary-btn" type="submit" id="submitMember">Create Card</button>
+          <button class="ghost-btn" type="button" id="showCurrent">My saved card</button>
+        </div>
+      </form>
+
+      <div id="formMessage"></div>
+    </section>
+
+    <section id="membershipArea" class="hidden">
+      <div class="loyalty-card">
+        <div class="loyalty-head">
+          <img src="logo.webp" alt="Kweider">
+          <div class="loyalty-tier">KWEIDER<br>REWARDS</div>
+        </div>
+
+        <div id="memberName" class="member-name"></div>
+        <div id="memberId" class="member-id"></div>
+
+        <div class="points-panel">
+          <div class="metric">
+            <strong id="memberPoints">0</strong>
+            <span>POINTS · النقاط</span>
+          </div>
+          <div class="metric">
+            <strong id="rewardAvailable">£0</strong>
+            <span>AVAILABLE · متاح</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="cardMessage"></div>
+
+      <div class="app-card">
+        <h3>Next reward</h3>
+        <div class="reward-progress"><span id="rewardProgress"></span></div>
+        <p id="progressText" style="color:#ccc;text-align:center"></p>
+
+        <div id="qrCode" class="qr-wrap"></div>
+        <div class="qr-caption">
+          Show this QR code to a member of staff at checkout.<br>
+          <span dir="rtl">أظهر رمز العضوية للموظف عند الدفع.</span>
+        </div>
+
+        <div class="form-actions" style="justify-content:center">
+          <button class="ghost-btn" type="button" id="refreshCard">Refresh card</button>
+        </div>
+      </div>
+
+      <div class="app-card">
+        <h3>Recent activity</h3>
+        <ul id="transactions" class="transaction-list"></ul>
+      </div>
+
+      <div class="app-card">
+        <h3>Your details</h3>
+        <div id="profileDetails" style="line-height:1.9;color:#ddd;direction:ltr"></div>
+        <p style="color:#aaa;line-height:1.6">
+          Ask a member of staff if any membership details need to be corrected.
+        </p>
+        <div class="form-actions">
+          <button class="ghost-btn" type="button" id="switchMembership">
+            Remove saved card from this device
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div id="installToast" class="install-toast hidden">
+      <span>
+        <strong>Install Kweider</strong><br>
+        Add the menu and rewards card to your home screen.
+      </span>
+      <button class="gold-btn" data-install-app>Install</button>
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <a href="index.html">Menu · المنيو</a>
+    <a href="rewards.html" class="active">Rewards · الولاء</a>
+  </nav>
+
+  <script src="assets/vendor/qrcode-local.js"></script>
+  <script src="assets/js/app-shell.js"></script>
+  <script>
+    'use strict';
+
+    const SUPABASE_URL = 'https://fwjiceleybxhgetsvsvp.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_yNgSShCyeQ6FfSy30T6-hg_9dLXXpwk';
+    const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/kweider-rewards-api`;
+    const MEMBER_TOKEN_KEY = 'kweiderRewards.memberToken.v1';
+
+    const $ = id => document.getElementById(id);
+
+    let activeBundle = null;
+    let requestInProgress = false;
+
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[char]));
+    }
+
+    function notice(targetId, text, type = 'info') {
+      $(targetId).innerHTML = text
+        ? `<div class="notice ${type}">${esc(text)}</div>`
+        : '';
+    }
+
+    function setLoading(isLoading) {
+      requestInProgress = isLoading;
+      $('submitMember').disabled = isLoading;
+      $('showCurrent').disabled = isLoading;
+      $('refreshCard').disabled = isLoading;
+      $('switchMembership').disabled = isLoading;
+    }
+
+    async function callApi(payload) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      try {
+        const response = await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error('The rewards service returned an invalid response.');
+        }
+
+        if (!response.ok || data.ok === false) {
+          const error = new Error(data.message || 'The rewards request could not be completed.');
+          error.code = data.code || 'request_failed';
+          error.status = response.status;
+          throw error;
+        }
+
+        return data;
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          throw new Error('The rewards service took too long to respond. Please try again.');
+        }
+        throw error;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+
+    function showRegistration(message = '', type = 'info') {
+      activeBundle = null;
+      $('membershipArea').classList.add('hidden');
+      $('registrationCard').classList.remove('hidden');
+      notice('formMessage', message, type);
+    }
+
+    function transactionTitle(transaction) {
+      if (transaction.type === 'earn') {
+        const amount = Number(transaction.purchaseAmount || 0);
+        return amount > 0 ? `Purchase points · £${amount.toFixed(2)}` : 'Purchase points';
+      }
+
+      if (transaction.type === 'redeem') {
+        const value = Number(transaction.rewardValue || 0);
+        return value > 0 ? `Reward redeemed · £${value.toFixed(2)}` : 'Reward redeemed';
+      }
+
+      if (transaction.type === 'welcome') {
+        return 'Welcome to Kweider Rewards';
+      }
+
+      return transaction.notes || 'Rewards activity';
+    }
+
+    function render(bundle) {
+      if (!bundle || !bundle.member) {
+        showRegistration('The membership card could not be loaded.', 'error');
+        return;
+      }
+
+      activeBundle = bundle;
+
+      const member = bundle.member;
+      const settings = bundle.settings || {
+        pointsPerPound: 1,
+        pointsPerReward: 100,
+        rewardValue: 5
+      };
+
+      const points = Number(member.points || 0);
+      const pointsPerReward = Math.max(1, Number(settings.pointsPerReward || 100));
+      const rewardValue = Number(settings.rewardValue || 5);
+      const availableRewards = Number.isFinite(Number(member.availableRewards))
+        ? Number(member.availableRewards)
+        : Math.floor(points / pointsPerReward);
+      const availableValue = Number.isFinite(Number(member.availableRewardValue))
+        ? Number(member.availableRewardValue)
+        : availableRewards * rewardValue;
+      const towardNext = points % pointsPerReward;
+      const remaining = towardNext === 0 ? pointsPerReward : pointsPerReward - towardNext;
+      const progressPercent = (towardNext / pointsPerReward) * 100;
+
+      $('registrationCard').classList.add('hidden');
+      $('membershipArea').classList.remove('hidden');
+
+      $('memberName').textContent = member.firstName || 'Kweider Member';
+      $('memberId').textContent = member.memberCode || '';
+      $('memberPoints').textContent = points;
+      $('rewardAvailable').textContent = `£${availableValue.toFixed(0)}`;
+      $('rewardProgress').style.width = `${progressPercent}%`;
+
+      if (availableRewards > 0) {
+        $('progressText').textContent =
+          `${availableRewards} reward${availableRewards === 1 ? '' : 's'} available. ` +
+          `${remaining} points to the next £${rewardValue.toFixed(0)} reward.`;
+      } else {
+        $('progressText').textContent =
+          `${remaining} points to your first £${rewardValue.toFixed(0)} reward.`;
+      }
+
+      $('profileDetails').innerHTML =
+        `<strong>Phone:</strong> ${esc(member.phone || '—')}<br>` +
+        `<strong>Email:</strong> ${esc(member.email || '—')}<br>` +
+        `<strong>Birthday:</strong> ${esc(member.birthday || '—')}<br>` +
+        `<strong>Marketing:</strong> ${member.marketingConsent ? 'Opted in' : 'Not opted in'}`;
+
+      const transactions = Array.isArray(bundle.transactions)
+        ? bundle.transactions.slice(0, 10)
+        : [];
+
+      $('transactions').innerHTML = transactions.length
+        ? transactions.map(transaction => {
+            const pointsDelta = Number(transaction.pointsDelta || 0);
+            const dateText = transaction.createdAt
+              ? new Date(transaction.createdAt).toLocaleString('en-GB')
+              : '';
+            const extra = [
+              transaction.receiptReference ? `Receipt ${transaction.receiptReference}` : '',
+              transaction.performedByName || '',
+              dateText
+            ].filter(Boolean).join(' · ');
+
+            return `
+              <li>
+                <div class="transaction-main">
+                  <strong>${esc(transactionTitle(transaction))}</strong>
+                  <span>${esc(extra || transaction.notes || '')}</span>
+                </div>
+                <div class="tx-points ${pointsDelta >= 0 ? 'positive' : 'negative'}">
+                  ${pointsDelta > 0 ? '+' : ''}${pointsDelta}
+                </div>
+              </li>
+            `;
+          }).join('')
+        : '<li>No activity yet.</li>';
+
+      $('qrCode').innerHTML = '';
+      const qrText = `KWEIDER-LOYALTY:${member.memberCode}`;
+
+      if (window.QRCode && member.memberCode) {
+        new QRCode($('qrCode'), {
+          text: qrText,
+          width: 190,
+          height: 190,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      } else {
+        $('qrCode').innerHTML =
+          `<div style="color:#000;padding:20px">${esc(member.memberCode || '')}</div>`;
+      }
+
+      notice('cardMessage', '', 'info');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function loadSavedCard(showMissingMessage = true) {
+      const token = localStorage.getItem(MEMBER_TOKEN_KEY);
+
+      if (!token) {
+        showRegistration(
+          showMissingMessage ? 'No rewards card is saved on this device yet.' : '',
+          'info'
+        );
+        return;
+      }
+
+      setLoading(true);
+      notice('cardMessage', 'Refreshing your rewards card…', 'info');
+
+      try {
+        const result = await callApi({
+          action: 'get_card',
+          token
+        });
+        render(result);
+      } catch (error) {
+        if (
+          error.code === 'invalid_card_token' ||
+          error.code === 'membership_unavailable'
+        ) {
+          localStorage.removeItem(MEMBER_TOKEN_KEY);
+          showRegistration(
+            'The saved card on this device is no longer valid. Please ask a member of staff for assistance.',
+            'error'
+          );
+        } else {
+          if (activeBundle) {
+            notice('cardMessage', error.message, 'error');
+          } else {
+            showRegistration(error.message, 'error');
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    $('memberForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      if (requestInProgress) return;
+
+      const payload = {
+        action: 'create_member',
+        firstName: $('firstName').value.trim(),
+        phone: $('phone').value.trim(),
+        email: $('email').value.trim() || null,
+        birthday: $('birthday').value || null,
+        marketingConsent: $('marketingConsent').checked
+      };
+
+      setLoading(true);
+      notice('formMessage', 'Creating your secure rewards card…', 'info');
+
+      try {
+        const result = await callApi(payload);
+
+        if (!result.token) {
+          throw new Error('The secure membership token was not returned.');
+        }
+
+        localStorage.setItem(MEMBER_TOKEN_KEY, result.token);
+        $('memberForm').reset();
+        render(result);
+      } catch (error) {
+        if (error.code === 'member_exists') {
+          notice(
+            'formMessage',
+            'A membership already exists for this phone number. Use “My saved card” on the device where it was created, or ask a member of staff for assistance.',
+            'error'
+          );
+        } else {
+          notice('formMessage', error.message, 'error');
+        }
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    $('showCurrent').addEventListener('click', () => loadSavedCard(true));
+    $('refreshCard').addEventListener('click', () => loadSavedCard(false));
+
+    $('switchMembership').addEventListener('click', () => {
+      const confirmed = confirm(
+        'Remove this rewards card from this device? This does not delete the membership, but you may need staff assistance to reopen it later.'
+      );
+
+      if (!confirmed) return;
+
+      localStorage.removeItem(MEMBER_TOKEN_KEY);
+      $('memberForm').reset();
+      showRegistration('The saved card was removed from this device.', 'ok');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && activeBundle && !requestInProgress) {
+        loadSavedCard(false);
+      }
+    });
+
+    window.addEventListener('storage', event => {
+      if (event.key === MEMBER_TOKEN_KEY && !requestInProgress) {
+        loadSavedCard(false);
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        await loadSavedCard(false);
+      } finally {
+        $('appLoading').classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
