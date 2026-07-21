@@ -130,15 +130,27 @@
     </div>
   </div>
 
-  <div
-    id="memberMessages"
-    style="
-      margin-top:18px;
-      display:grid;
-      gap:12px;
-    "
-  ></div>
+<div
+  id="messageActions"
+  class="form-actions"
+  style="justify-content:flex-end;margin-top:14px"
+>
+  <button
+    id="markMessagesRead"
+    class="ghost-btn"
+    type="button"
+  >
+    Mark all as read
+  </button>
 </div>
+    <div
+  id="memberMessages"
+  style="
+    margin-top:18px;
+    display:grid;
+    gap:12px;
+  "
+></div>
 
       <div class="app-card">
         <h3>Next reward</h3>
@@ -226,6 +238,7 @@
       $('showCurrent').disabled = isLoading;
       $('refreshCard').disabled = isLoading;
       $('switchMembership').disabled = isLoading;
+           $('markMessagesRead').disabled = isLoading;
     }
 
     async function callApi(payload) {
@@ -660,6 +673,45 @@ $('memberMessages').innerHTML = memberMessages.length
 
     $('showCurrent').addEventListener('click', () => loadSavedCard(true));
     $('refreshCard').addEventListener('click', () => loadSavedCard(false));
+$('markMessagesRead').addEventListener('click', async () => {
+  if (requestInProgress) return;
+
+  const token = localStorage.getItem(MEMBER_TOKEN_KEY);
+
+  if (!token) {
+    showRegistration(
+      'No rewards card is saved on this device.',
+      'error'
+    );
+    return;
+  }
+
+  setLoading(true);
+  notice('cardMessage', 'Updating your messages…', 'info');
+
+  try {
+    const result = await callApi({
+      action: 'mark_messages_read',
+      token
+    });
+
+    render(result);
+
+    notice(
+      'cardMessage',
+      'All messages have been marked as read.',
+      'ok'
+    );
+  } catch (error) {
+    notice(
+      'cardMessage',
+      error.message || 'The messages could not be updated.',
+      'error'
+    );
+  } finally {
+    setLoading(false);
+  }
+});
 
     $('switchMembership').addEventListener('click', () => {
       const confirmed = confirm(
