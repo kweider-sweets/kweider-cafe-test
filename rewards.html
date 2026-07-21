@@ -417,6 +417,8 @@ $('messageBadge').textContent =
 
 $('messageBadge').style.display =
   unreadMessageCount > 0 ? 'flex' : 'none';
+$('messageActions').style.display =
+  unreadMessageCount > 0 ? 'flex' : 'none';
 
 $('memberMessages').innerHTML = memberMessages.length
   ? memberMessages.slice(0, 10).map(message => {
