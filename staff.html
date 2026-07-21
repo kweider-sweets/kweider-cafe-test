@@ -379,27 +379,84 @@
         return Number.isFinite(expiryTime) && expiryTime > Date.now();
       }
 
+      function embeddedDefinitionOf(reward) {
+        const embedded = readField(
+          reward,
+          "definition",
+          "rewardDefinition",
+          "reward_definition",
+        );
+        return embedded && typeof embedded === "object" ? embedded : null;
+      }
+
       function rewardCodeOf(reward) {
-        return String(readField(reward, "rewardCode", "reward_code") || "");
+        const embedded = embeddedDefinitionOf(reward);
+        return String(
+          readField(reward, "rewardCode", "reward_code", "code") ||
+            readField(embedded, "code") ||
+            "",
+        );
+      }
+
+      function rewardDefinitionIdOf(reward) {
+        const embedded = embeddedDefinitionOf(reward);
+        return String(
+          readField(
+            reward,
+            "rewardDefinitionId",
+            "reward_definition_id",
+            "definitionId",
+            "definition_id",
+          ) ||
+            readField(embedded, "id") ||
+            "",
+        );
       }
 
       function definitionCodeOf(definition) {
         return String(readField(definition, "code") || "");
       }
 
+      function definitionIdOf(definition) {
+        return String(readField(definition, "id") || "");
+      }
+
       function definitionForReward(reward) {
+        const embedded = embeddedDefinitionOf(reward);
+        if (embedded) return embedded;
+
+        const definitionId = rewardDefinitionIdOf(reward);
+        if (definitionId) {
+          const byId = rewardDefinitions.find(
+            (definition) => definitionIdOf(definition) === definitionId,
+          );
+          if (byId) return byId;
+        }
+
         const code = rewardCodeOf(reward);
-        return (
-          rewardDefinitions.find(
+        if (code) {
+          const byCode = rewardDefinitions.find(
             (definition) => definitionCodeOf(definition) === code,
-          ) || null
-        );
+          );
+          if (byCode) return byCode;
+        }
+
+        return null;
       }
 
       function rewardTitle(definition, reward = null) {
+        const code =
+          definitionCodeOf(definition) || rewardCodeOf(reward);
+        const fallbackTitles = {
+          discount_3: "3% Off",
+          discount_5: "5% Off",
+          breakfast_for_two: "Selected Breakfast for Two",
+        };
+
         return String(
           readField(definition, "titleEn", "title_en") ||
-            rewardCodeOf(reward) ||
+            fallbackTitles[code] ||
+            code ||
             "Reward",
         );
       }
@@ -654,18 +711,35 @@
         const select = $("memberReward");
         select.innerHTML = "";
 
-        const definitionMap = new Map(
-          (definitions || []).map((definition) => [
-            definitionCodeOf(definition),
-            definition,
-          ]),
-        );
+        const lookupDefinitions = Array.isArray(definitions)
+          ? definitions
+          : [];
+
+        const findDefinition = (reward) => {
+          const embedded = embeddedDefinitionOf(reward);
+          if (embedded) return embedded;
+
+          const definitionId = rewardDefinitionIdOf(reward);
+          if (definitionId) {
+            const byId = lookupDefinitions.find(
+              (definition) => definitionIdOf(definition) === definitionId,
+            );
+            if (byId) return byId;
+          }
+
+          const code = rewardCodeOf(reward);
+          return (
+            lookupDefinitions.find(
+              (definition) => definitionCodeOf(definition) === code,
+            ) || null
+          );
+        };
 
         const availableRewards = (rewards || [])
           .filter(isRewardAvailable)
           .sort((left, right) => {
-            const leftDefinition = definitionMap.get(rewardCodeOf(left));
-            const rightDefinition = definitionMap.get(rewardCodeOf(right));
+            const leftDefinition = findDefinition(left);
+            const rightDefinition = findDefinition(right);
             return (
               Number(
                 readField(
@@ -694,7 +768,7 @@
         }
 
         availableRewards.forEach((reward) => {
-          const definition = definitionMap.get(rewardCodeOf(reward)) || null;
+          const definition = findDefinition(reward);
           const title = rewardTitle(definition, reward);
           const expiresAt = readField(reward, "expiresAt", "expires_at");
           const expiryTime = expiresAt ? new Date(expiresAt).getTime() : NaN;
@@ -754,9 +828,16 @@
         memberTransactions = Array.isArray(bundle.transactions)
           ? bundle.transactions
           : [];
-        memberRewards = Array.isArray(bundle.rewards) ? bundle.rewards : [];
-        rewardDefinitions = Array.isArray(bundle.rewardDefinitions)
-          ? bundle.rewardDefinitions
+        const rewardsPayload =
+          bundle.rewards || bundle.memberRewards || bundle.member_rewards;
+        const definitionsPayload =
+          bundle.rewardDefinitions ||
+          bundle.reward_definitions ||
+          bundle.definitions;
+
+        memberRewards = Array.isArray(rewardsPayload) ? rewardsPayload : [];
+        rewardDefinitions = Array.isArray(definitionsPayload)
+          ? definitionsPayload
           : [];
         settings = bundle.settings || settings;
 
@@ -1012,8 +1093,12 @@ Discount to apply: £${discount.toFixed(2)}.`;
           $("redeemPurchaseAmount").value = "";
           $("redeemReceipt").value = "";
 
-          const redeemedKind = String(operation.rewardKind || kind);
-          const redeemedValue = Number(operation.rewardValue || 0);
+          const redeemedKind = String(
+            readField(operation, "rewardKind", "reward_kind") || kind,
+          );
+          const redeemedValue = Number(
+            readField(operation, "rewardValue", "reward_value") || 0,
+          );
           const duplicateText = operation.idempotent
             ? " This request had already been completed."
             : "";

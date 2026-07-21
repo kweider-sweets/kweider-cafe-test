@@ -274,12 +274,87 @@
         return null;
       }
 
+      function embeddedDefinitionOf(reward) {
+        const embedded = readField(
+          reward,
+          "definition",
+          "rewardDefinition",
+          "reward_definition",
+        );
+        return embedded && typeof embedded === "object" ? embedded : null;
+      }
+
       function rewardCodeOf(reward) {
-        return String(readField(reward, "rewardCode", "reward_code") || "");
+        const embedded = embeddedDefinitionOf(reward);
+        return String(
+          readField(reward, "rewardCode", "reward_code", "code") ||
+            readField(embedded, "code") ||
+            "",
+        );
+      }
+
+      function rewardDefinitionIdOf(reward) {
+        const embedded = embeddedDefinitionOf(reward);
+        return String(
+          readField(
+            reward,
+            "rewardDefinitionId",
+            "reward_definition_id",
+            "definitionId",
+            "definition_id",
+          ) ||
+            readField(embedded, "id") ||
+            "",
+        );
       }
 
       function definitionCodeOf(definition) {
         return String(readField(definition, "code") || "");
+      }
+
+      function definitionIdOf(definition) {
+        return String(readField(definition, "id") || "");
+      }
+
+      function definitionForReward(reward, definitions) {
+        const embedded = embeddedDefinitionOf(reward);
+        if (embedded) return embedded;
+
+        const definitionId = rewardDefinitionIdOf(reward);
+        if (definitionId) {
+          const byId = definitions.find(
+            (definition) => definitionIdOf(definition) === definitionId,
+          );
+          if (byId) return byId;
+        }
+
+        const code = rewardCodeOf(reward);
+        if (code) {
+          return (
+            definitions.find(
+              (definition) => definitionCodeOf(definition) === code,
+            ) || null
+          );
+        }
+
+        return null;
+      }
+
+      function rewardTitle(definition, reward = null) {
+        const code =
+          definitionCodeOf(definition) || rewardCodeOf(reward);
+        const fallbackTitles = {
+          discount_3: "3% Off",
+          discount_5: "5% Off",
+          breakfast_for_two: "Selected Breakfast for Two",
+        };
+
+        return String(
+          readField(definition, "titleEn", "title_en") ||
+            fallbackTitles[code] ||
+            code ||
+            "Reward",
+        );
       }
 
       function isAvailableReward(reward) {
@@ -391,8 +466,15 @@
 
         const member = bundle.member;
         const points = Number(member.points || 0);
-        const rewardDefinitions = Array.isArray(bundle.rewardDefinitions)
-          ? [...bundle.rewardDefinitions].sort(
+        const definitionsPayload =
+          bundle.rewardDefinitions ||
+          bundle.reward_definitions ||
+          bundle.definitions;
+        const rewardsPayload =
+          bundle.rewards || bundle.memberRewards || bundle.member_rewards;
+
+        const rewardDefinitions = Array.isArray(definitionsPayload)
+          ? [...definitionsPayload].sort(
               (left, right) =>
                 Number(
                   readField(left, "thresholdPoints", "threshold_points") || 0,
@@ -402,16 +484,10 @@
                 ),
             )
           : [];
-        const memberRewards = Array.isArray(bundle.rewards)
-          ? bundle.rewards
+        const memberRewards = Array.isArray(rewardsPayload)
+          ? rewardsPayload
           : [];
         const availableRewards = memberRewards.filter(isAvailableReward);
-        const definitionMap = new Map(
-          rewardDefinitions.map((definition) => [
-            definitionCodeOf(definition),
-            definition,
-          ]),
-        );
 
         const nextReward =
           rewardDefinitions.find(
@@ -495,12 +571,8 @@
           ? availableRewards
               .map((reward) => {
                 const definition =
-                  definitionMap.get(rewardCodeOf(reward)) || {};
-                const titleEn = String(
-                  readField(definition, "titleEn", "title_en") ||
-                    rewardCodeOf(reward) ||
-                    "Reward",
-                );
+                  definitionForReward(reward, rewardDefinitions) || {};
+                const titleEn = rewardTitle(definition, reward);
                 const titleAr = String(
                   readField(definition, "titleAr", "title_ar") || "",
                 );
