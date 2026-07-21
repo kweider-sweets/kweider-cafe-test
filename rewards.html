@@ -1,752 +1,814 @@
 <!doctype html>
 <html lang="en" dir="ltr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#000000">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Kweider">
-  <title>Kweider Rewards</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="assets/css/app-shell.css">
-</head>
-<body class="app-page">
-  <div id="appLoading" class="loading-layer">
-    <img src="logo.webp" alt="Kweider">
-  </div>
-
-  <main class="app-shell">
-    <div class="app-topbar">
-      <a href="index.html" class="app-brand">
-        <img src="logo.webp" alt="Kweider">
-        <span class="demo-badge">REWARDS</span>
-      </a>
-      <a href="index.html" class="app-back">← Menu</a>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Kweider" />
+    <title>Kweider Rewards</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="assets/css/app-shell.css" />
+  </head>
+  <body class="app-page">
+    <div id="appLoading" class="loading-layer">
+      <img src="logo.webp" alt="Kweider" />
     </div>
 
-    <header class="page-heading">
-      <h1>Kweider Rewards</h1>
-      <p>Collect points. Unlock delicious rewards.</p>
-      <p dir="rtl">اجمع نقاطك واستمتع بمكافآت قيمة</p>
-    </header>
-
-    <section id="registrationCard" class="app-card hidden">
-      <h2>Join Kweider Rewards</h2>
-      <p style="color:#bbb;line-height:1.6">
-        Create your membership once. Your secure card will then be saved on this device.
-      </p>
-
-      <form id="memberForm">
-        <div class="form-grid">
-          <div class="field">
-            <label>First name *</label>
-            <input id="firstName" autocomplete="given-name" required maxlength="50">
-          </div>
-
-          <div class="field">
-            <label>Phone number *</label>
-            <input id="phone" type="tel" autocomplete="tel" required placeholder="+44...">
-          </div>
-
-          <div class="field">
-            <label>Email (optional)</label>
-            <input id="email" type="email" autocomplete="email">
-          </div>
-
-          <div class="field">
-            <label>Birthday (optional)</label>
-            <input id="birthday" type="date">
-          </div>
-
-          <label class="consent-row field full">
-            <input id="marketingConsent" type="checkbox">
-            <span>
-              I agree to receive Kweider offers by SMS, WhatsApp or email.
-              I can withdraw this consent at any time.
-            </span>
-          </label>
-        </div>
-
-        <div class="form-actions">
-          <button class="primary-btn" type="submit" id="submitMember">Create Card</button>
-          <button class="ghost-btn" type="button" id="showCurrent">My saved card</button>
-        </div>
-      </form>
-
-      <div id="formMessage"></div>
-    </section>
-
-    <section id="membershipArea" class="hidden">
-      <div class="loyalty-card">
-        <div class="loyalty-head">
-          <img src="logo.webp" alt="Kweider">
-          <div class="loyalty-tier">KWEIDER<br>REWARDS</div>
-        </div>
-
-        <div id="memberName" class="member-name"></div>
-        <div id="memberId" class="member-id"></div>
-
-        <div class="points-panel">
-          <div class="metric">
-            <strong id="memberPoints">0</strong>
-            <span>POINTS · النقاط</span>
-          </div>
-          <div class="metric">
-            <strong id="rewardAvailable">0</strong>
-            <span>REWARDS · المكافآت</span>
-          </div>
-        </div>
+    <main class="app-shell">
+      <div class="app-topbar">
+        <a href="index.html" class="app-brand">
+          <img src="logo.webp" alt="Kweider" />
+          <span class="demo-badge">REWARDS</span>
+        </a>
+        <a href="index.html" class="app-back">← Menu</a>
       </div>
 
-      <div id="cardMessage"></div>
-<div id="messagesCard" class="app-card">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
-    <div>
-      <h3 style="margin:0">Messages & Rewards</h3>
-      <p style="margin:6px 0 0;color:#aaa">
-        Your latest Kweider rewards and reminders
-      </p>
-    </div>
+      <header class="page-heading">
+        <h1>Kweider Rewards</h1>
+        <p>Collect points. Unlock delicious rewards.</p>
+        <p dir="rtl">اجمع نقاطك واستمتع بمكافآت ألذّ</p>
+      </header>
 
-    <div
-      id="messageBadge"
-      style="
-        min-width:42px;
-        height:42px;
-        padding:0 10px;
-        border-radius:50%;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        background:#c5a059;
-        color:#000;
-        font-weight:800;
-        font-size:18px;
-      "
-    >
-      0
-    </div>
-  </div>
-
-<div
-  id="messageActions"
-  class="form-actions"
-  style="justify-content:flex-end;margin-top:14px"
->
-  <button
-    id="markMessagesRead"
-    class="ghost-btn"
-    type="button"
-  >
-    Mark all as read
-  </button>
-</div>
-    <div
-  id="memberMessages"
-  style="
-    margin-top:18px;
-    display:grid;
-    gap:12px;
-  "
-></div>
-
-      <div class="app-card">
-        <h3>Next reward</h3>
-        <div class="reward-progress"><span id="rewardProgress"></span></div>
-        <p id="progressText" style="color:#ccc;text-align:center"></p>
-
-        <div id="qrCode" class="qr-wrap"></div>
-        <div class="qr-caption">
-          Show this QR code to a member of staff at checkout.<br>
-          <span dir="rtl">أظهر رمز العضوية للموظف عند الدفع.</span>
-        </div>
-
-        <div class="form-actions" style="justify-content:center">
-          <button class="ghost-btn" type="button" id="refreshCard">Refresh card</button>
-        </div>
-      </div>
-
-      <div class="app-card">
-        <h3>Recent activity</h3>
-        <ul id="transactions" class="transaction-list"></ul>
-      </div>
-
-      <div class="app-card">
-        <h3>Your details</h3>
-        <div id="profileDetails" style="line-height:1.9;color:#ddd;direction:ltr"></div>
-        <p style="color:#aaa;line-height:1.6">
-          Ask a member of staff if any membership details need to be corrected.
+      <section id="registrationCard" class="app-card hidden">
+        <h2>Join Kweider Rewards</h2>
+        <p style="color: #bbb; line-height: 1.6">
+          Create your membership once. Your secure card will then be saved on
+          this device.
         </p>
-        <div class="form-actions">
-          <button class="ghost-btn" type="button" id="switchMembership">
-            Remove saved card from this device
-          </button>
+
+        <form id="memberForm">
+          <div class="form-grid">
+            <div class="field">
+              <label>First name *</label>
+              <input
+                id="firstName"
+                autocomplete="given-name"
+                required
+                maxlength="50"
+              />
+            </div>
+
+            <div class="field">
+              <label>Phone number *</label>
+              <input
+                id="phone"
+                type="tel"
+                autocomplete="tel"
+                required
+                placeholder="+44..."
+              />
+            </div>
+
+            <div class="field">
+              <label>Email (optional)</label>
+              <input id="email" type="email" autocomplete="email" />
+            </div>
+
+            <div class="field">
+              <label>Birthday (optional)</label>
+              <input id="birthday" type="date" />
+            </div>
+
+            <label class="consent-row field full">
+              <input id="marketingConsent" type="checkbox" />
+              <span>
+                I agree to receive Kweider offers by SMS, WhatsApp or email. I
+                can withdraw this consent at any time.
+              </span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button class="primary-btn" type="submit" id="submitMember">
+              Create Card
+            </button>
+            <button class="ghost-btn" type="button" id="showCurrent">
+              My saved card
+            </button>
+          </div>
+        </form>
+
+        <div id="formMessage"></div>
+      </section>
+
+      <section id="membershipArea" class="hidden">
+        <div class="loyalty-card">
+          <div class="loyalty-head">
+            <img src="logo.webp" alt="Kweider" />
+            <div class="loyalty-tier">KWEIDER<br />REWARDS</div>
+          </div>
+
+          <div id="memberName" class="member-name"></div>
+          <div id="memberId" class="member-id"></div>
+
+          <div class="points-panel">
+            <div class="metric">
+              <strong id="memberPoints">0</strong>
+              <span>POINTS · النقاط</span>
+            </div>
+            <div class="metric">
+              <strong id="rewardAvailable">0</strong>
+              <span>REWARDS · المكافآت</span>
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
 
-    <div id="installToast" class="install-toast hidden">
-      <span>
-        <strong>Install Kweider</strong><br>
-        Add the menu and rewards card to your home screen.
-      </span>
-      <button class="gold-btn" data-install-app>Install</button>
-    </div>
-  </main>
-
-  <nav class="bottom-nav">
-    <a href="index.html">Menu · المنيو</a>
-    <a href="rewards.html" class="active">Rewards · الولاء</a>
-  </nav>
-
-  <script src="assets/vendor/qrcode-local.js"></script>
-  <script src="assets/js/app-shell.js"></script>
-  <script>
-    'use strict';
-
-    const SUPABASE_URL = 'https://fwjiceleybxhgetsvsvp.supabase.co';
-    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_yNgSShCyeQ6FfSy30T6-hg_9dLXXpwk';
-    const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/kweider-rewards-api`;
-    const MEMBER_TOKEN_KEY = 'kweiderRewards.memberToken.v1';
-
-    const $ = id => document.getElementById(id);
-
-    let activeBundle = null;
-    let requestInProgress = false;
-
-    function esc(value) {
-      return String(value ?? '').replace(/[&<>'"]/g, char => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;'
-      }[char]));
-    }
-
-    function notice(targetId, text, type = 'info') {
-      $(targetId).innerHTML = text
-        ? `<div class="notice ${type}">${esc(text)}</div>`
-        : '';
-    }
-
-    function setLoading(isLoading) {
-      requestInProgress = isLoading;
-      $('submitMember').disabled = isLoading;
-      $('showCurrent').disabled = isLoading;
-      $('refreshCard').disabled = isLoading;
-      $('switchMembership').disabled = isLoading;
-           $('markMessagesRead').disabled = isLoading;
-    }
-
-    async function callApi(payload) {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-      try {
-        const response = await fetch(FUNCTION_URL, {
-          method: 'POST',
-          headers: {
-            apikey: SUPABASE_PUBLISHABLE_KEY,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload),
-          signal: controller.signal
-        });
-
-        let data;
-        try {
-          data = await response.json();
-        } catch {
-          throw new Error('The rewards service returned an invalid response.');
-        }
-
-        if (!response.ok || data.ok === false) {
-          const error = new Error(data.message || 'The rewards request could not be completed.');
-          error.code = data.code || 'request_failed';
-          error.status = response.status;
-          throw error;
-        }
-
-        return data;
-      } catch (error) {
-        if (error.name === 'AbortError') {
-          throw new Error('The rewards service took too long to respond. Please try again.');
-        }
-        throw error;
-      } finally {
-        clearTimeout(timeoutId);
-      }
-    }
-
-    function showRegistration(message = '', type = 'info') {
-      activeBundle = null;
-      $('membershipArea').classList.add('hidden');
-      $('registrationCard').classList.remove('hidden');
-      notice('formMessage', message, type);
-    }
-
-    function transactionTitle(transaction) {
-      if (transaction.type === 'earn') {
-        const amount = Number(transaction.purchaseAmount || 0);
-        return amount > 0 ? `Purchase points · £${amount.toFixed(2)}` : 'Purchase points';
-      }
-
-      if (transaction.type === 'redeem') {
-        const value = Number(transaction.rewardValue || 0);
-        return value > 0 ? `Reward redeemed · £${value.toFixed(2)}` : 'Reward redeemed';
-      }
-
-      if (transaction.type === 'welcome') {
-        return 'Welcome to Kweider Rewards';
-      }
-
-      return transaction.notes || 'Rewards activity';
-    }
-
-    function render(bundle) {
-      if (!bundle || !bundle.member) {
-        showRegistration('The membership card could not be loaded.', 'error');
-        return;
-      }
-
-      activeBundle = bundle;
-
-      const member = bundle.member;
-  const points = Number(member.points || 0);
-
-const rewardDefinitions = Array.isArray(bundle.rewardDefinitions)
-  ? [...bundle.rewardDefinitions].sort(
-      (a, b) => Number(a.thresholdPoints) - Number(b.thresholdPoints)
-    )
-  : [];
-
-const memberRewards = Array.isArray(bundle.rewards)
-  ? bundle.rewards
-  : [];
-
-const availableRewards = memberRewards.filter(reward => {
-  if (reward.status !== 'available') return false;
-
-  if (!reward.expiresAt) return true;
-
-  return new Date(reward.expiresAt).getTime() > Date.now();
-});
-
-const nextReward = rewardDefinitions.find(
-  reward => Number(reward.thresholdPoints) > points
-) || null;
-
-const nextThreshold = nextReward
-  ? Number(nextReward.thresholdPoints)
-  : 200;
-
-const previousThreshold = nextReward
-  ? rewardDefinitions
-      .filter(
-        reward =>
-          Number(reward.thresholdPoints) < nextThreshold
-      )
-      .reduce(
-        (highest, reward) =>
-          Math.max(highest, Number(reward.thresholdPoints)),
-        0
-      )
-  : 0;
-
-const remaining = nextReward
-  ? Math.max(0, nextThreshold - points)
-  : 0;
-
-const progressPercent = nextReward
-  ? Math.min(
-      100,
-      Math.max(
-        0,
-        ((points - previousThreshold) /
-          Math.max(1, nextThreshold - previousThreshold)) *
-          100
-      )
-    )
-  : 100;
-
-      $('registrationCard').classList.add('hidden');
-      $('membershipArea').classList.remove('hidden');
-
-      $('memberName').textContent = member.firstName || 'Kweider Member';
-      $('memberId').textContent = member.memberCode || '';
-      $('memberPoints').textContent = points;
-    $('rewardAvailable').textContent = String(availableRewards.length);
-$('rewardProgress').style.width = `${progressPercent}%`;
-
-if (nextReward) {
-  const nextRewardTitle =
-    nextReward.titleEn || 'your next reward';
-
-  const availableText =
-    availableRewards.length > 0
-      ? `${availableRewards.length} reward${
-          availableRewards.length === 1 ? '' : 's'
-        } available. `
-      : '';
-
-  $('progressText').textContent =
-    `${availableText}${remaining} points to unlock ${nextRewardTitle}.`;
-} else {
-  $('progressText').textContent =
-    availableRewards.length > 0
-      ? `${availableRewards.length} reward${
-          availableRewards.length === 1 ? '' : 's'
-        } available. You have unlocked all rewards in this journey.`
-      : 'You have completed this rewards journey.';
-}
-const memberMessages = Array.isArray(bundle.messages)
-  ? bundle.messages
-  : [];
-
-const unreadMessageCount = Number.isFinite(
-  Number(bundle.unreadMessageCount)
-)
-  ? Number(bundle.unreadMessageCount)
-  : memberMessages.filter(message => !message.isRead).length;
-
-$('messageBadge').textContent =
-  unreadMessageCount > 99 ? '99+' : String(unreadMessageCount);
-
-$('messageBadge').style.display =
-  unreadMessageCount > 0 ? 'flex' : 'none';
-$('messageActions').style.display =
-  unreadMessageCount > 0 ? 'flex' : 'none';
-
-$('memberMessages').innerHTML = memberMessages.length
-  ? memberMessages.slice(0, 10).map(message => {
-      const messageDate = message.createdAt
-        ? new Date(message.createdAt).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-          })
-        : '';
-
-      const expiryDate = message.expiresAt
-        ? new Date(message.expiresAt).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-          })
-        : '';
-
-      return `
-        <article
-          style="
-            padding:16px;
-            border-radius:14px;
-            border:1px solid ${
-              message.isRead
-                ? 'rgba(197,160,89,.18)'
-                : 'rgba(197,160,89,.65)'
-            };
-            background:${
-              message.isRead
-                ? 'rgba(255,255,255,.025)'
-                : 'rgba(197,160,89,.09)'
-            };
-          "
-        >
+        <div id="cardMessage"></div>
+        <div id="messagesCard" class="app-card">
           <div
             style="
-              display:flex;
-              justify-content:space-between;
-              align-items:flex-start;
-              gap:12px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 16px;
             "
           >
-            <strong style="color:#c5a059;font-size:17px">
-              ${esc(message.titleEn || 'Kweider Rewards')}
-            </strong>
+            <div>
+              <h3 style="margin: 0">Messages & Rewards</h3>
+              <p style="margin: 6px 0 0; color: #aaa">
+                Your latest Kweider rewards and reminders
+              </p>
+            </div>
 
-            ${
-              message.isRead
-                ? ''
-                : `
-                  <span
-                    style="
-                      width:10px;
-                      height:10px;
-                      border-radius:50%;
-                      background:#c5a059;
-                      flex:0 0 auto;
-                      margin-top:5px;
-                    "
-                  ></span>
-                `
-            }
+            <div
+              id="messageBadge"
+              style="
+                min-width: 42px;
+                height: 42px;
+                padding: 0 10px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #c5a059;
+                color: #000;
+                font-weight: 800;
+                font-size: 18px;
+              "
+            >
+              0
+            </div>
           </div>
 
-          <p style="margin:9px 0 5px;line-height:1.6;color:#eee">
-            ${esc(message.bodyEn || '')}
-          </p>
+          <div
+            id="availableRewardsList"
+            style="margin-top: 18px; display: grid; gap: 12px"
+          ></div>
 
-          ${
-            message.bodyAr
-              ? `
-                <p
-                  dir="rtl"
-                  style="
-                    margin:6px 0;
-                    line-height:1.7;
-                    color:#ccc;
-                    text-align:right;
-                  "
-                >
-                  ${esc(message.bodyAr)}
-                </p>
-              `
-              : ''
+          <div
+            id="messageActions"
+            class="form-actions"
+            style="justify-content: flex-end; margin-top: 14px"
+          >
+            <button id="markMessagesRead" class="ghost-btn" type="button">
+              Mark all as read
+            </button>
+          </div>
+
+          <div
+            id="memberMessages"
+            style="margin-top: 18px; display: grid; gap: 12px"
+          ></div>
+        </div>
+
+        <div class="app-card">
+          <h3>Next reward</h3>
+          <div class="reward-progress"><span id="rewardProgress"></span></div>
+          <p id="progressText" style="color: #ccc; text-align: center"></p>
+
+          <div id="qrCode" class="qr-wrap"></div>
+          <div class="qr-caption">
+            Show this QR code to a member of staff at checkout.<br />
+            <span dir="rtl">أظهر رمز العضوية للموظف عند الدفع.</span>
+          </div>
+
+          <div class="form-actions" style="justify-content: center">
+            <button class="ghost-btn" type="button" id="refreshCard">
+              Refresh card
+            </button>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <h3>Recent activity</h3>
+          <ul id="transactions" class="transaction-list"></ul>
+        </div>
+
+        <div class="app-card">
+          <h3>Your details</h3>
+          <div
+            id="profileDetails"
+            style="line-height: 1.9; color: #ddd; direction: ltr"
+          ></div>
+          <p style="color: #aaa; line-height: 1.6">
+            Ask a member of staff if any membership details need to be
+            corrected.
+          </p>
+          <div class="form-actions">
+            <button class="ghost-btn" type="button" id="switchMembership">
+              Remove saved card from this device
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div id="installToast" class="install-toast hidden">
+        <span>
+          <strong>Install Kweider</strong><br />
+          Add the menu and rewards card to your home screen.
+        </span>
+        <button class="gold-btn" data-install-app>Install</button>
+      </div>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="index.html">Menu · المنيو</a>
+      <a href="rewards.html" class="active">Rewards · الولاء</a>
+    </nav>
+
+    <script src="assets/vendor/qrcode-local.js"></script>
+    <script src="assets/js/app-shell.js"></script>
+    <script>
+      "use strict";
+
+      const SUPABASE_URL = "https://fwjiceleybxhgetsvsvp.supabase.co";
+      const SUPABASE_PUBLISHABLE_KEY =
+        "sb_publishable_yNgSShCyeQ6FfSy30T6-hg_9dLXXpwk";
+      const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/kweider-rewards-api`;
+      const MEMBER_TOKEN_KEY = "kweiderRewards.memberToken.v1";
+
+      const $ = (id) => document.getElementById(id);
+
+      let activeBundle = null;
+      let requestInProgress = false;
+
+      function esc(value) {
+        return String(value ?? "").replace(
+          /[&<>'"]/g,
+          (char) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              "'": "&#39;",
+              '"': "&quot;",
+            })[char],
+        );
+      }
+
+      function readField(object, ...keys) {
+        for (const key of keys) {
+          if (object && object[key] !== undefined && object[key] !== null) {
+            return object[key];
+          }
+        }
+        return null;
+      }
+
+      function rewardCodeOf(reward) {
+        return String(readField(reward, "rewardCode", "reward_code") || "");
+      }
+
+      function definitionCodeOf(definition) {
+        return String(readField(definition, "code") || "");
+      }
+
+      function isAvailableReward(reward) {
+        if (!reward || readField(reward, "status") !== "available")
+          return false;
+        const expiresAt = readField(reward, "expiresAt", "expires_at");
+        if (!expiresAt) return true;
+        const expiryTime = new Date(expiresAt).getTime();
+        return Number.isFinite(expiryTime) && expiryTime > Date.now();
+      }
+
+      function notice(targetId, text, type = "info") {
+        $(targetId).innerHTML = text
+          ? `<div class="notice ${type}">${esc(text)}</div>`
+          : "";
+      }
+
+      function setLoading(isLoading) {
+        requestInProgress = isLoading;
+        $("submitMember").disabled = isLoading;
+        $("showCurrent").disabled = isLoading;
+        $("refreshCard").disabled = isLoading;
+        $("switchMembership").disabled = isLoading;
+        $("markMessagesRead").disabled = isLoading;
+      }
+
+      async function callApi(payload) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        try {
+          const response = await fetch(FUNCTION_URL, {
+            method: "POST",
+            headers: {
+              apikey: SUPABASE_PUBLISHABLE_KEY,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+          });
+
+          let data;
+          try {
+            data = await response.json();
+          } catch {
+            throw new Error(
+              "The rewards service returned an invalid response.",
+            );
           }
 
-          <div style="margin-top:10px;color:#888;font-size:12px">
-            ${esc(messageDate)}
-            ${
-              expiryDate
-                ? ` · Valid until ${esc(expiryDate)}`
-                : ''
-            }
-          </div>
-        </article>
-      `;
-    }).join('')
-  : `
-      <div
-        style="
-          padding:18px;
-          border-radius:14px;
-          text-align:center;
-          color:#999;
-          background:rgba(255,255,255,.025);
-        "
-      >
-        No messages yet.<br>
-        <span dir="rtl">لا توجد رسائل جديدة حالياً.</span>
-      </div>
-    `;
+          if (!response.ok || data.ok === false) {
+            const error = new Error(
+              data.message || "The rewards request could not be completed.",
+            );
+            error.code = data.code || "request_failed";
+            error.status = response.status;
+            throw error;
+          }
 
-      $('profileDetails').innerHTML =
-        `<strong>Phone:</strong> ${esc(member.phone || '—')}<br>` +
-        `<strong>Email:</strong> ${esc(member.email || '—')}<br>` +
-        `<strong>Birthday:</strong> ${esc(member.birthday || '—')}<br>` +
-        `<strong>Marketing:</strong> ${member.marketingConsent ? 'Opted in' : 'Not opted in'}`;
+          return data;
+        } catch (error) {
+          if (error.name === "AbortError") {
+            throw new Error(
+              "The rewards service took too long to respond. Please try again.",
+            );
+          }
+          throw error;
+        } finally {
+          clearTimeout(timeoutId);
+        }
+      }
 
-      const transactions = Array.isArray(bundle.transactions)
-        ? bundle.transactions.slice(0, 10)
-        : [];
+      function showRegistration(message = "", type = "info") {
+        activeBundle = null;
+        $("membershipArea").classList.add("hidden");
+        $("registrationCard").classList.remove("hidden");
+        notice("formMessage", message, type);
+      }
 
-      $('transactions').innerHTML = transactions.length
-        ? transactions.map(transaction => {
-            const pointsDelta = Number(transaction.pointsDelta || 0);
-            const dateText = transaction.createdAt
-              ? new Date(transaction.createdAt).toLocaleString('en-GB')
-              : '';
-            const extra = [
-              transaction.receiptReference ? `Receipt ${transaction.receiptReference}` : '',
-              transaction.performedByName || '',
-              dateText
-            ].filter(Boolean).join(' · ');
+      function transactionTitle(transaction) {
+        if (transaction.type === "earn") {
+          const amount = Number(transaction.purchaseAmount || 0);
+          return amount > 0
+            ? `Purchase points · £${amount.toFixed(2)}`
+            : "Purchase points";
+        }
 
-            return `
+        if (transaction.type === "redeem") {
+          const value = Number(transaction.rewardValue || 0);
+          return value > 0
+            ? `Reward redeemed · £${value.toFixed(2)}`
+            : "Reward redeemed";
+        }
+
+        if (transaction.type === "welcome") {
+          return "Welcome to Kweider Rewards";
+        }
+
+        return transaction.notes || "Rewards activity";
+      }
+
+      function render(bundle) {
+        if (!bundle || !bundle.member) {
+          showRegistration("The membership card could not be loaded.", "error");
+          return;
+        }
+
+        activeBundle = bundle;
+
+        const member = bundle.member;
+        const points = Number(member.points || 0);
+        const rewardDefinitions = Array.isArray(bundle.rewardDefinitions)
+          ? [...bundle.rewardDefinitions].sort(
+              (left, right) =>
+                Number(
+                  readField(left, "thresholdPoints", "threshold_points") || 0,
+                ) -
+                Number(
+                  readField(right, "thresholdPoints", "threshold_points") || 0,
+                ),
+            )
+          : [];
+        const memberRewards = Array.isArray(bundle.rewards)
+          ? bundle.rewards
+          : [];
+        const availableRewards = memberRewards.filter(isAvailableReward);
+        const definitionMap = new Map(
+          rewardDefinitions.map((definition) => [
+            definitionCodeOf(definition),
+            definition,
+          ]),
+        );
+
+        const nextReward =
+          rewardDefinitions.find(
+            (definition) =>
+              Number(
+                readField(definition, "thresholdPoints", "threshold_points") ||
+                  0,
+              ) > points,
+          ) || null;
+        const nextThreshold = nextReward
+          ? Number(
+              readField(nextReward, "thresholdPoints", "threshold_points") || 0,
+            )
+          : 200;
+        const previousThreshold = nextReward
+          ? rewardDefinitions
+              .filter(
+                (definition) =>
+                  Number(
+                    readField(
+                      definition,
+                      "thresholdPoints",
+                      "threshold_points",
+                    ) || 0,
+                  ) < nextThreshold,
+              )
+              .reduce(
+                (highest, definition) =>
+                  Math.max(
+                    highest,
+                    Number(
+                      readField(
+                        definition,
+                        "thresholdPoints",
+                        "threshold_points",
+                      ) || 0,
+                    ),
+                  ),
+                0,
+              )
+          : 0;
+        const remaining = nextReward ? Math.max(0, nextThreshold - points) : 0;
+        const progressPercent = nextReward
+          ? Math.min(
+              100,
+              Math.max(
+                0,
+                ((points - previousThreshold) /
+                  Math.max(1, nextThreshold - previousThreshold)) *
+                  100,
+              ),
+            )
+          : 100;
+
+        $("registrationCard").classList.add("hidden");
+        $("membershipArea").classList.remove("hidden");
+        $("memberName").textContent = member.firstName || "Kweider Member";
+        $("memberId").textContent = member.memberCode || "";
+        $("memberPoints").textContent = points;
+        $("rewardAvailable").textContent = String(availableRewards.length);
+        $("rewardProgress").style.width = `${progressPercent}%`;
+
+        if (nextReward) {
+          const nextRewardTitle = String(
+            readField(nextReward, "titleEn", "title_en") || "your next reward",
+          );
+          const availableText =
+            availableRewards.length > 0
+              ? `${availableRewards.length} reward${availableRewards.length === 1 ? "" : "s"} available. `
+              : "";
+          $("progressText").textContent =
+            `${availableText}${remaining} points to unlock ${nextRewardTitle}.`;
+        } else {
+          $("progressText").textContent =
+            availableRewards.length > 0
+              ? `${availableRewards.length} reward${availableRewards.length === 1 ? "" : "s"} available. You have unlocked all rewards in this journey.`
+              : "You have completed this rewards journey.";
+        }
+
+        $("availableRewardsList").innerHTML = availableRewards.length
+          ? availableRewards
+              .map((reward) => {
+                const definition =
+                  definitionMap.get(rewardCodeOf(reward)) || {};
+                const titleEn = String(
+                  readField(definition, "titleEn", "title_en") ||
+                    rewardCodeOf(reward) ||
+                    "Reward",
+                );
+                const titleAr = String(
+                  readField(definition, "titleAr", "title_ar") || "",
+                );
+                const messageEn = String(
+                  readField(definition, "messageEn", "message_en") ||
+                    "Show this reward to a member of staff at checkout.",
+                );
+                const expiresAt = readField(reward, "expiresAt", "expires_at");
+                const expiryTime = expiresAt
+                  ? new Date(expiresAt).getTime()
+                  : NaN;
+                const expiryText = Number.isFinite(expiryTime)
+                  ? new Date(expiryTime).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "";
+
+                return `
+              <article style="padding:16px;border-radius:14px;border:1px solid rgba(197,160,89,.65);background:rgba(197,160,89,.09)">
+                <strong style="display:block;color:#c5a059;font-size:17px">${esc(titleEn)}</strong>
+                ${titleAr ? `<strong dir="rtl" style="display:block;margin-top:5px;text-align:right;color:#e2d0a3">${esc(titleAr)}</strong>` : ""}
+                <p style="margin:9px 0 5px;line-height:1.6;color:#eee">${esc(messageEn)}</p>
+                ${expiryText ? `<div style="margin-top:10px;color:#aaa;font-size:12px">Valid until ${esc(expiryText)}</div>` : ""}
+              </article>`;
+              })
+              .join("")
+          : '<div style="padding:16px;border-radius:14px;text-align:center;color:#999;background:rgba(255,255,255,.025)">No rewards available yet.<br><span dir="rtl">لا توجد مكافآت متاحة حالياً.</span></div>';
+
+        const memberMessages = Array.isArray(bundle.messages)
+          ? bundle.messages
+          : [];
+        const unreadMessageCount = Number.isFinite(
+          Number(bundle.unreadMessageCount),
+        )
+          ? Number(bundle.unreadMessageCount)
+          : memberMessages.filter(
+              (message) => !readField(message, "isRead", "is_read"),
+            ).length;
+
+        $("messageBadge").textContent =
+          unreadMessageCount > 99 ? "99+" : String(unreadMessageCount);
+        $("messageBadge").style.display =
+          unreadMessageCount > 0 ? "flex" : "none";
+        $("messageActions").style.display =
+          unreadMessageCount > 0 ? "flex" : "none";
+
+        $("memberMessages").innerHTML = memberMessages.length
+          ? memberMessages
+              .slice(0, 10)
+              .map((message) => {
+                const createdAt = readField(message, "createdAt", "created_at");
+                const expiresAt = readField(message, "expiresAt", "expires_at");
+                const isRead = Boolean(readField(message, "isRead", "is_read"));
+                const messageDate = createdAt
+                  ? new Date(createdAt).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "";
+                const expiryDate = expiresAt
+                  ? new Date(expiresAt).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "";
+                const titleEn = String(
+                  readField(message, "titleEn", "title_en") ||
+                    "Kweider Rewards",
+                );
+                const bodyEn = String(
+                  readField(message, "bodyEn", "body_en") || "",
+                );
+                const bodyAr = String(
+                  readField(message, "bodyAr", "body_ar") || "",
+                );
+
+                return `
+              <article style="padding:16px;border-radius:14px;border:1px solid ${isRead ? "rgba(197,160,89,.18)" : "rgba(197,160,89,.65)"};background:${isRead ? "rgba(255,255,255,.025)" : "rgba(197,160,89,.09)"}">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+                  <strong style="color:#c5a059;font-size:17px">${esc(titleEn)}</strong>
+                  ${isRead ? "" : '<span style="width:10px;height:10px;border-radius:50%;background:#c5a059;flex:0 0 auto;margin-top:5px"></span>'}
+                </div>
+                <p style="margin:9px 0 5px;line-height:1.6;color:#eee">${esc(bodyEn)}</p>
+                ${bodyAr ? `<p dir="rtl" style="margin:6px 0;line-height:1.7;color:#ccc;text-align:right">${esc(bodyAr)}</p>` : ""}
+                <div style="margin-top:10px;color:#888;font-size:12px">
+                  ${esc(messageDate)}${expiryDate ? ` · Valid until ${esc(expiryDate)}` : ""}
+                </div>
+              </article>`;
+              })
+              .join("")
+          : '<div style="padding:18px;border-radius:14px;text-align:center;color:#999;background:rgba(255,255,255,.025)">No messages yet.<br><span dir="rtl">لا توجد رسائل جديدة حالياً.</span></div>';
+
+        $("profileDetails").innerHTML =
+          `<strong>Phone:</strong> ${esc(member.phone || "—")}<br>` +
+          `<strong>Email:</strong> ${esc(member.email || "—")}<br>` +
+          `<strong>Birthday:</strong> ${esc(member.birthday || "—")}<br>` +
+          `<strong>Marketing:</strong> ${member.marketingConsent ? "Opted in" : "Not opted in"}`;
+
+        const transactions = Array.isArray(bundle.transactions)
+          ? bundle.transactions.slice(0, 10)
+          : [];
+        $("transactions").innerHTML = transactions.length
+          ? transactions
+              .map((transaction) => {
+                const pointsDelta = Number(transaction.pointsDelta || 0);
+                const dateText = transaction.createdAt
+                  ? new Date(transaction.createdAt).toLocaleString("en-GB")
+                  : "";
+                const extra = [
+                  transaction.receiptReference
+                    ? `Receipt ${transaction.receiptReference}`
+                    : "",
+                  transaction.performedByName || "",
+                  dateText,
+                ]
+                  .filter(Boolean)
+                  .join(" · ");
+
+                return `
               <li>
                 <div class="transaction-main">
                   <strong>${esc(transactionTitle(transaction))}</strong>
-                  <span>${esc(extra || transaction.notes || '')}</span>
+                  <span>${esc(extra || transaction.notes || "")}</span>
                 </div>
-                <div class="tx-points ${pointsDelta >= 0 ? 'positive' : 'negative'}">
-                  ${pointsDelta > 0 ? '+' : ''}${pointsDelta}
+                <div class="tx-points ${pointsDelta >= 0 ? "positive" : "negative"}">
+                  ${pointsDelta > 0 ? "+" : ""}${pointsDelta}
                 </div>
-              </li>
-            `;
-          }).join('')
-        : '<li>No activity yet.</li>';
+              </li>`;
+              })
+              .join("")
+          : "<li>No activity yet.</li>";
 
-      $('qrCode').innerHTML = '';
-      const qrText = `KWEIDER-LOYALTY:${member.memberCode}`;
+        $("qrCode").innerHTML = "";
+        const qrText = `KWEIDER-LOYALTY:${member.memberCode}`;
+        if (window.QRCode && member.memberCode) {
+          new QRCode($("qrCode"), {
+            text: qrText,
+            width: 190,
+            height: 190,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H,
+          });
+        } else {
+          $("qrCode").innerHTML =
+            `<div style="color:#000;padding:20px">${esc(member.memberCode || "")}</div>`;
+        }
 
-      if (window.QRCode && member.memberCode) {
-        new QRCode($('qrCode'), {
-          text: qrText,
-          width: 190,
-          height: 190,
-          colorDark: '#000000',
-          colorLight: '#ffffff',
-          correctLevel: QRCode.CorrectLevel.H
-        });
-      } else {
-        $('qrCode').innerHTML =
-          `<div style="color:#000;padding:20px">${esc(member.memberCode || '')}</div>`;
+        notice("cardMessage", "", "info");
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
-      notice('cardMessage', '', 'info');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+      async function loadSavedCard(showMissingMessage = true) {
+        const token = localStorage.getItem(MEMBER_TOKEN_KEY);
 
-    async function loadSavedCard(showMissingMessage = true) {
-      const token = localStorage.getItem(MEMBER_TOKEN_KEY);
-
-      if (!token) {
-        showRegistration(
-          showMissingMessage ? 'No rewards card is saved on this device yet.' : '',
-          'info'
-        );
-        return;
-      }
-
-      setLoading(true);
-      notice('cardMessage', 'Refreshing your rewards card…', 'info');
-
-      try {
-        const result = await callApi({
-          action: 'get_card',
-          token
-        });
-        render(result);
-      } catch (error) {
-        if (
-          error.code === 'invalid_card_token' ||
-          error.code === 'membership_unavailable'
-        ) {
-          localStorage.removeItem(MEMBER_TOKEN_KEY);
+        if (!token) {
           showRegistration(
-            'The saved card on this device is no longer valid. Please ask a member of staff for assistance.',
-            'error'
+            showMissingMessage
+              ? "No rewards card is saved on this device yet."
+              : "",
+            "info",
           );
-        } else {
-          if (activeBundle) {
-            notice('cardMessage', error.message, 'error');
+          return;
+        }
+
+        setLoading(true);
+        notice("cardMessage", "Refreshing your rewards card…", "info");
+
+        try {
+          const result = await callApi({
+            action: "get_card",
+            token,
+          });
+          render(result);
+        } catch (error) {
+          if (
+            error.code === "invalid_card_token" ||
+            error.code === "membership_unavailable"
+          ) {
+            localStorage.removeItem(MEMBER_TOKEN_KEY);
+            showRegistration(
+              "The saved card on this device is no longer valid. Please ask a member of staff for assistance.",
+              "error",
+            );
           } else {
-            showRegistration(error.message, 'error');
+            if (activeBundle) {
+              notice("cardMessage", error.message, "error");
+            } else {
+              showRegistration(error.message, "error");
+            }
           }
+        } finally {
+          setLoading(false);
         }
-      } finally {
-        setLoading(false);
       }
-    }
 
-    $('memberForm').addEventListener('submit', async event => {
-      event.preventDefault();
-      if (requestInProgress) return;
+      $("memberForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (requestInProgress) return;
 
-      const payload = {
-        action: 'create_member',
-        firstName: $('firstName').value.trim(),
-        phone: $('phone').value.trim(),
-        email: $('email').value.trim() || null,
-        birthday: $('birthday').value || null,
-        marketingConsent: $('marketingConsent').checked
-      };
+        const payload = {
+          action: "create_member",
+          firstName: $("firstName").value.trim(),
+          phone: $("phone").value.trim(),
+          email: $("email").value.trim() || null,
+          birthday: $("birthday").value || null,
+          marketingConsent: $("marketingConsent").checked,
+        };
 
-      setLoading(true);
-      notice('formMessage', 'Creating your secure rewards card…', 'info');
+        setLoading(true);
+        notice("formMessage", "Creating your secure rewards card…", "info");
 
-      try {
-        const result = await callApi(payload);
+        try {
+          const result = await callApi(payload);
 
-        if (!result.token) {
-          throw new Error('The secure membership token was not returned.');
+          if (!result.token) {
+            throw new Error("The secure membership token was not returned.");
+          }
+
+          localStorage.setItem(MEMBER_TOKEN_KEY, result.token);
+          $("memberForm").reset();
+          render(result);
+        } catch (error) {
+          if (error.code === "member_exists") {
+            notice(
+              "formMessage",
+              "A membership already exists for this phone number. Use “My saved card” on the device where it was created, or ask a member of staff for assistance.",
+              "error",
+            );
+          } else {
+            notice("formMessage", error.message, "error");
+          }
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      $("showCurrent").addEventListener("click", () => loadSavedCard(true));
+      $("refreshCard").addEventListener("click", () => loadSavedCard(false));
+      $("markMessagesRead").addEventListener("click", async () => {
+        if (requestInProgress) return;
+
+        const token = localStorage.getItem(MEMBER_TOKEN_KEY);
+
+        if (!token) {
+          showRegistration("No rewards card is saved on this device.", "error");
+          return;
         }
 
-        localStorage.setItem(MEMBER_TOKEN_KEY, result.token);
-        $('memberForm').reset();
-        render(result);
-      } catch (error) {
-        if (error.code === 'member_exists') {
+        setLoading(true);
+        notice("cardMessage", "Updating your messages…", "info");
+
+        try {
+          const result = await callApi({
+            action: "mark_messages_read",
+            token,
+          });
+
+          render(result);
+
+          notice("cardMessage", "All messages have been marked as read.", "ok");
+        } catch (error) {
           notice(
-            'formMessage',
-            'A membership already exists for this phone number. Use “My saved card” on the device where it was created, or ask a member of staff for assistance.',
-            'error'
+            "cardMessage",
+            error.message || "The messages could not be updated.",
+            "error",
           );
-        } else {
-          notice('formMessage', error.message, 'error');
+        } finally {
+          setLoading(false);
         }
-      } finally {
-        setLoading(false);
-      }
-    });
+      });
 
-    $('showCurrent').addEventListener('click', () => loadSavedCard(true));
-    $('refreshCard').addEventListener('click', () => loadSavedCard(false));
-$('markMessagesRead').addEventListener('click', async () => {
-  if (requestInProgress) return;
+      $("switchMembership").addEventListener("click", () => {
+        const confirmed = confirm(
+          "Remove this rewards card from this device? This does not delete the membership, but you may need staff assistance to reopen it later.",
+        );
 
-  const token = localStorage.getItem(MEMBER_TOKEN_KEY);
+        if (!confirmed) return;
 
-  if (!token) {
-    showRegistration(
-      'No rewards card is saved on this device.',
-      'error'
-    );
-    return;
-  }
+        localStorage.removeItem(MEMBER_TOKEN_KEY);
+        $("memberForm").reset();
+        showRegistration("The saved card was removed from this device.", "ok");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
 
-  setLoading(true);
-  notice('cardMessage', 'Updating your messages…', 'info');
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && activeBundle && !requestInProgress) {
+          loadSavedCard(false);
+        }
+      });
 
-  try {
-    const result = await callApi({
-      action: 'mark_messages_read',
-      token
-    });
+      window.addEventListener("storage", (event) => {
+        if (event.key === MEMBER_TOKEN_KEY && !requestInProgress) {
+          loadSavedCard(false);
+        }
+      });
 
-    render(result);
-
-    notice(
-      'cardMessage',
-      'All messages have been marked as read.',
-      'ok'
-    );
-  } catch (error) {
-    notice(
-      'cardMessage',
-      error.message || 'The messages could not be updated.',
-      'error'
-    );
-  } finally {
-    setLoading(false);
-  }
-});
-
-    $('switchMembership').addEventListener('click', () => {
-      const confirmed = confirm(
-        'Remove this rewards card from this device? This does not delete the membership, but you may need staff assistance to reopen it later.'
-      );
-
-      if (!confirmed) return;
-
-      localStorage.removeItem(MEMBER_TOKEN_KEY);
-      $('memberForm').reset();
-      showRegistration('The saved card was removed from this device.', 'ok');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && activeBundle && !requestInProgress) {
-        loadSavedCard(false);
-      }
-    });
-
-    window.addEventListener('storage', event => {
-      if (event.key === MEMBER_TOKEN_KEY && !requestInProgress) {
-        loadSavedCard(false);
-      }
-    });
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        await loadSavedCard(false);
-      } finally {
-        $('appLoading').classList.add('hidden');
-      }
-    });
-  </script>
-</body>
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          await loadSavedCard(false);
+        } finally {
+          $("appLoading").classList.add("hidden");
+        }
+      });
+    </script>
+  </body>
 </html>

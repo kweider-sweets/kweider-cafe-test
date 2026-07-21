@@ -1,688 +1,1197 @@
 <!doctype html>
 <html lang="en" dir="ltr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#000">
-  <title>Kweider Rewards Staff</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="assets/css/app-shell.css">
-  <style>
-    .staff-session-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-    .staff-session-bar p{margin:4px 0;color:#bbb}
-    .staff-actions-inline{display:flex;gap:10px;flex-wrap:wrap}
-    .button-busy{opacity:.65;pointer-events:none}
-    .transaction-list{display:grid;gap:10px;margin-top:16px}
-    .transaction-item{display:flex;justify-content:space-between;gap:16px;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.025)}
-    .transaction-item strong,.transaction-item span{display:block}
-    .transaction-item small{display:block;margin-top:5px;color:#aaa;line-height:1.45}
-    .transaction-points{min-width:78px;text-align:right;font-weight:700}
-    .transaction-points.positive{color:#8fe3a5}
-    .transaction-points.negative{color:#f1c46b}
-    .member-reward-note{margin-top:10px;color:#d7b665}
-    .qr-reader-shell{margin-top:18px;padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:#080808}
-    #qrReader{width:100%;overflow:hidden;border-radius:12px;background:#000}
-    #qrReader video{width:100%!important;max-height:62vh;object-fit:cover;border-radius:12px}
-    .scanner-help{margin:10px 0 0;color:#bbb;text-align:center;line-height:1.55}
-    @media(max-width:640px){.transaction-item{align-items:flex-start}.transaction-points{min-width:64px}}
-  </style>
-</head>
-<body class="app-page">
-  <main class="app-shell">
-    <div class="app-topbar">
-      <a class="app-brand" href="index.html">
-        <img src="logo.webp" alt="Kweider Sweets">
-        <span class="demo-badge">STAFF</span>
-      </a>
-      <a href="index.html" class="app-back">← Menu</a>
-    </div>
-
-    <header class="page-heading">
-      <h1>Rewards Staff</h1>
-      <p>Secure staff access for finding members, adding purchase points and redeeming rewards.</p>
-    </header>
-
-    <section id="configurationCard" class="app-card hidden">
-      <h2>Configuration required</h2>
-      <div class="notice error">
-        Add the Supabase Publishable key to the marked line inside <strong>staff.html</strong>, then upload the file again.
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#000" />
+    <title>Kweider Rewards Staff</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="assets/css/app-shell.css" />
+    <style>
+      .staff-session-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .staff-session-bar p {
+        margin: 4px 0;
+        color: #bbb;
+      }
+      .staff-actions-inline {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .button-busy {
+        opacity: 0.65;
+        pointer-events: none;
+      }
+      .transaction-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .transaction-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+      .transaction-item strong,
+      .transaction-item span {
+        display: block;
+      }
+      .transaction-item small {
+        display: block;
+        margin-top: 5px;
+        color: #aaa;
+        line-height: 1.45;
+      }
+      .transaction-points {
+        min-width: 78px;
+        text-align: right;
+        font-weight: 700;
+      }
+      .transaction-points.positive {
+        color: #8fe3a5;
+      }
+      .transaction-points.negative {
+        color: #f1c46b;
+      }
+      .member-reward-note {
+        margin-top: 10px;
+        color: #d7b665;
+        line-height: 1.55;
+      }
+      .reward-preview {
+        margin-top: 14px;
+      }
+      .field-hint {
+        font-weight: 400;
+        color: #aaa;
+      }
+      .qr-reader-shell {
+        margin-top: 18px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 16px;
+        background: #080808;
+      }
+      #qrReader {
+        width: 100%;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #000;
+      }
+      #qrReader video {
+        width: 100% !important;
+        max-height: 62vh;
+        object-fit: cover;
+        border-radius: 12px;
+      }
+      .scanner-help {
+        margin: 10px 0 0;
+        color: #bbb;
+        text-align: center;
+        line-height: 1.55;
+      }
+      @media (max-width: 640px) {
+        .transaction-item {
+          align-items: flex-start;
+        }
+        .transaction-points {
+          min-width: 64px;
+        }
+      }
+    </style>
+  </head>
+  <body class="app-page">
+    <main class="app-shell">
+      <div class="app-topbar">
+        <a class="app-brand" href="index.html">
+          <img src="logo.webp" alt="Kweider Sweets" />
+          <span class="demo-badge">STAFF</span>
+        </a>
+        <a href="index.html" class="app-back">← Menu</a>
       </div>
-    </section>
 
-    <section id="loginCard" class="app-card">
-      <h2>Staff sign in</h2>
-      <div class="form-grid">
-        <div class="field">
-          <label for="staffEmail">Email</label>
-          <input id="staffEmail" type="email" autocomplete="username" value="qw.co.uk@gmail.com">
+      <header class="page-heading">
+        <h1>Rewards Staff</h1>
+        <p>
+          Secure staff access for finding members, adding purchase points and
+          redeeming rewards.
+        </p>
+      </header>
+
+      <section id="configurationCard" class="app-card hidden">
+        <h2>Configuration required</h2>
+        <div class="notice error">
+          Add the Supabase Publishable key to the marked line inside
+          <strong>staff.html</strong>, then upload the file again.
         </div>
-        <div class="field">
-          <label for="staffPassword">Password</label>
-          <input id="staffPassword" type="password" autocomplete="current-password">
-        </div>
-      </div>
-      <div class="form-actions">
-        <button id="staffLogin" class="primary-btn">Sign in</button>
-      </div>
-      <div id="loginMessage" aria-live="polite"></div>
-    </section>
+      </section>
 
-    <section id="staffPanel" class="hidden">
-      <div class="app-card">
-        <div class="staff-session-bar">
-          <div>
-            <h2 id="signedInName">Staff</h2>
-            <p id="signedInRole"></p>
+      <section id="loginCard" class="app-card">
+        <h2>Staff sign in</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="staffEmail">Email</label>
+            <input
+              id="staffEmail"
+              type="email"
+              autocomplete="username"
+              value="qw.co.uk@gmail.com"
+            />
           </div>
-          <div class="staff-actions-inline">
-            <button id="staffLogout" class="ghost-btn">Sign out</button>
+          <div class="field">
+            <label for="staffPassword">Password</label>
+            <input
+              id="staffPassword"
+              type="password"
+              autocomplete="current-password"
+            />
           </div>
-        </div>
-      </div>
-
-      <div class="app-card">
-        <h2>Find member</h2>
-        <div class="field">
-          <label for="memberSearch">Membership code or phone number</label>
-          <input id="memberSearch" placeholder="KW-..., 07..., +44... or 0044..." autocomplete="off">
         </div>
         <div class="form-actions">
-          <button id="findMember" class="primary-btn">Find member</button>
-          <button id="scanQr" class="ghost-btn">Scan QR</button>
+          <button id="staffLogin" class="primary-btn">Sign in</button>
         </div>
-        <div id="scanArea" class="hidden qr-reader-shell">
-          <div id="qrReader"></div>
-          <p class="scanner-help">
-            Point the rear camera at the customer's Kweider QR code.<br>
-            Keep the QR code clear and around 15–30 cm from the camera.
-          </p>
-          <div class="form-actions">
-            <button id="stopScan" class="danger-btn">Stop camera</button>
-          </div>
-        </div>
-        <div id="staffMessage" aria-live="polite"></div>
-      </div>
+        <div id="loginMessage" aria-live="polite"></div>
+      </section>
 
-      <div id="memberPanel" class="hidden">
+      <section id="staffPanel" class="hidden">
         <div class="app-card">
-          <div class="split">
+          <div class="staff-session-bar">
             <div>
-              <h2 id="staffMemberName"></h2>
-              <p id="staffMemberMeta" style="color:#bbb;line-height:1.7"></p>
-              <p id="staffRewardSummary" class="member-reward-note"></p>
+              <h2 id="signedInName">Staff</h2>
+              <p id="signedInRole"></p>
             </div>
-            <div class="metric">
-              <strong id="staffPoints">0</strong>
-              <span>CURRENT POINTS</span>
+            <div class="staff-actions-inline">
+              <button id="staffLogout" class="ghost-btn">Sign out</button>
             </div>
           </div>
         </div>
 
         <div class="app-card">
-          <h3>Add purchase points</h3>
-          <div class="form-grid">
-            <div class="field">
-              <label for="purchaseAmount">Purchase amount (£)</label>
-              <input id="purchaseAmount" type="number" min="0.01" step="0.01" inputmode="decimal">
-            </div>
-            <div class="field">
-              <label for="earnReceipt">Receipt number</label>
-              <input id="earnReceipt" autocomplete="off">
-            </div>
+          <h2>Find member</h2>
+          <div class="field">
+            <label for="memberSearch">Membership code or phone number</label>
+            <input
+              id="memberSearch"
+              placeholder="KW-..., 07..., +44... or 0044..."
+              autocomplete="off"
+            />
           </div>
           <div class="form-actions">
-            <button id="addPoints" class="primary-btn">Add points</button>
+            <button id="findMember" class="primary-btn">Find member</button>
+            <button id="scanQr" class="ghost-btn">Scan QR</button>
           </div>
-        </div>
-
-        <div class="app-card">
-          <h3>Redeem reward</h3>
-          <div class="form-grid">
-            <div class="field">
-              <label for="rewardCount">Number of £5 rewards</label>
-              <select id="rewardCount">
-                <option value="1">1 × £5</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="redeemReceipt">Receipt/reference</label>
-              <input id="redeemReceipt" autocomplete="off">
+          <div id="scanArea" class="hidden qr-reader-shell">
+            <div id="qrReader"></div>
+            <p class="scanner-help">
+              Point the rear camera at the customer's Kweider QR code.<br />
+              Keep the QR code clear and around 15–30 cm from the camera.
+            </p>
+            <div class="form-actions">
+              <button id="stopScan" class="danger-btn">Stop camera</button>
             </div>
           </div>
-          <div class="form-actions">
-            <button id="redeemReward" class="gold-btn">Redeem</button>
+          <div id="staffMessage" aria-live="polite"></div>
+        </div>
+
+        <div id="memberPanel" class="hidden">
+          <div class="app-card">
+            <div class="split">
+              <div>
+                <h2 id="staffMemberName"></h2>
+                <p
+                  id="staffMemberMeta"
+                  style="color: #bbb; line-height: 1.7"
+                ></p>
+                <p id="staffRewardSummary" class="member-reward-note"></p>
+              </div>
+              <div class="metric">
+                <strong id="staffPoints">0</strong>
+                <span>CURRENT POINTS</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="app-card">
+            <h3>Add purchase points</h3>
+            <div class="form-grid">
+              <div class="field">
+                <label for="purchaseAmount">Purchase amount (£)</label>
+                <input
+                  id="purchaseAmount"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  inputmode="decimal"
+                />
+              </div>
+              <div class="field">
+                <label for="earnReceipt">Receipt number</label>
+                <input id="earnReceipt" autocomplete="off" />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button id="addPoints" class="primary-btn">Add points</button>
+            </div>
+          </div>
+
+          <div class="app-card">
+            <h3>Redeem reward</h3>
+            <div class="form-grid">
+              <div class="field full">
+                <label for="memberReward">Available reward</label>
+                <select id="memberReward">
+                  <option value="">No rewards available</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="redeemPurchaseAmount">
+                  Purchase amount (£)
+                  <span class="field-hint"
+                    >— required for percentage discounts</span
+                  >
+                </label>
+                <input
+                  id="redeemPurchaseAmount"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  inputmode="decimal"
+                />
+              </div>
+              <div class="field">
+                <label for="redeemReceipt"
+                  >Receipt/reference
+                  <span class="field-hint">(optional)</span></label
+                >
+                <input id="redeemReceipt" autocomplete="off" />
+              </div>
+            </div>
+            <div
+              id="rewardPreview"
+              class="notice info reward-preview"
+              aria-live="polite"
+            >
+              Select an available reward.
+            </div>
+            <div class="form-actions">
+              <button id="redeemReward" class="gold-btn" disabled>
+                Redeem selected reward
+              </button>
+            </div>
+          </div>
+
+          <div class="app-card">
+            <h3>Recent activity</h3>
+            <div id="transactionList" class="transaction-list"></div>
           </div>
         </div>
+      </section>
+    </main>
 
-        <div class="app-card">
-          <h3>Recent activity</h3>
-          <div id="transactionList" class="transaction-list"></div>
-        </div>
-      </div>
-    </section>
-  </main>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="assets/js/app-shell.js"></script>
+    <script>
+      "use strict";
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
-  <script src="assets/js/app-shell.js"></script>
-  <script>
-    'use strict';
+      const SUPABASE_URL = "https://fwjiceleybxhgetsvsvp.supabase.co";
 
-    const SUPABASE_URL = 'https://fwjiceleybxhgetsvsvp.supabase.co';
+      // REQUIRED: replace only the text between the quotation marks below.
+      const SUPABASE_PUBLISHABLE_KEY =
+        "sb_publishable_yNgSShCyeQ6FfSy30T6-hg_9dLXXpwk";
 
-    // REQUIRED: replace only the text between the quotation marks below.
-    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_yNgSShCyeQ6FfSy30T6-hg_9dLXXpwk';
+      const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/kweider-rewards-api`;
+      const SESSION_KEY = "kweiderRewards.staffSession.v1";
+      const $ = (id) => document.getElementById(id);
 
-    const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/kweider-rewards-api`;
-    const SESSION_KEY = 'kweiderRewards.staffSession.v1';
-    const $ = (id) => document.getElementById(id);
-
-    let session = null;
-    let staff = null;
-    let member = null;
-    let memberTransactions = [];
-    let settings = { pointsPerPound: 1, pointsPerReward: 100, rewardValue: 5 };
-    let qrScanner = null;
-    let scanning = false;
-    let scanHandled = false;
-
-    function hasConfiguration() {
-      return SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_');
-    }
-
-    function message(targetId, text, type = 'info') {
-      $(targetId).innerHTML = text ? `<div class="notice ${type}">${escapeHtml(text)}</div>` : '';
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-    }
-
-    function setBusy(button, busy, busyText) {
-      if (!button.dataset.normalText) button.dataset.normalText = button.textContent;
-      button.disabled = busy;
-      button.classList.toggle('button-busy', busy);
-      button.textContent = busy ? busyText : button.dataset.normalText;
-    }
-
-    function saveSession(nextSession) {
-      session = nextSession;
-      if (nextSession) sessionStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
-      else sessionStorage.removeItem(SESSION_KEY);
-    }
-
-    function loadSession() {
-      try {
-        const raw = sessionStorage.getItem(SESSION_KEY);
-        session = raw ? JSON.parse(raw) : null;
-      } catch {
-        session = null;
-        sessionStorage.removeItem(SESSION_KEY);
-      }
-    }
-
-    async function readJson(response) {
-      const text = await response.text();
-      if (!text) return {};
-      try { return JSON.parse(text); }
-      catch { return { message: text }; }
-    }
-
-    async function authRequest(path, body, accessToken = '') {
-      const headers = {
-        apikey: SUPABASE_PUBLISHABLE_KEY,
-        'Content-Type': 'application/json'
+      let session = null;
+      let staff = null;
+      let member = null;
+      let memberTransactions = [];
+      let memberRewards = [];
+      let rewardDefinitions = [];
+      let settings = {
+        pointsPerPound: 1,
+        pointsPerReward: 100,
+        rewardValue: 5,
       };
-      if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+      let qrScanner = null;
+      let scanning = false;
+      let scanHandled = false;
 
-      const response = await fetch(`${SUPABASE_URL}${path}`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body)
-      });
-      const data = await readJson(response);
-      if (!response.ok) throw new Error(data.message || data.error_description || data.error || 'Authentication failed.');
-      return data;
-    }
-
-    async function signIn(email, password) {
-      const data = await authRequest('/auth/v1/token?grant_type=password', { email, password });
-      if (!data.access_token || !data.refresh_token) throw new Error('The staff session could not be created.');
-      saveSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        expires_at: data.expires_at || Math.floor(Date.now() / 1000) + Number(data.expires_in || 3600),
-        user: data.user || null
-      });
-    }
-
-    async function refreshSession() {
-      if (!session?.refresh_token) throw new Error('The staff session has expired. Sign in again.');
-      const data = await authRequest('/auth/v1/token?grant_type=refresh_token', {
-        refresh_token: session.refresh_token
-      });
-      if (!data.access_token || !data.refresh_token) throw new Error('The staff session has expired. Sign in again.');
-      saveSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        expires_at: data.expires_at || Math.floor(Date.now() / 1000) + Number(data.expires_in || 3600),
-        user: data.user || session.user || null
-      });
-    }
-
-    async function ensureFreshSession() {
-      if (!session?.access_token) throw new Error('Sign in with an authorised staff account.');
-      const expiresAt = Number(session.expires_at || 0);
-      if (expiresAt && expiresAt <= Math.floor(Date.now() / 1000) + 60) await refreshSession();
-    }
-
-    async function apiRequest(payload, allowRefresh = true) {
-      await ensureFreshSession();
-      const response = await fetch(FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          apikey: SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-      const data = await readJson(response);
-
-      if (response.status === 401 && allowRefresh && session?.refresh_token) {
-        await refreshSession();
-        return apiRequest(payload, false);
+      function hasConfiguration() {
+        return SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_");
       }
 
-      if (!response.ok || data.ok === false) {
-        const error = new Error(data.message || 'The rewards request failed.');
-        error.code = data.code || '';
-        error.status = response.status;
-        throw error;
-      }
-      return data;
-    }
-
-    function resetMember() {
-      member = null;
-      memberTransactions = [];
-      $('memberPanel').classList.add('hidden');
-      $('transactionList').innerHTML = '';
-    }
-
-    function renderStaff() {
-      $('signedInName').textContent = staff?.displayName || 'Staff';
-      $('signedInRole').textContent = staff?.role ? `Role: ${staff.role}` : '';
-      $('loginCard').classList.add('hidden');
-      $('staffPanel').classList.remove('hidden');
-    }
-
-    function renderRewardOptions(availableRewards) {
-      const select = $('rewardCount');
-      select.innerHTML = '';
-      const count = Math.max(0, Number(availableRewards || 0));
-      if (!count) {
-        const option = document.createElement('option');
-        option.value = '0';
-        option.textContent = 'No rewards available';
-        select.appendChild(option);
-        $('redeemReward').disabled = true;
-        return;
-      }
-      $('redeemReward').disabled = false;
-      for (let i = 1; i <= count; i += 1) {
-        const option = document.createElement('option');
-        option.value = String(i);
-        option.textContent = `${i} × £${(i * Number(settings.rewardValue || 5)).toFixed(0)}`;
-        select.appendChild(option);
-      }
-    }
-
-    function renderTransactions(transactions) {
-      const list = $('transactionList');
-      if (!transactions?.length) {
-        list.innerHTML = '<div class="notice info">No activity recorded yet.</div>';
-        return;
+      function message(targetId, text, type = "info") {
+        $(targetId).innerHTML = text
+          ? `<div class="notice ${type}">${escapeHtml(text)}</div>`
+          : "";
       }
 
-      list.innerHTML = transactions.map((transaction) => {
-        const points = Number(transaction.pointsDelta || 0);
-        const isRedeem = transaction.type === 'redeem' || points < 0;
-        const title = isRedeem
-          ? `Reward redeemed${transaction.rewardValue ? ` · £${Number(transaction.rewardValue).toFixed(2)}` : ''}`
-          : `Purchase points${transaction.purchaseAmount !== null ? ` · £${Number(transaction.purchaseAmount).toFixed(2)}` : ''}`;
-        const date = transaction.createdAt ? new Date(transaction.createdAt).toLocaleString('en-GB') : '';
-        const details = [transaction.receiptReference, transaction.performedByName, date].filter(Boolean).join(' · ');
-        const pointsText = `${points > 0 ? '+' : ''}${points} pts`;
-        return `
-          <div class="transaction-item">
-            <div>
-              <strong>${escapeHtml(title)}</strong>
-              <small>${escapeHtml(details || transaction.notes || '')}</small>
-            </div>
-            <div class="transaction-points ${points < 0 ? 'negative' : 'positive'}">${escapeHtml(pointsText)}</div>
-          </div>`;
-      }).join('');
-    }
-
-    function renderMember(bundle) {
-      member = bundle.member;
-      memberTransactions = bundle.transactions || [];
-      settings = bundle.settings || settings;
-
-      $('memberPanel').classList.remove('hidden');
-      $('staffMemberName').textContent = member.firstName || 'Member';
-      $('staffMemberMeta').textContent = `${member.memberCode} · ${member.phone}`;
-      $('staffPoints').textContent = Number(member.points || 0);
-      $('staffRewardSummary').textContent = member.availableRewards
-        ? `${member.availableRewards} reward(s) available · £${Number(member.availableRewardValue || 0).toFixed(2)} total value`
-        : `${Number(settings.pointsPerReward || 100) - (Number(member.points || 0) % Number(settings.pointsPerReward || 100))} points until the next £${Number(settings.rewardValue || 5).toFixed(0)} reward`;
-
-      renderRewardOptions(member.availableRewards);
-      renderTransactions(memberTransactions);
-    }
-
-    function cleanMemberSearch(value) {
-      return String(value || '')
-        .trim()
-        .replace(/^KWEIDER-LOYALTY:/i, '')
-        .replace(/^KWEIDER-REWARDS:/i, '');
-    }
-
-    async function findMember(value) {
-      const search = cleanMemberSearch(value);
-      if (!search) throw new Error('Enter a membership code or phone number.');
-      const data = await apiRequest({ action: 'staff_find_member', memberSearch: search });
-      renderMember(data);
-      message('staffMessage', 'Member found. Check the name before continuing.', 'ok');
-    }
-
-    async function stopCamera() {
-      scanning = false;
-      scanHandled = false;
-
-      if (qrScanner) {
-        try {
-          await qrScanner.stop();
-        } catch {}
-        try {
-          qrScanner.clear();
-        } catch {}
-        qrScanner = null;
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
       }
 
-      $('scanArea').classList.add('hidden');
-      $('qrReader').innerHTML = '';
-      $('scanQr').disabled = false;
-    }
-
-    $('staffLogin').addEventListener('click', async () => {
-      const button = $('staffLogin');
-      const email = $('staffEmail').value.trim();
-      const password = $('staffPassword').value;
-      message('loginMessage', '');
-
-      if (!email || !password) {
-        message('loginMessage', 'Enter the staff email and password.', 'error');
-        return;
+      function readField(object, ...keys) {
+        for (const key of keys) {
+          if (object && object[key] !== undefined && object[key] !== null) {
+            return object[key];
+          }
+        }
+        return null;
       }
 
-      setBusy(button, true, 'Signing in...');
-      try {
-        await signIn(email, password);
-        const data = await apiRequest({ action: 'staff_me' });
-        staff = data.staff;
-        $('staffPassword').value = '';
-        renderStaff();
-      } catch (error) {
-        saveSession(null);
-        message('loginMessage', error.message || 'Sign-in failed.', 'error');
-      } finally {
-        setBusy(button, false, 'Signing in...');
-      }
-    });
-
-    $('staffPassword').addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') $('staffLogin').click();
-    });
-
-    $('staffLogout').addEventListener('click', async () => {
-      const token = session?.access_token || '';
-      try {
-        if (token) await authRequest('/auth/v1/logout', {}, token);
-      } catch {}
-      await stopCamera();
-      saveSession(null);
-      staff = null;
-      resetMember();
-      $('staffPanel').classList.add('hidden');
-      $('loginCard').classList.remove('hidden');
-      message('loginMessage', 'Signed out successfully.', 'ok');
-    });
-
-    $('findMember').addEventListener('click', async () => {
-      const button = $('findMember');
-      setBusy(button, true, 'Searching...');
-      message('staffMessage', '');
-      try {
-        await findMember($('memberSearch').value);
-      } catch (error) {
-        resetMember();
-        message('staffMessage', error.message || 'Member search failed.', 'error');
-      } finally {
-        setBusy(button, false, 'Searching...');
-      }
-    });
-
-    $('memberSearch').addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') $('findMember').click();
-    });
-
-    $('addPoints').addEventListener('click', async () => {
-      if (!member) return;
-      const button = $('addPoints');
-      const purchaseAmount = Number($('purchaseAmount').value);
-      const receiptReference = $('earnReceipt').value.trim();
-
-      if (!Number.isFinite(purchaseAmount) || purchaseAmount <= 0) {
-        message('staffMessage', 'Enter a valid purchase amount.', 'error');
-        return;
-      }
-      if (!receiptReference) {
-        message('staffMessage', 'Receipt number is required.', 'error');
-        return;
+      function createIdempotencyKey() {
+        if (globalThis.crypto?.randomUUID)
+          return globalThis.crypto.randomUUID();
+        return `web-${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
       }
 
-      setBusy(button, true, 'Adding...');
-      try {
-        const data = await apiRequest({
-          action: 'staff_add_purchase_points',
-          memberId: member.id,
-          purchaseAmount,
-          receiptReference,
-          idempotencyKey: crypto.randomUUID()
-        });
-        renderMember(data);
-        $('purchaseAmount').value = '';
-        $('earnReceipt').value = '';
-        const duplicateText = data.operation?.duplicate ? ' This request had already been recorded.' : '';
-        message('staffMessage', `${Number(data.operation?.pointsAdded || 0)} points added successfully.${duplicateText}`, 'ok');
-      } catch (error) {
-        message('staffMessage', error.message || 'Points could not be added.', 'error');
-      } finally {
-        setBusy(button, false, 'Adding...');
+      function isRewardAvailable(reward) {
+        if (!reward || readField(reward, "status") !== "available")
+          return false;
+        const expiresAt = readField(reward, "expiresAt", "expires_at");
+        if (!expiresAt) return true;
+        const expiryTime = new Date(expiresAt).getTime();
+        return Number.isFinite(expiryTime) && expiryTime > Date.now();
       }
-    });
 
-    $('redeemReward').addEventListener('click', async () => {
-      if (!member) return;
-      const numberOfRewards = Number($('rewardCount').value);
-      const receiptReference = $('redeemReceipt').value.trim();
-      const rewardValue = numberOfRewards * Number(settings.rewardValue || 5);
-
-      if (!Number.isInteger(numberOfRewards) || numberOfRewards < 1) {
-        message('staffMessage', 'The member does not have an available reward.', 'error');
-        return;
+      function rewardCodeOf(reward) {
+        return String(readField(reward, "rewardCode", "reward_code") || "");
       }
-      if (!receiptReference) {
-        message('staffMessage', 'Receipt/reference is required.', 'error');
-        return;
+
+      function definitionCodeOf(definition) {
+        return String(readField(definition, "code") || "");
       }
-      if (!confirm(`Redeem £${rewardValue.toFixed(2)} for ${member.firstName}?`)) return;
 
-      const button = $('redeemReward');
-      setBusy(button, true, 'Redeeming...');
-      try {
-        const data = await apiRequest({
-          action: 'staff_redeem_rewards',
-          memberId: member.id,
-          numberOfRewards,
-          receiptReference,
-          idempotencyKey: crypto.randomUUID()
-        });
-        renderMember(data);
-        $('redeemReceipt').value = '';
-        message('staffMessage', `£${Number(data.operation?.rewardValue || rewardValue).toFixed(2)} reward redeemed successfully.`, 'ok');
-      } catch (error) {
-        message('staffMessage', error.message || 'Reward could not be redeemed.', 'error');
-      } finally {
-        setBusy(button, false, 'Redeeming...');
-      }
-    });
-
-    $('stopScan').addEventListener('click', stopCamera);
-
-    $('scanQr').addEventListener('click', async () => {
-      message('staffMessage', '');
-
-      if (!window.isSecureContext) {
-        message(
-          'staffMessage',
-          'Camera access requires the secure GitHub Pages address beginning with https://. It may not work when staff.html is opened directly from the device files.',
-          'error'
+      function definitionForReward(reward) {
+        const code = rewardCodeOf(reward);
+        return (
+          rewardDefinitions.find(
+            (definition) => definitionCodeOf(definition) === code,
+          ) || null
         );
-        return;
       }
 
-      if (!navigator.mediaDevices?.getUserMedia) {
-        message('staffMessage', 'This browser cannot access the camera. Use Chrome or the latest Huawei Browser.', 'error');
-        return;
+      function rewardTitle(definition, reward = null) {
+        return String(
+          readField(definition, "titleEn", "title_en") ||
+            rewardCodeOf(reward) ||
+            "Reward",
+        );
       }
 
-      if (typeof Html5Qrcode === 'undefined') {
-        message('staffMessage', 'The QR scanner library did not load. Check the internet connection and reload the page.', 'error');
-        return;
+      function selectedRewardDetails() {
+        const select = $("memberReward");
+        const memberRewardId = select.value;
+        const reward =
+          memberRewards.find(
+            (item) => String(readField(item, "id") || "") === memberRewardId,
+          ) || null;
+        const definition = reward ? definitionForReward(reward) : null;
+        return { memberRewardId, reward, definition };
       }
 
-      await stopCamera();
-      $('scanArea').classList.remove('hidden');
-      $('scanQr').disabled = true;
-      scanning = true;
-      scanHandled = false;
+      function calculateDiscount(definition, purchaseAmount) {
+        const percent = Number(
+          readField(definition, "percentOff", "percent_off") || 0,
+        );
+        const maximumRaw = readField(
+          definition,
+          "maximumDiscount",
+          "maximum_discount",
+        );
+        const maximum =
+          maximumRaw === null || maximumRaw === "" ? null : Number(maximumRaw);
+        const rawDiscount = (Number(purchaseAmount) * percent) / 100;
+        const discount =
+          Number.isFinite(maximum) && maximum >= 0
+            ? Math.min(rawDiscount, maximum)
+            : rawDiscount;
+        return {
+          percent,
+          maximum,
+          discount: Math.max(
+            0,
+            Math.round((discount + Number.EPSILON) * 100) / 100,
+          ),
+        };
+      }
 
-      qrScanner = new Html5Qrcode(
-        'qrReader',
-        { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] },
-        false
-      );
+      function syncRedeemButton() {
+        $("redeemReward").disabled = !$("memberReward").value;
+      }
 
-      const onScanSuccess = async (decodedText) => {
-        if (!scanning || scanHandled) return;
+      function updateRewardPreview() {
+        const { reward, definition } = selectedRewardDetails();
+        const preview = $("rewardPreview");
+        const purchaseInput = $("redeemPurchaseAmount");
 
-        const rawValue = String(decodedText || '').trim();
-        const value = cleanMemberSearch(rawValue);
-        const isKweiderCode =
-          /^KWEIDER-(LOYALTY|REWARDS):/i.test(rawValue) ||
-          /^KW-/i.test(value);
-
-        if (!isKweiderCode) {
-          message('staffMessage', 'This is not a Kweider Rewards QR code. Please scan the customer membership card.', 'error');
+        if (!reward || !definition) {
+          purchaseInput.required = false;
+          preview.className = "notice info reward-preview";
+          preview.textContent = "Select an available reward.";
+          syncRedeemButton();
           return;
         }
 
-        scanHandled = true;
-        $('memberSearch').value = value;
-
-        try {
-          await stopCamera();
-          await findMember(value);
-        } catch (error) {
-          resetMember();
-          message('staffMessage', error.message || 'The membership QR code could not be opened.', 'error');
-        }
-      };
-
-      try {
-        await qrScanner.start(
-          { facingMode: 'environment' },
-          {
-            fps: 10,
-            qrbox: (viewfinderWidth, viewfinderHeight) => {
-              const size = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.72);
-              const safeSize = Math.max(180, Math.min(size, 320));
-              return { width: safeSize, height: safeSize };
-            },
-            aspectRatio: 1.333334,
-            disableFlip: false
-          },
-          onScanSuccess,
-          () => {}
+        const title = rewardTitle(definition, reward);
+        const kind = String(
+          readField(definition, "rewardKind", "reward_kind") || "",
         );
 
-        message('staffMessage', 'Camera ready. Point it at the customer QR code.', 'info');
-      } catch (error) {
-        await stopCamera();
+        if (kind === "percent_discount") {
+          purchaseInput.required = true;
+          const amount = Number(purchaseInput.value);
+          const { percent, maximum, discount } = calculateDiscount(
+            definition,
+            amount,
+          );
 
-        const text = String(error?.message || error || '').toLowerCase();
-        let userMessage = 'Could not open the camera. Allow camera permission, then try again.';
-
-        if (text.includes('notallowed') || text.includes('permission')) {
-          userMessage = 'Camera permission was blocked. Allow camera access for this site in the browser settings, then try again.';
-        } else if (text.includes('notfound') || text.includes('requested device not found')) {
-          userMessage = 'No usable rear camera was found on this device.';
-        } else if (text.includes('notreadable') || text.includes('trackstart')) {
-          userMessage = 'The camera is being used by another app. Close other camera apps and try again.';
+          if (!Number.isFinite(amount) || amount <= 0) {
+            preview.className = "notice info reward-preview";
+            preview.textContent = `${title}: enter the purchase amount to calculate the discount.`;
+          } else {
+            const capText = Number.isFinite(maximum)
+              ? ` (maximum £${maximum.toFixed(2)})`
+              : "";
+            preview.className = "notice ok reward-preview";
+            preview.textContent = `${title}: ${percent}% discount = £${discount.toFixed(2)} on a £${amount.toFixed(2)} purchase${capText}.`;
+          }
+        } else if (kind === "breakfast_for_two") {
+          purchaseInput.required = false;
+          preview.className = "notice ok reward-preview";
+          preview.textContent = `${title}: redeem the selected breakfast for two. A purchase amount is not required.`;
+        } else {
+          purchaseInput.required = false;
+          preview.className = "notice info reward-preview";
+          preview.textContent = title;
         }
 
-        message('staffMessage', userMessage, 'error');
-      }
-    });
-
-    window.addEventListener('pagehide', () => {
-      stopCamera();
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden && scanning) stopCamera();
-    });
-
-    async function start() {
-      if (!hasConfiguration()) {
-        $('loginCard').classList.add('hidden');
-        $('configurationCard').classList.remove('hidden');
-        return;
+        syncRedeemButton();
       }
 
-      loadSession();
-      if (!session?.access_token) return;
+      function setBusy(button, busy, busyText) {
+        if (!button.dataset.normalText)
+          button.dataset.normalText = button.textContent;
+        button.disabled = busy;
+        button.classList.toggle("button-busy", busy);
+        button.textContent = busy ? busyText : button.dataset.normalText;
+      }
 
-      try {
-        const data = await apiRequest({ action: 'staff_me' });
-        staff = data.staff;
-        renderStaff();
-      } catch {
+      function saveSession(nextSession) {
+        session = nextSession;
+        if (nextSession)
+          sessionStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
+        else sessionStorage.removeItem(SESSION_KEY);
+      }
+
+      function loadSession() {
+        try {
+          const raw = sessionStorage.getItem(SESSION_KEY);
+          session = raw ? JSON.parse(raw) : null;
+        } catch {
+          session = null;
+          sessionStorage.removeItem(SESSION_KEY);
+        }
+      }
+
+      async function readJson(response) {
+        const text = await response.text();
+        if (!text) return {};
+        try {
+          return JSON.parse(text);
+        } catch {
+          return { message: text };
+        }
+      }
+
+      async function authRequest(path, body, accessToken = "") {
+        const headers = {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          "Content-Type": "application/json",
+        };
+        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
+        const response = await fetch(`${SUPABASE_URL}${path}`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+        });
+        const data = await readJson(response);
+        if (!response.ok)
+          throw new Error(
+            data.message ||
+              data.error_description ||
+              data.error ||
+              "Authentication failed.",
+          );
+        return data;
+      }
+
+      async function signIn(email, password) {
+        const data = await authRequest("/auth/v1/token?grant_type=password", {
+          email,
+          password,
+        });
+        if (!data.access_token || !data.refresh_token)
+          throw new Error("The staff session could not be created.");
+        saveSession({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          expires_at:
+            data.expires_at ||
+            Math.floor(Date.now() / 1000) + Number(data.expires_in || 3600),
+          user: data.user || null,
+        });
+      }
+
+      async function refreshSession() {
+        if (!session?.refresh_token)
+          throw new Error("The staff session has expired. Sign in again.");
+        const data = await authRequest(
+          "/auth/v1/token?grant_type=refresh_token",
+          {
+            refresh_token: session.refresh_token,
+          },
+        );
+        if (!data.access_token || !data.refresh_token)
+          throw new Error("The staff session has expired. Sign in again.");
+        saveSession({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          expires_at:
+            data.expires_at ||
+            Math.floor(Date.now() / 1000) + Number(data.expires_in || 3600),
+          user: data.user || session.user || null,
+        });
+      }
+
+      async function ensureFreshSession() {
+        if (!session?.access_token)
+          throw new Error("Sign in with an authorised staff account.");
+        const expiresAt = Number(session.expires_at || 0);
+        if (expiresAt && expiresAt <= Math.floor(Date.now() / 1000) + 60)
+          await refreshSession();
+      }
+
+      async function apiRequest(payload, allowRefresh = true) {
+        await ensureFreshSession();
+        const response = await fetch(FUNCTION_URL, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await readJson(response);
+
+        if (response.status === 401 && allowRefresh && session?.refresh_token) {
+          await refreshSession();
+          return apiRequest(payload, false);
+        }
+
+        if (!response.ok || data.ok === false) {
+          const error = new Error(
+            data.message || "The rewards request failed.",
+          );
+          error.code = data.code || "";
+          error.status = response.status;
+          throw error;
+        }
+        return data;
+      }
+
+      function resetMember() {
+        member = null;
+        memberTransactions = [];
+        memberRewards = [];
+        rewardDefinitions = [];
+        $("memberPanel").classList.add("hidden");
+        $("transactionList").innerHTML = "";
+        $("memberReward").innerHTML =
+          '<option value="">No rewards available</option>';
+        $("redeemPurchaseAmount").value = "";
+        $("redeemReceipt").value = "";
+        updateRewardPreview();
+      }
+
+      function renderStaff() {
+        $("signedInName").textContent = staff?.displayName || "Staff";
+        $("signedInRole").textContent = staff?.role
+          ? `Role: ${staff.role}`
+          : "";
+        $("loginCard").classList.add("hidden");
+        $("staffPanel").classList.remove("hidden");
+      }
+
+      function renderRewardOptions(rewards, definitions) {
+        const select = $("memberReward");
+        select.innerHTML = "";
+
+        const definitionMap = new Map(
+          (definitions || []).map((definition) => [
+            definitionCodeOf(definition),
+            definition,
+          ]),
+        );
+
+        const availableRewards = (rewards || [])
+          .filter(isRewardAvailable)
+          .sort((left, right) => {
+            const leftDefinition = definitionMap.get(rewardCodeOf(left));
+            const rightDefinition = definitionMap.get(rewardCodeOf(right));
+            return (
+              Number(
+                readField(
+                  leftDefinition,
+                  "thresholdPoints",
+                  "threshold_points",
+                ) || 0,
+              ) -
+              Number(
+                readField(
+                  rightDefinition,
+                  "thresholdPoints",
+                  "threshold_points",
+                ) || 0,
+              )
+            );
+          });
+
+        if (!availableRewards.length) {
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = "No rewards available";
+          select.appendChild(option);
+          updateRewardPreview();
+          return;
+        }
+
+        availableRewards.forEach((reward) => {
+          const definition = definitionMap.get(rewardCodeOf(reward)) || null;
+          const title = rewardTitle(definition, reward);
+          const expiresAt = readField(reward, "expiresAt", "expires_at");
+          const expiryTime = expiresAt ? new Date(expiresAt).getTime() : NaN;
+          const expiryText = Number.isFinite(expiryTime)
+            ? ` · valid until ${new Date(expiryTime).toLocaleDateString("en-GB")}`
+            : "";
+
+          const option = document.createElement("option");
+          option.value = String(readField(reward, "id") || "");
+          option.textContent = `${title}${expiryText}`;
+          select.appendChild(option);
+        });
+
+        updateRewardPreview();
+      }
+
+      function renderTransactions(transactions) {
+        const list = $("transactionList");
+        if (!transactions?.length) {
+          list.innerHTML =
+            '<div class="notice info">No activity recorded yet.</div>';
+          return;
+        }
+
+        list.innerHTML = transactions
+          .map((transaction) => {
+            const points = Number(transaction.pointsDelta || 0);
+            const isRedeem = transaction.type === "redeem" || points < 0;
+            const title = isRedeem
+              ? `Reward redeemed${transaction.rewardValue ? ` · £${Number(transaction.rewardValue).toFixed(2)}` : ""}`
+              : `Purchase points${transaction.purchaseAmount !== null ? ` · £${Number(transaction.purchaseAmount).toFixed(2)}` : ""}`;
+            const date = transaction.createdAt
+              ? new Date(transaction.createdAt).toLocaleString("en-GB")
+              : "";
+            const details = [
+              transaction.receiptReference,
+              transaction.performedByName,
+              date,
+            ]
+              .filter(Boolean)
+              .join(" · ");
+            const pointsText = `${points > 0 ? "+" : ""}${points} pts`;
+            return `
+          <div class="transaction-item">
+            <div>
+              <strong>${escapeHtml(title)}</strong>
+              <small>${escapeHtml(details || transaction.notes || "")}</small>
+            </div>
+            <div class="transaction-points ${points < 0 ? "negative" : "positive"}">${escapeHtml(pointsText)}</div>
+          </div>`;
+          })
+          .join("");
+      }
+
+      function renderMember(bundle) {
+        member = bundle.member;
+        memberTransactions = Array.isArray(bundle.transactions)
+          ? bundle.transactions
+          : [];
+        memberRewards = Array.isArray(bundle.rewards) ? bundle.rewards : [];
+        rewardDefinitions = Array.isArray(bundle.rewardDefinitions)
+          ? bundle.rewardDefinitions
+          : [];
+        settings = bundle.settings || settings;
+
+        const availableRewards = memberRewards.filter(isRewardAvailable);
+        const availableTitles = availableRewards
+          .map((reward) => rewardTitle(definitionForReward(reward), reward))
+          .filter(Boolean);
+
+        $("memberPanel").classList.remove("hidden");
+        $("staffMemberName").textContent = member.firstName || "Member";
+        $("staffMemberMeta").textContent =
+          `${member.memberCode} · ${member.phone}`;
+        $("staffPoints").textContent = Number(member.points || 0);
+        $("staffRewardSummary").textContent = availableRewards.length
+          ? `${availableRewards.length} reward${availableRewards.length === 1 ? "" : "s"} available: ${availableTitles.join(", ")}`
+          : "No rewards available yet.";
+
+        renderRewardOptions(memberRewards, rewardDefinitions);
+        renderTransactions(memberTransactions);
+      }
+
+      function cleanMemberSearch(value) {
+        return String(value || "")
+          .trim()
+          .replace(/^KWEIDER-LOYALTY:/i, "")
+          .replace(/^KWEIDER-REWARDS:/i, "");
+      }
+
+      async function findMember(value) {
+        const search = cleanMemberSearch(value);
+        if (!search)
+          throw new Error("Enter a membership code or phone number.");
+        const data = await apiRequest({
+          action: "staff_find_member",
+          memberSearch: search,
+        });
+        renderMember(data);
+        message(
+          "staffMessage",
+          "Member found. Check the name before continuing.",
+          "ok",
+        );
+      }
+
+      async function stopCamera() {
+        scanning = false;
+        scanHandled = false;
+
+        if (qrScanner) {
+          try {
+            await qrScanner.stop();
+          } catch {}
+          try {
+            qrScanner.clear();
+          } catch {}
+          qrScanner = null;
+        }
+
+        $("scanArea").classList.add("hidden");
+        $("qrReader").innerHTML = "";
+        $("scanQr").disabled = false;
+      }
+
+      $("staffLogin").addEventListener("click", async () => {
+        const button = $("staffLogin");
+        const email = $("staffEmail").value.trim();
+        const password = $("staffPassword").value;
+        message("loginMessage", "");
+
+        if (!email || !password) {
+          message(
+            "loginMessage",
+            "Enter the staff email and password.",
+            "error",
+          );
+          return;
+        }
+
+        setBusy(button, true, "Signing in...");
+        try {
+          await signIn(email, password);
+          const data = await apiRequest({ action: "staff_me" });
+          staff = data.staff;
+          $("staffPassword").value = "";
+          renderStaff();
+        } catch (error) {
+          saveSession(null);
+          message("loginMessage", error.message || "Sign-in failed.", "error");
+        } finally {
+          setBusy(button, false, "Signing in...");
+        }
+      });
+
+      $("staffPassword").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") $("staffLogin").click();
+      });
+
+      $("staffLogout").addEventListener("click", async () => {
+        const token = session?.access_token || "";
+        try {
+          if (token) await authRequest("/auth/v1/logout", {}, token);
+        } catch {}
+        await stopCamera();
         saveSession(null);
-      }
-    }
+        staff = null;
+        resetMember();
+        $("staffPanel").classList.add("hidden");
+        $("loginCard").classList.remove("hidden");
+        message("loginMessage", "Signed out successfully.", "ok");
+      });
 
-    start();
-  </script>
-</body>
+      $("findMember").addEventListener("click", async () => {
+        const button = $("findMember");
+        setBusy(button, true, "Searching...");
+        message("staffMessage", "");
+        try {
+          await findMember($("memberSearch").value);
+        } catch (error) {
+          resetMember();
+          message(
+            "staffMessage",
+            error.message || "Member search failed.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Searching...");
+        }
+      });
+
+      $("memberSearch").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") $("findMember").click();
+      });
+
+      $("addPoints").addEventListener("click", async () => {
+        if (!member) return;
+        const button = $("addPoints");
+        const purchaseAmount = Number($("purchaseAmount").value);
+        const receiptReference = $("earnReceipt").value.trim();
+
+        if (!Number.isFinite(purchaseAmount) || purchaseAmount <= 0) {
+          message("staffMessage", "Enter a valid purchase amount.", "error");
+          return;
+        }
+        if (!receiptReference) {
+          message("staffMessage", "Receipt number is required.", "error");
+          return;
+        }
+
+        setBusy(button, true, "Adding...");
+        try {
+          const data = await apiRequest({
+            action: "staff_add_purchase_points",
+            memberId: member.id,
+            purchaseAmount,
+            receiptReference,
+            idempotencyKey: createIdempotencyKey(),
+          });
+          renderMember(data);
+          $("purchaseAmount").value = "";
+          $("earnReceipt").value = "";
+          const duplicateText = data.operation?.duplicate
+            ? " This request had already been recorded."
+            : "";
+          message(
+            "staffMessage",
+            `${Number(data.operation?.pointsAdded || 0)} points added successfully.${duplicateText}`,
+            "ok",
+          );
+        } catch (error) {
+          message(
+            "staffMessage",
+            error.message || "Points could not be added.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Adding...");
+        }
+      });
+
+      $("memberReward").addEventListener("change", updateRewardPreview);
+      $("redeemPurchaseAmount").addEventListener("input", updateRewardPreview);
+
+      $("redeemReward").addEventListener("click", async () => {
+        if (!member) return;
+
+        const { memberRewardId, reward, definition } = selectedRewardDetails();
+        const rawPurchaseAmount = $("redeemPurchaseAmount").value.trim();
+        const purchaseAmount =
+          rawPurchaseAmount === "" ? null : Number(rawPurchaseAmount);
+        const receiptReference = $("redeemReceipt").value.trim();
+
+        if (!memberRewardId || !reward || !definition) {
+          message(
+            "staffMessage",
+            "The member does not have an available reward.",
+            "error",
+          );
+          return;
+        }
+
+        const kind = String(
+          readField(definition, "rewardKind", "reward_kind") || "",
+        );
+        const title = rewardTitle(definition, reward);
+
+        if (
+          kind === "percent_discount" &&
+          (purchaseAmount === null ||
+            !Number.isFinite(purchaseAmount) ||
+            purchaseAmount <= 0)
+        ) {
+          message(
+            "staffMessage",
+            "Enter the purchase amount to calculate the discount.",
+            "error",
+          );
+          $("redeemPurchaseAmount").focus();
+          return;
+        }
+
+        if (
+          purchaseAmount !== null &&
+          (!Number.isFinite(purchaseAmount) || purchaseAmount <= 0)
+        ) {
+          message("staffMessage", "Enter a valid purchase amount.", "error");
+          $("redeemPurchaseAmount").focus();
+          return;
+        }
+
+        let confirmationText = `Redeem ${title} for ${member.firstName}?`;
+        if (kind === "percent_discount") {
+          const { discount } = calculateDiscount(definition, purchaseAmount);
+          confirmationText += `
+Discount to apply: £${discount.toFixed(2)}.`;
+        }
+
+        if (!confirm(confirmationText)) return;
+
+        const button = $("redeemReward");
+        setBusy(button, true, "Redeeming...");
+        try {
+          const data = await apiRequest({
+            action: "staff_redeem_member_reward",
+            memberId: member.id,
+            memberRewardId,
+            purchaseAmount,
+            receiptReference: receiptReference || null,
+            idempotencyKey: createIdempotencyKey(),
+          });
+
+          const operation = data.operation || {};
+          renderMember(data);
+          $("redeemPurchaseAmount").value = "";
+          $("redeemReceipt").value = "";
+
+          const redeemedKind = String(operation.rewardKind || kind);
+          const redeemedValue = Number(operation.rewardValue || 0);
+          const duplicateText = operation.idempotent
+            ? " This request had already been completed."
+            : "";
+          const successText =
+            redeemedKind === "percent_discount"
+              ? `${title} redeemed successfully. Discount: £${redeemedValue.toFixed(2)}.${duplicateText}`
+              : `${title} redeemed successfully.${duplicateText}`;
+
+          message("staffMessage", successText, "ok");
+        } catch (error) {
+          message(
+            "staffMessage",
+            error.message || "Reward could not be redeemed.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Redeeming...");
+          syncRedeemButton();
+        }
+      });
+
+      $("stopScan").addEventListener("click", stopCamera);
+
+      $("scanQr").addEventListener("click", async () => {
+        message("staffMessage", "");
+
+        if (!window.isSecureContext) {
+          message(
+            "staffMessage",
+            "Camera access requires the secure GitHub Pages address beginning with https://. It may not work when staff.html is opened directly from the device files.",
+            "error",
+          );
+          return;
+        }
+
+        if (!navigator.mediaDevices?.getUserMedia) {
+          message(
+            "staffMessage",
+            "This browser cannot access the camera. Use Chrome or the latest Huawei Browser.",
+            "error",
+          );
+          return;
+        }
+
+        if (typeof Html5Qrcode === "undefined") {
+          message(
+            "staffMessage",
+            "The QR scanner library did not load. Check the internet connection and reload the page.",
+            "error",
+          );
+          return;
+        }
+
+        await stopCamera();
+        $("scanArea").classList.remove("hidden");
+        $("scanQr").disabled = true;
+        scanning = true;
+        scanHandled = false;
+
+        qrScanner = new Html5Qrcode(
+          "qrReader",
+          { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] },
+          false,
+        );
+
+        const onScanSuccess = async (decodedText) => {
+          if (!scanning || scanHandled) return;
+
+          const rawValue = String(decodedText || "").trim();
+          const value = cleanMemberSearch(rawValue);
+          const isKweiderCode =
+            /^KWEIDER-(LOYALTY|REWARDS):/i.test(rawValue) ||
+            /^KW-/i.test(value);
+
+          if (!isKweiderCode) {
+            message(
+              "staffMessage",
+              "This is not a Kweider Rewards QR code. Please scan the customer membership card.",
+              "error",
+            );
+            return;
+          }
+
+          scanHandled = true;
+          $("memberSearch").value = value;
+
+          try {
+            await stopCamera();
+            await findMember(value);
+          } catch (error) {
+            resetMember();
+            message(
+              "staffMessage",
+              error.message || "The membership QR code could not be opened.",
+              "error",
+            );
+          }
+        };
+
+        try {
+          await qrScanner.start(
+            { facingMode: "environment" },
+            {
+              fps: 10,
+              qrbox: (viewfinderWidth, viewfinderHeight) => {
+                const size = Math.floor(
+                  Math.min(viewfinderWidth, viewfinderHeight) * 0.72,
+                );
+                const safeSize = Math.max(180, Math.min(size, 320));
+                return { width: safeSize, height: safeSize };
+              },
+              aspectRatio: 1.333334,
+              disableFlip: false,
+            },
+            onScanSuccess,
+            () => {},
+          );
+
+          message(
+            "staffMessage",
+            "Camera ready. Point it at the customer QR code.",
+            "info",
+          );
+        } catch (error) {
+          await stopCamera();
+
+          const text = String(error?.message || error || "").toLowerCase();
+          let userMessage =
+            "Could not open the camera. Allow camera permission, then try again.";
+
+          if (text.includes("notallowed") || text.includes("permission")) {
+            userMessage =
+              "Camera permission was blocked. Allow camera access for this site in the browser settings, then try again.";
+          } else if (
+            text.includes("notfound") ||
+            text.includes("requested device not found")
+          ) {
+            userMessage = "No usable rear camera was found on this device.";
+          } else if (
+            text.includes("notreadable") ||
+            text.includes("trackstart")
+          ) {
+            userMessage =
+              "The camera is being used by another app. Close other camera apps and try again.";
+          }
+
+          message("staffMessage", userMessage, "error");
+        }
+      });
+
+      window.addEventListener("pagehide", () => {
+        stopCamera();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && scanning) stopCamera();
+      });
+
+      async function start() {
+        if (!hasConfiguration()) {
+          $("loginCard").classList.add("hidden");
+          $("configurationCard").classList.remove("hidden");
+          return;
+        }
+
+        loadSession();
+        if (!session?.access_token) return;
+
+        try {
+          const data = await apiRequest({ action: "staff_me" });
+          staff = data.staff;
+          renderStaff();
+        } catch {
+          saveSession(null);
+        }
+      }
+
+      start();
+    </script>
+  </body>
 </html>

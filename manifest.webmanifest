@@ -1,5 +1,5 @@
 {
-  "id": "/",
+  "id": "./",
   "name": "Kweider Sweets Menu & Rewards",
   "short_name": "Kweider",
   "description": "Kweider Sweets digital menu and loyalty rewards.",
@@ -8,18 +8,11 @@
   "start_url": "./index.html?source=pwa",
   "scope": "./",
   "display": "standalone",
-  "display_override": [
-    "window-controls-overlay",
-    "standalone",
-    "minimal-ui"
-  ],
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait-primary",
-  "categories": [
-    "food",
-    "lifestyle"
-  ],
+  "categories": ["food", "lifestyle"],
   "icons": [
     {
       "src": "assets/icons/icon-192.png",
