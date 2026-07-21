@@ -94,8 +94,8 @@
             <span>POINTS · النقاط</span>
           </div>
           <div class="metric">
-            <strong id="rewardAvailable">£0</strong>
-            <span>AVAILABLE · متاح</span>
+            <strong id="rewardAvailable">0</strong>
+            <span>REWARDS · المكافآت</span>
           </div>
         </div>
       </div>
@@ -302,24 +302,62 @@
       activeBundle = bundle;
 
       const member = bundle.member;
-      const settings = bundle.settings || {
-        pointsPerPound: 1,
-        pointsPerReward: 100,
-        rewardValue: 5
-      };
+  const points = Number(member.points || 0);
 
-      const points = Number(member.points || 0);
-      const pointsPerReward = Math.max(1, Number(settings.pointsPerReward || 100));
-      const rewardValue = Number(settings.rewardValue || 5);
-      const availableRewards = Number.isFinite(Number(member.availableRewards))
-        ? Number(member.availableRewards)
-        : Math.floor(points / pointsPerReward);
-      const availableValue = Number.isFinite(Number(member.availableRewardValue))
-        ? Number(member.availableRewardValue)
-        : availableRewards * rewardValue;
-      const towardNext = points % pointsPerReward;
-      const remaining = towardNext === 0 ? pointsPerReward : pointsPerReward - towardNext;
-      const progressPercent = (towardNext / pointsPerReward) * 100;
+const rewardDefinitions = Array.isArray(bundle.rewardDefinitions)
+  ? [...bundle.rewardDefinitions].sort(
+      (a, b) => Number(a.thresholdPoints) - Number(b.thresholdPoints)
+    )
+  : [];
+
+const memberRewards = Array.isArray(bundle.rewards)
+  ? bundle.rewards
+  : [];
+
+const availableRewards = memberRewards.filter(reward => {
+  if (reward.status !== 'available') return false;
+
+  if (!reward.expiresAt) return true;
+
+  return new Date(reward.expiresAt).getTime() > Date.now();
+});
+
+const nextReward = rewardDefinitions.find(
+  reward => Number(reward.thresholdPoints) > points
+) || null;
+
+const nextThreshold = nextReward
+  ? Number(nextReward.thresholdPoints)
+  : 200;
+
+const previousThreshold = nextReward
+  ? rewardDefinitions
+      .filter(
+        reward =>
+          Number(reward.thresholdPoints) < nextThreshold
+      )
+      .reduce(
+        (highest, reward) =>
+          Math.max(highest, Number(reward.thresholdPoints)),
+        0
+      )
+  : 0;
+
+const remaining = nextReward
+  ? Math.max(0, nextThreshold - points)
+  : 0;
+
+const progressPercent = nextReward
+  ? Math.min(
+      100,
+      Math.max(
+        0,
+        ((points - previousThreshold) /
+          Math.max(1, nextThreshold - previousThreshold)) *
+          100
+      )
+    )
+  : 100;
 
       $('registrationCard').classList.add('hidden');
       $('membershipArea').classList.remove('hidden');
@@ -327,17 +365,30 @@
       $('memberName').textContent = member.firstName || 'Kweider Member';
       $('memberId').textContent = member.memberCode || '';
       $('memberPoints').textContent = points;
-      $('rewardAvailable').textContent = `£${availableValue.toFixed(0)}`;
-      $('rewardProgress').style.width = `${progressPercent}%`;
+    $('rewardAvailable').textContent = String(availableRewards.length);
+$('rewardProgress').style.width = `${progressPercent}%`;
 
-      if (availableRewards > 0) {
-        $('progressText').textContent =
-          `${availableRewards} reward${availableRewards === 1 ? '' : 's'} available. ` +
-          `${remaining} points to the next £${rewardValue.toFixed(0)} reward.`;
-      } else {
-        $('progressText').textContent =
-          `${remaining} points to your first £${rewardValue.toFixed(0)} reward.`;
-      }
+if (nextReward) {
+  const nextRewardTitle =
+    nextReward.titleEn || 'your next reward';
+
+  const availableText =
+    availableRewards.length > 0
+      ? `${availableRewards.length} reward${
+          availableRewards.length === 1 ? '' : 's'
+        } available. `
+      : '';
+
+  $('progressText').textContent =
+    `${availableText}${remaining} points to unlock ${nextRewardTitle}.`;
+} else {
+  $('progressText').textContent =
+    availableRewards.length > 0
+      ? `${availableRewards.length} reward${
+          availableRewards.length === 1 ? '' : 's'
+        } available. You have unlocked all rewards in this journey.`
+      : 'You have completed this rewards journey.';
+}
 const memberMessages = Array.isArray(bundle.messages)
   ? bundle.messages
   : [];
