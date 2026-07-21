@@ -1083,7 +1083,7 @@ Discount to apply: £${discount.toFixed(2)}.`;
             action: "staff_redeem_member_reward",
             memberId: member.id,
             memberRewardId,
-            purchaseAmount,
+            purchaseAmount: rawPurchaseAmount || null,
             receiptReference: receiptReference || null,
             idempotencyKey: createIdempotencyKey(),
           });
