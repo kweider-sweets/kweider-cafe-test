@@ -101,6 +101,44 @@
       </div>
 
       <div id="cardMessage"></div>
+<div id="messagesCard" class="app-card">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+    <div>
+      <h3 style="margin:0">Messages & Rewards</h3>
+      <p style="margin:6px 0 0;color:#aaa">
+        Your latest Kweider rewards and reminders
+      </p>
+    </div>
+
+    <div
+      id="messageBadge"
+      style="
+        min-width:42px;
+        height:42px;
+        padding:0 10px;
+        border-radius:50%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:#c5a059;
+        color:#000;
+        font-weight:800;
+        font-size:18px;
+      "
+    >
+      0
+    </div>
+  </div>
+
+  <div
+    id="memberMessages"
+    style="
+      margin-top:18px;
+      display:grid;
+      gap:12px;
+    "
+  ></div>
+</div>
 
       <div class="app-card">
         <h3>Next reward</h3>
@@ -300,6 +338,134 @@
         $('progressText').textContent =
           `${remaining} points to your first £${rewardValue.toFixed(0)} reward.`;
       }
+const memberMessages = Array.isArray(bundle.messages)
+  ? bundle.messages
+  : [];
+
+const unreadMessageCount = Number.isFinite(
+  Number(bundle.unreadMessageCount)
+)
+  ? Number(bundle.unreadMessageCount)
+  : memberMessages.filter(message => !message.isRead).length;
+
+$('messageBadge').textContent =
+  unreadMessageCount > 99 ? '99+' : String(unreadMessageCount);
+
+$('messageBadge').style.display =
+  unreadMessageCount > 0 ? 'flex' : 'none';
+
+$('memberMessages').innerHTML = memberMessages.length
+  ? memberMessages.slice(0, 10).map(message => {
+      const messageDate = message.createdAt
+        ? new Date(message.createdAt).toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          })
+        : '';
+
+      const expiryDate = message.expiresAt
+        ? new Date(message.expiresAt).toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          })
+        : '';
+
+      return `
+        <article
+          style="
+            padding:16px;
+            border-radius:14px;
+            border:1px solid ${
+              message.isRead
+                ? 'rgba(197,160,89,.18)'
+                : 'rgba(197,160,89,.65)'
+            };
+            background:${
+              message.isRead
+                ? 'rgba(255,255,255,.025)'
+                : 'rgba(197,160,89,.09)'
+            };
+          "
+        >
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:flex-start;
+              gap:12px;
+            "
+          >
+            <strong style="color:#c5a059;font-size:17px">
+              ${esc(message.titleEn || 'Kweider Rewards')}
+            </strong>
+
+            ${
+              message.isRead
+                ? ''
+                : `
+                  <span
+                    style="
+                      width:10px;
+                      height:10px;
+                      border-radius:50%;
+                      background:#c5a059;
+                      flex:0 0 auto;
+                      margin-top:5px;
+                    "
+                  ></span>
+                `
+            }
+          </div>
+
+          <p style="margin:9px 0 5px;line-height:1.6;color:#eee">
+            ${esc(message.bodyEn || '')}
+          </p>
+
+          ${
+            message.bodyAr
+              ? `
+                <p
+                  dir="rtl"
+                  style="
+                    margin:6px 0;
+                    line-height:1.7;
+                    color:#ccc;
+                    text-align:right;
+                  "
+                >
+                  ${esc(message.bodyAr)}
+                </p>
+              `
+              : ''
+          }
+
+          <div style="margin-top:10px;color:#888;font-size:12px">
+            ${esc(messageDate)}
+            ${
+              expiryDate
+                ? ` · Valid until ${esc(expiryDate)}`
+                : ''
+            }
+          </div>
+        </article>
+      `;
+    }).join('')
+  : `
+      <div
+        style="
+          padding:18px;
+          border-radius:14px;
+          text-align:center;
+          color:#999;
+          background:rgba(255,255,255,.025);
+        "
+      >
+        No messages yet.<br>
+        <span dir="rtl">لا توجد رسائل جديدة حالياً.</span>
+      </div>
+    `;
 
       $('profileDetails').innerHTML =
         `<strong>Phone:</strong> ${esc(member.phone || '—')}<br>` +
