@@ -79,6 +79,26 @@
         font-weight: 400;
         color: #aaa;
       }
+
+      .recovery-link-box {
+        margin-top: 16px;
+        padding: 14px;
+        border: 1px solid rgba(197, 160, 89, 0.45);
+        border-radius: 14px;
+        background: rgba(197, 160, 89, 0.07);
+      }
+
+      .recovery-link-box input {
+        width: 100%;
+        box-sizing: border-box;
+        direction: ltr;
+        font-family: monospace;
+      }
+
+      .recovery-warning {
+        color: #bbb;
+        line-height: 1.65;
+      }
       .qr-reader-shell {
         margin-top: 18px;
         padding: 12px;
@@ -222,6 +242,30 @@
                 <strong id="staffPoints">0</strong>
                 <span>CURRENT POINTS</span>
               </div>
+            </div>
+          </div>
+
+          <div class="app-card">
+            <h3>Restore customer card</h3>
+            <p class="recovery-warning">
+              Create a secure one-time recovery link for this member. The link
+              is valid for 15 minutes. When the customer opens it, previous
+              saved cards for this membership are signed out.
+            </p>
+            <div class="form-actions">
+              <button id="generateRecoveryLink" class="ghost-btn" type="button">
+                Generate recovery link
+              </button>
+              <button id="copyRecoveryLink" class="gold-btn hidden" type="button">
+                Copy link
+              </button>
+            </div>
+            <div id="recoveryLinkBox" class="recovery-link-box hidden">
+              <div class="field">
+                <label for="recoveryLink">Customer recovery link</label>
+                <input id="recoveryLink" type="text" readonly />
+              </div>
+              <p id="recoveryExpiry" class="field-hint" style="margin-bottom:0"></p>
             </div>
           </div>
 
@@ -695,6 +739,10 @@
           '<option value="">No rewards available</option>';
         $("redeemPurchaseAmount").value = "";
         $("redeemReceipt").value = "";
+        $("recoveryLink").value = "";
+        $("recoveryExpiry").textContent = "";
+        $("recoveryLinkBox").classList.add("hidden");
+        $("copyRecoveryLink").classList.add("hidden");
         updateRewardPreview();
       }
 
@@ -855,6 +903,11 @@
           ? `${availableRewards.length} reward${availableRewards.length === 1 ? "" : "s"} available: ${availableTitles.join(", ")}`
           : "No rewards available yet.";
 
+        $("recoveryLink").value = "";
+        $("recoveryExpiry").textContent = "";
+        $("recoveryLinkBox").classList.add("hidden");
+        $("copyRecoveryLink").classList.add("hidden");
+
         renderRewardOptions(memberRewards, rewardDefinitions);
         renderTransactions(memberTransactions);
       }
@@ -969,6 +1022,72 @@
 
       $("memberSearch").addEventListener("keydown", (event) => {
         if (event.key === "Enter") $("findMember").click();
+      });
+
+      $("generateRecoveryLink").addEventListener("click", async () => {
+        if (!member) return;
+
+        const confirmed = confirm(
+          `Generate a 15-minute recovery link for ${member.firstName}? Once the customer opens it, all older saved cards for this membership will be signed out.`,
+        );
+
+        if (!confirmed) return;
+
+        const button = $("generateRecoveryLink");
+        setBusy(button, true, "Generating...");
+        message("staffMessage", "");
+
+        try {
+          const data = await apiRequest({
+            action: "staff_issue_recovery_token",
+            memberId: member.id,
+          });
+
+          if (!data.recoveryToken) {
+            throw new Error("The recovery token was not returned.");
+          }
+
+          const recoveryUrl = new URL("rewards.html", window.location.href);
+          recoveryUrl.hash = `recover=${encodeURIComponent(data.recoveryToken)}`;
+
+          $("recoveryLink").value = recoveryUrl.toString();
+          $("recoveryLinkBox").classList.remove("hidden");
+          $("copyRecoveryLink").classList.remove("hidden");
+
+          const expiry = data.expiresAt
+            ? new Date(data.expiresAt).toLocaleString("en-GB")
+            : "15 minutes from now";
+          $("recoveryExpiry").textContent = `Valid until ${expiry}. Share it directly with the customer.`;
+
+          message(
+            "staffMessage",
+            "Recovery link generated. Copy it and send it directly to the customer.",
+            "ok",
+          );
+        } catch (error) {
+          message(
+            "staffMessage",
+            error.message || "The recovery link could not be generated.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Generating...");
+        }
+      });
+
+      $("copyRecoveryLink").addEventListener("click", async () => {
+        const link = $("recoveryLink").value;
+        if (!link) return;
+
+        try {
+          await navigator.clipboard.writeText(link);
+        } catch {
+          $("recoveryLink").focus();
+          $("recoveryLink").select();
+          document.execCommand("copy");
+        }
+
+        message("staffMessage", "Recovery link copied.", "ok");
       });
 
       $("addPoints").addEventListener("click", async () => {

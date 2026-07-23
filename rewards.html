@@ -250,6 +250,7 @@
 
       let activeBundle = null;
       let requestInProgress = false;
+      let restoredCardNoticePending = false;
 
       function esc(value) {
         return String(value ?? "").replace(
@@ -424,6 +425,41 @@
           throw error;
         } finally {
           clearTimeout(timeoutId);
+        }
+      }
+
+      function recoveryTokenFromUrl() {
+        const hash = window.location.hash.replace(/^#/, "");
+        if (!hash) return "";
+        return new URLSearchParams(hash).get("recover") || "";
+      }
+
+      function clearRecoveryTokenFromUrl() {
+        history.replaceState(
+          null,
+          document.title,
+          `${window.location.pathname}${window.location.search}`,
+        );
+      }
+
+      async function restoreCardFromLink(recoveryToken) {
+        setLoading(true);
+
+        try {
+          const result = await callApi({
+            action: "recover_card",
+            recoveryToken,
+          });
+
+          if (!result.token) {
+            throw new Error("The restored membership token was not returned.");
+          }
+
+          localStorage.setItem(MEMBER_TOKEN_KEY, result.token);
+          restoredCardNoticePending = true;
+          render(result);
+        } finally {
+          setLoading(false);
         }
       }
 
@@ -725,7 +761,16 @@
             `<div style="color:#000;padding:20px">${esc(member.memberCode || "")}</div>`;
         }
 
-        notice("cardMessage", "", "info");
+        if (restoredCardNoticePending) {
+          notice(
+            "cardMessage",
+            "Your Kweider Rewards card has been restored on this device.",
+            "ok",
+          );
+          restoredCardNoticePending = false;
+        } else {
+          notice("cardMessage", "", "info");
+        }
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
@@ -875,8 +920,23 @@
       });
 
       document.addEventListener("DOMContentLoaded", async () => {
+        const recoveryToken = recoveryTokenFromUrl();
+
+        if (recoveryToken) clearRecoveryTokenFromUrl();
+
         try {
-          await loadSavedCard(false);
+          if (recoveryToken) {
+            try {
+              await restoreCardFromLink(recoveryToken);
+            } catch (error) {
+              showRegistration(
+                error.message || "The card recovery link could not be used.",
+                "error",
+              );
+            }
+          } else {
+            await loadSavedCard(false);
+          }
         } finally {
           $("appLoading").classList.add("hidden");
         }
