@@ -601,7 +601,7 @@
               </article>`;
               })
               .join("")
-          : '<div style="padding:16px;border-radius:14px;text-align:center;color:#999;background:rgba(255,255,255,.025)">No rewards available yet.<br><span dir="rtl">لا توجد مكافآت متاحة حالياً.</span></div>';
+          : ""; // Keep this area empty when no active reward card exists; reward notifications still appear below.
 
         const memberMessages = Array.isArray(bundle.messages)
           ? bundle.messages
