@@ -305,7 +305,7 @@
                 <label for="redeemPurchaseAmount">
                   Purchase amount (£)
                   <span class="field-hint"
-                    >— required for percentage discounts</span
+                    >— required for £5 and £10 bill rewards</span
                   >
                 </label>
                 <input
@@ -492,9 +492,9 @@
         const code =
           definitionCodeOf(definition) || rewardCodeOf(reward);
         const fallbackTitles = {
-          discount_3: "3% Off",
-          discount_5: "5% Off",
-          breakfast_for_two: "Selected Breakfast for Two",
+          discount_3: "£5 Off Your Next Bill",
+          discount_5: "£10 Off Your Next Bill",
+          breakfast_for_two: "Breakfast for Two",
         };
 
         return String(
@@ -514,6 +514,42 @@
           ) || null;
         const definition = reward ? definitionForReward(reward) : null;
         return { memberRewardId, reward, definition };
+      }
+
+      function rewardKindOf(definition, reward = null) {
+        return String(
+          readField(definition, "rewardKind", "reward_kind", "kind") ||
+            readField(embeddedDefinitionOf(reward), "rewardKind", "reward_kind", "kind") ||
+            "",
+        );
+      }
+
+      function fixedRewardAmount(definition, reward = null) {
+        const code = definitionCodeOf(definition) || rewardCodeOf(reward);
+        const configured = Number(
+          readField(definition, "maximumDiscount", "maximum_discount"),
+        );
+
+        if (code === "discount_3") {
+          return Number.isFinite(configured) && configured > 0 ? configured : 5;
+        }
+        if (code === "discount_5") {
+          return Number.isFinite(configured) && configured > 0 ? configured : 10;
+        }
+        return null;
+      }
+
+      function calculateFixedReward(definition, reward, purchaseAmount) {
+        const rewardAmount = fixedRewardAmount(definition, reward) || 0;
+        const billAmount = Number(purchaseAmount);
+        const discount = Math.min(
+          Math.max(0, rewardAmount),
+          Math.max(0, Number.isFinite(billAmount) ? billAmount : 0),
+        );
+        return {
+          rewardAmount,
+          discount: Math.round((discount + Number.EPSILON) * 100) / 100,
+        };
       }
 
       function calculateDiscount(definition, purchaseAmount) {
@@ -560,11 +596,31 @@
         }
 
         const title = rewardTitle(definition, reward);
-        const kind = String(
-          readField(definition, "rewardKind", "reward_kind") || "",
-        );
+        const kind = rewardKindOf(definition, reward);
 
-        if (kind === "percent_discount") {
+        const fixedAmount = fixedRewardAmount(definition, reward);
+
+        if (fixedAmount !== null) {
+          purchaseInput.required = true;
+          const amount = Number(purchaseInput.value);
+
+          if (!Number.isFinite(amount) || amount <= 0) {
+            preview.className = "notice info reward-preview";
+            preview.textContent = `${title}: enter the bill amount to confirm the discount.`;
+          } else {
+            const { rewardAmount, discount } = calculateFixedReward(
+              definition,
+              reward,
+              amount,
+            );
+            const limitedText =
+              amount < rewardAmount
+                ? " The discount cannot exceed the bill total."
+                : "";
+            preview.className = "notice ok reward-preview";
+            preview.textContent = `${title}: apply £${discount.toFixed(2)} off this £${amount.toFixed(2)} bill.${limitedText}`;
+          }
+        } else if (kind === "percent_discount") {
           purchaseInput.required = true;
           const amount = Number(purchaseInput.value);
           const { percent, maximum, discount } = calculateDiscount(
@@ -1157,20 +1213,22 @@
           return;
         }
 
-        const kind = String(
-          readField(definition, "rewardKind", "reward_kind") || "",
-        );
+        const kind = rewardKindOf(definition, reward);
         const title = rewardTitle(definition, reward);
 
+        const fixedAmount = fixedRewardAmount(definition, reward);
+        const needsBillAmount =
+          fixedAmount !== null || kind === "percent_discount";
+
         if (
-          kind === "percent_discount" &&
+          needsBillAmount &&
           (purchaseAmount === null ||
             !Number.isFinite(purchaseAmount) ||
             purchaseAmount <= 0)
         ) {
           message(
             "staffMessage",
-            "Enter the purchase amount to calculate the discount.",
+            "Enter the bill amount to confirm the discount.",
             "error",
           );
           $("redeemPurchaseAmount").focus();
@@ -1187,7 +1245,15 @@
         }
 
         let confirmationText = `Redeem ${title} for ${member.firstName}?`;
-        if (kind === "percent_discount") {
+        if (fixedAmount !== null) {
+          const { discount } = calculateFixedReward(
+            definition,
+            reward,
+            purchaseAmount,
+          );
+          confirmationText += `
+Discount to apply: £${discount.toFixed(2)}.`;
+        } else if (kind === "percent_discount") {
           const { discount } = calculateDiscount(definition, purchaseAmount);
           confirmationText += `
 Discount to apply: £${discount.toFixed(2)}.`;
@@ -1213,7 +1279,7 @@ Discount to apply: £${discount.toFixed(2)}.`;
           $("redeemReceipt").value = "";
 
           const redeemedKind = String(
-            readField(operation, "rewardKind", "reward_kind") || kind,
+            readField(operation, "rewardKind", "reward_kind", "kind") || kind,
           );
           const redeemedValue = Number(
             readField(operation, "rewardValue", "reward_value") || 0,
@@ -1222,7 +1288,7 @@ Discount to apply: £${discount.toFixed(2)}.`;
             ? " This request had already been completed."
             : "";
           const successText =
-            redeemedKind === "percent_discount"
+            fixedAmount !== null || redeemedKind === "percent_discount"
               ? `${title} redeemed successfully. Discount: £${redeemedValue.toFixed(2)}.${duplicateText}`
               : `${title} redeemed successfully.${duplicateText}`;
 

@@ -17,6 +17,179 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
     <link rel="stylesheet" href="assets/css/app-shell.css" />
+
+    <style>
+      .rewards-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 14px auto 0;
+        max-width: 620px;
+      }
+      .reward-summary-item {
+        display: flex;
+        min-height: 58px;
+        align-items: center;
+        justify-content: center;
+        padding: 9px 7px;
+        border: 1px solid rgba(197, 160, 89, 0.32);
+        border-radius: 13px;
+        background: rgba(197, 160, 89, 0.07);
+        color: #ddd;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.4;
+        text-align: center;
+      }
+      .reward-summary-item b {
+        color: #efd695;
+        font-size: 14px;
+      }
+      .reward-journey-title {
+        margin-bottom: 3px !important;
+        text-align: center;
+      }
+      .reward-journey-subtitle {
+        margin: 0 0 10px;
+        color: #aaa;
+        font-size: 13px;
+        line-height: 1.55;
+        text-align: center;
+      }
+      .reward-journey {
+        position: relative;
+        min-height: 112px;
+        margin: 12px 4px 0;
+      }
+      .journey-track {
+        position: absolute;
+        top: 18px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #2b2b2b;
+      }
+      .journey-track span {
+        display: block;
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #a9823b, #efd695);
+        box-shadow: 0 0 12px rgba(239, 214, 149, 0.42);
+        transition: width 0.55s ease;
+      }
+      .reward-milestones {
+        position: absolute;
+        inset: 0;
+      }
+      .reward-milestone {
+        position: absolute;
+        top: 0;
+        width: 104px;
+        transform: translateX(-50%);
+        text-align: center;
+      }
+      .reward-milestone.last {
+        width: 122px;
+        transform: translateX(-100%);
+        text-align: right;
+      }
+      .reward-dot {
+        display: flex;
+        width: 38px;
+        height: 38px;
+        margin: 1px auto 7px;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid #4a4a4a;
+        border-radius: 50%;
+        background: #111;
+        color: #999;
+        font-size: 11px;
+        font-weight: 900;
+        box-shadow: 0 0 0 4px rgba(5, 5, 5, 0.92);
+      }
+      .reward-milestone.last .reward-dot {
+        margin-right: 0;
+      }
+      .reward-milestone.reached .reward-dot,
+      .reward-milestone.expired .reward-dot {
+        border-color: #a9823b;
+        color: #d8bd7b;
+      }
+      .reward-milestone.available .reward-dot {
+        border-color: #efd695;
+        background: linear-gradient(135deg, #ad8741, #efd695);
+        color: #080808;
+        box-shadow: 0 0 0 4px rgba(5, 5, 5, 0.92), 0 0 18px rgba(239, 214, 149, 0.58);
+      }
+      .reward-milestone.redeemed .reward-dot {
+        border-color: #8fca9e;
+        background: rgba(74, 145, 92, 0.18);
+        color: #bde8c9;
+      }
+      .reward-milestone strong {
+        display: block;
+        color: #ddd;
+        font-size: 13px;
+        line-height: 1.3;
+      }
+      .reward-milestone small {
+        display: block;
+        margin-top: 3px;
+        color: #888;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.3;
+      }
+      .reward-milestone.available strong,
+      .reward-milestone.available small {
+        color: #efd695;
+      }
+      .reward-milestone.redeemed small {
+        color: #9ed8ad;
+      }
+      .reward-next-message {
+        margin: 5px 0 4px;
+        padding: 12px 13px;
+        border: 1px solid rgba(197, 160, 89, 0.28);
+        border-radius: 13px;
+        background: rgba(197, 160, 89, 0.07);
+        color: #ddd;
+        line-height: 1.55;
+        text-align: center;
+      }
+      .reward-next-message strong {
+        color: #efd695;
+      }
+      @media (max-width: 480px) {
+        .rewards-summary {
+          gap: 6px;
+        }
+        .reward-summary-item {
+          min-height: 62px;
+          padding: 8px 4px;
+          font-size: 10px;
+        }
+        .reward-summary-item b {
+          font-size: 12px;
+        }
+        .reward-milestone {
+          width: 88px;
+        }
+        .reward-milestone.last {
+          width: 108px;
+        }
+        .reward-milestone strong {
+          font-size: 11px;
+        }
+        .reward-milestone small {
+          font-size: 9px;
+        }
+      }
+    </style>
   </head>
   <body class="app-page">
     <div id="appLoading" class="loading-layer">
@@ -34,8 +207,13 @@
 
       <header class="page-heading">
         <h1>Kweider Rewards</h1>
-        <p>Collect points. Unlock delicious rewards.</p>
-        <p dir="rtl">اجمع نقاطك واستمتع بمكافآت ألذّ</p>
+        <p>Earn 1 point for every £1 spent. Your points stay on your card.</p>
+        <p dir="rtl">اجمع نقطة مقابل كل £1 تنفقه، وتبقى نقاطك محفوظة في بطاقتك.</p>
+        <div class="rewards-summary" aria-label="Kweider reward levels">
+          <div class="reward-summary-item"><b>50 points</b>&nbsp;·&nbsp;£5 off<br /><span dir="rtl">50 نقطة · خصم £5</span></div>
+          <div class="reward-summary-item"><b>100 points</b>&nbsp;·&nbsp;£10 off<br /><span dir="rtl">100 نقطة · خصم £10</span></div>
+          <div class="reward-summary-item"><b>200 points</b>&nbsp;·&nbsp;Breakfast for two<br /><span dir="rtl">200 نقطة · فطور لشخصين</span></div>
+        </div>
       </header>
 
       <section id="registrationCard" class="app-card hidden">
@@ -181,9 +359,16 @@
         </div>
 
         <div class="app-card">
-          <h3>Next reward</h3>
-          <div class="reward-progress"><span id="rewardProgress"></span></div>
-          <p id="progressText" style="color: #ccc; text-align: center"></p>
+          <h3 class="reward-journey-title">Next reward · المكافأة التالية</h3>
+          <p class="reward-journey-subtitle">
+            Each reward unlocks once in every 200-point journey.<br />
+            <span dir="rtl">تُفتح كل مكافأة مرة واحدة في كل رحلة من 200 نقطة.</span>
+          </p>
+          <div class="reward-journey" aria-label="Reward progress">
+            <div class="journey-track"><span id="rewardProgress"></span></div>
+            <div id="rewardMilestones" class="reward-milestones"></div>
+          </div>
+          <p id="progressText" class="reward-next-message"></p>
 
           <div id="qrCode" class="qr-wrap"></div>
           <div class="qr-caption">
@@ -345,9 +530,9 @@
         const code =
           definitionCodeOf(definition) || rewardCodeOf(reward);
         const fallbackTitles = {
-          discount_3: "3% Off",
-          discount_5: "5% Off",
-          breakfast_for_two: "Selected Breakfast for Two",
+          discount_3: "£5 Off Your Next Bill",
+          discount_5: "£10 Off Your Next Bill",
+          breakfast_for_two: "Breakfast for Two",
         };
 
         return String(
@@ -365,6 +550,145 @@
         if (!expiresAt) return true;
         const expiryTime = new Date(expiresAt).getTime();
         return Number.isFinite(expiryTime) && expiryTime > Date.now();
+      }
+
+      const REWARD_CYCLE_POINTS = 200;
+      const REWARD_LEVELS = [
+        {
+          code: "discount_3",
+          threshold: 50,
+          titleEn: "£5 Off",
+          titleAr: "خصم £5",
+          position: 25,
+        },
+        {
+          code: "discount_5",
+          threshold: 100,
+          titleEn: "£10 Off",
+          titleAr: "خصم £10",
+          position: 50,
+        },
+        {
+          code: "breakfast_for_two",
+          threshold: 200,
+          titleEn: "Breakfast for Two",
+          titleAr: "فطور لشخصين",
+          position: 100,
+        },
+      ];
+
+      function rewardCycleState(totalPoints) {
+        const points = Math.max(0, Math.floor(Number(totalPoints) || 0));
+        if (points === 0) {
+          return { cycleNumber: 1, cycleBase: 0, cyclePoints: 0 };
+        }
+
+        const remainder = points % REWARD_CYCLE_POINTS;
+        const cycleNumber =
+          remainder === 0
+            ? points / REWARD_CYCLE_POINTS
+            : Math.floor(points / REWARD_CYCLE_POINTS) + 1;
+
+        return {
+          cycleNumber,
+          cycleBase: (cycleNumber - 1) * REWARD_CYCLE_POINTS,
+          cyclePoints: remainder === 0 ? REWARD_CYCLE_POINTS : remainder,
+        };
+      }
+
+      function rewardForLevel(memberRewards, level, cycleNumber) {
+        return (
+          memberRewards.find(
+            (reward) =>
+              rewardCodeOf(reward) === level.code &&
+              Number(readField(reward, "cycleNumber", "cycle_number") || 0) ===
+                cycleNumber,
+          ) || null
+        );
+      }
+
+      function levelStatus(memberRewards, level, cycleNumber, cyclePoints) {
+        const reward = rewardForLevel(memberRewards, level, cycleNumber);
+        const status = String(readField(reward, "status") || "");
+
+        if (status === "redeemed") return "redeemed";
+        if (status === "available") {
+          return isAvailableReward(reward) ? "available" : "expired";
+        }
+        if (status === "expired") return "expired";
+        return cyclePoints >= level.threshold ? "reached" : "upcoming";
+      }
+
+      function renderRewardJourney(points, memberRewards, rewardDefinitions) {
+        const cycle = rewardCycleState(points);
+        const progressPercent = Math.min(
+          100,
+          Math.max(0, (cycle.cyclePoints / REWARD_CYCLE_POINTS) * 100),
+        );
+        $("rewardProgress").style.width = `${progressPercent}%`;
+
+        const definitionsByCode = new Map(
+          rewardDefinitions.map((definition) => [
+            definitionCodeOf(definition),
+            definition,
+          ]),
+        );
+
+        $("rewardMilestones").innerHTML = REWARD_LEVELS.map((level, index) => {
+          const definition = definitionsByCode.get(level.code) || {};
+          const titleEn = String(
+            readField(definition, "titleEn", "title_en") || level.titleEn,
+          );
+          const titleAr = String(
+            readField(definition, "titleAr", "title_ar") || level.titleAr,
+          );
+          const status = levelStatus(
+            memberRewards,
+            level,
+            cycle.cycleNumber,
+            cycle.cyclePoints,
+          );
+          const statusText = {
+            available: "READY · متاحة",
+            redeemed: "USED · مستخدمة",
+            expired: "EXPIRED · منتهية",
+            reached: "UNLOCKED · تم الفتح",
+            upcoming: `${level.threshold} POINTS`,
+          }[status];
+
+          return `
+            <div class="reward-milestone ${status}${index === REWARD_LEVELS.length - 1 ? " last" : ""}" style="left:${level.position}%">
+              <span class="reward-dot">${status === "redeemed" ? "✓" : level.threshold}</span>
+              <strong>${esc(titleEn)}</strong>
+              <small dir="auto">${esc(titleAr)}<br />${esc(statusText)}</small>
+            </div>`;
+        }).join("");
+
+        let nextLevel = REWARD_LEVELS.find(
+          (level) => level.threshold > cycle.cyclePoints,
+        );
+        let targetPoints;
+
+        if (nextLevel) {
+          targetPoints = cycle.cycleBase + nextLevel.threshold;
+        } else {
+          nextLevel = REWARD_LEVELS[0];
+          targetPoints = cycle.cycleBase + REWARD_CYCLE_POINTS + nextLevel.threshold;
+        }
+
+        const definition = definitionsByCode.get(nextLevel.code) || {};
+        const titleEn = String(
+          readField(definition, "titleEn", "title_en") || nextLevel.titleEn,
+        );
+        const titleAr = String(
+          readField(definition, "titleAr", "title_ar") || nextLevel.titleAr,
+        );
+        const remaining = Math.max(0, targetPoints - points);
+
+        $("progressText").innerHTML = `
+          <strong>NEXT REWARD · المكافأة التالية</strong><br />
+          ${remaining} point${remaining === 1 ? "" : "s"} to unlock ${esc(titleEn)}.<br />
+          <span dir="rtl">تبقّى ${remaining} نقطة لفتح ${esc(titleAr)}.</span>`;
       }
 
       function notice(targetId, text, type = "info") {
@@ -525,83 +849,13 @@
           : [];
         const availableRewards = memberRewards.filter(isAvailableReward);
 
-        const nextReward =
-          rewardDefinitions.find(
-            (definition) =>
-              Number(
-                readField(definition, "thresholdPoints", "threshold_points") ||
-                  0,
-              ) > points,
-          ) || null;
-        const nextThreshold = nextReward
-          ? Number(
-              readField(nextReward, "thresholdPoints", "threshold_points") || 0,
-            )
-          : 200;
-        const previousThreshold = nextReward
-          ? rewardDefinitions
-              .filter(
-                (definition) =>
-                  Number(
-                    readField(
-                      definition,
-                      "thresholdPoints",
-                      "threshold_points",
-                    ) || 0,
-                  ) < nextThreshold,
-              )
-              .reduce(
-                (highest, definition) =>
-                  Math.max(
-                    highest,
-                    Number(
-                      readField(
-                        definition,
-                        "thresholdPoints",
-                        "threshold_points",
-                      ) || 0,
-                    ),
-                  ),
-                0,
-              )
-          : 0;
-        const remaining = nextReward ? Math.max(0, nextThreshold - points) : 0;
-        const progressPercent = nextReward
-          ? Math.min(
-              100,
-              Math.max(
-                0,
-                ((points - previousThreshold) /
-                  Math.max(1, nextThreshold - previousThreshold)) *
-                  100,
-              ),
-            )
-          : 100;
-
         $("registrationCard").classList.add("hidden");
         $("membershipArea").classList.remove("hidden");
         $("memberName").textContent = member.firstName || "Kweider Member";
         $("memberId").textContent = member.memberCode || "";
         $("memberPoints").textContent = points;
         $("rewardAvailable").textContent = String(availableRewards.length);
-        $("rewardProgress").style.width = `${progressPercent}%`;
-
-        if (nextReward) {
-          const nextRewardTitle = String(
-            readField(nextReward, "titleEn", "title_en") || "your next reward",
-          );
-          const availableText =
-            availableRewards.length > 0
-              ? `${availableRewards.length} reward${availableRewards.length === 1 ? "" : "s"} available. `
-              : "";
-          $("progressText").textContent =
-            `${availableText}${remaining} points to unlock ${nextRewardTitle}.`;
-        } else {
-          $("progressText").textContent =
-            availableRewards.length > 0
-              ? `${availableRewards.length} reward${availableRewards.length === 1 ? "" : "s"} available. You have unlocked all rewards in this journey.`
-              : "You have completed this rewards journey.";
-        }
+        renderRewardJourney(points, memberRewards, rewardDefinitions);
 
         $("availableRewardsList").innerHTML = availableRewards.length
           ? availableRewards
