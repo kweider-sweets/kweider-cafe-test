@@ -292,7 +292,24 @@
           min-width: 64px;
         }
       }
-    </style>
+    
+      .pin-reset-approval {
+        border-color: rgba(231, 185, 91, 0.85);
+        background: linear-gradient(135deg, rgba(197,160,89,.16), rgba(255,255,255,.025));
+      }
+      .pin-reset-approval h3 { margin-bottom: 8px; }
+      .pin-reset-approval p { margin: 0; color: #ccc; line-height: 1.55; }
+      .pin-reset-approval .pin-reset-time { margin-top: 8px; color: #e7ca82; font-weight: 700; }
+      .pin-reset-approved {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(70, 180, 110, .12);
+        border: 1px solid rgba(100, 220, 140, .45);
+        color: #9de7b5;
+        font-weight: 800;
+      }
+</style>
   </head>
   <body class="app-page">
     <main class="app-shell">
@@ -402,6 +419,20 @@
                 <strong id="staffPoints">0</strong>
                 <span>CURRENT POINTS</span>
               </div>
+            </div>
+          </div>
+
+          <div id="pinResetApprovalCard" class="app-card pin-reset-approval hidden">
+            <h3>PIN reset requested · طلب إعادة الرقم السري</h3>
+            <p>The customer is waiting on their phone. Check the member name, then approve once.</p>
+            <p id="pinResetRequestTime" class="pin-reset-time"></p>
+            <div id="pinResetApprovedNote" class="pin-reset-approved hidden">
+              Approved ✓ The customer can now create a new PIN.
+            </div>
+            <div class="form-actions">
+              <button id="approvePinReset" class="gold-btn" type="button">
+                Approve PIN reset · موافقة
+              </button>
             </div>
           </div>
 
@@ -610,6 +641,7 @@
       let member = null;
       let memberTransactions = [];
       let memberRewards = [];
+      let pinResetRequest = null;
       let rewardDefinitions = [];
       let settings = {
         pointsPerPound: 1,
@@ -1312,6 +1344,7 @@
         member = null;
         memberTransactions = [];
         memberRewards = [];
+        pinResetRequest = null;
         rewardDefinitions = [];
         pendingQrRewardId = "";
         quickSelectedRewardId = "";
@@ -1330,6 +1363,10 @@
         $("recoveryExpiry").textContent = "";
         $("recoveryLinkBox").classList.add("hidden");
         $("copyRecoveryLink").classList.add("hidden");
+        $("pinResetApprovalCard").classList.add("hidden");
+        $("pinResetApprovedNote").classList.add("hidden");
+        $("approvePinReset").classList.remove("hidden");
+        $("pinResetRequestTime").textContent = "";
         updateRewardPreview();
       }
 
@@ -1475,6 +1512,7 @@
           ? definitionsPayload
           : [];
         settings = bundle.settings || settings;
+        pinResetRequest = bundle.pinResetRequest || bundle.pin_reset_request || null;
 
         const availableRewards = memberRewards.filter(isRewardAvailable);
         const availableTitles = availableRewards
@@ -1489,6 +1527,23 @@
         $("staffRewardSummary").textContent = availableRewards.length
           ? `${availableRewards.length} reward${availableRewards.length === 1 ? "" : "s"} available: ${availableTitles.join(", ")}`
           : "No rewards available yet.";
+
+        const resetStatus = String(pinResetRequest?.status || "");
+        const showReset = resetStatus === "pending" || resetStatus === "approved";
+        $("pinResetApprovalCard").classList.toggle("hidden", !showReset);
+        $("approvePinReset").classList.toggle("hidden", resetStatus !== "pending");
+        $("pinResetApprovedNote").classList.toggle("hidden", resetStatus !== "approved");
+        if (showReset) {
+          const requestedAt = pinResetRequest?.requestedAt
+            ? new Date(pinResetRequest.requestedAt).toLocaleString("en-GB")
+            : "just now";
+          const expiresAt = pinResetRequest?.expiresAt
+            ? new Date(pinResetRequest.expiresAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+            : "soon";
+          $("pinResetRequestTime").textContent = `Requested ${requestedAt} · expires ${expiresAt}`;
+        } else {
+          $("pinResetRequestTime").textContent = "";
+        }
 
         $("recoveryLink").value = "";
         $("recoveryExpiry").textContent = "";
@@ -1765,6 +1820,39 @@
           await startQrScanner();
         },
       );
+
+      $("approvePinReset").addEventListener("click", async () => {
+        if (!member || !pinResetRequest || pinResetRequest.status !== "pending") return;
+
+        const confirmed = confirm(
+          `Approve the PIN reset for ${member.firstName}? The customer will be able to create a new PIN for this card.`,
+        );
+        if (!confirmed) return;
+
+        const button = $("approvePinReset");
+        setBusy(button, true, "Approving...");
+        message("staffMessage", "");
+        try {
+          const data = await apiRequest({
+            action: "staff_approve_pin_reset",
+            memberId: member.id,
+          });
+          renderMember(data);
+          message(
+            "staffMessage",
+            "PIN reset approved. The customer can now create a new PIN on their phone.",
+            "ok",
+          );
+        } catch (error) {
+          message(
+            "staffMessage",
+            error.message || "The PIN reset could not be approved.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Approving...");
+        }
+      });
 
       $("generateRecoveryLink").addEventListener("click", async () => {
         if (!member) return;

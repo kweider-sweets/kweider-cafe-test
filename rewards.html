@@ -567,6 +567,62 @@
         .pin-setup-grid { grid-template-columns: 1fr 1fr; }
         .pin-setup-grid button { grid-column: 1 / -1; width: 100%; }
       }
+
+      .forgot-pin-row {
+        margin-top: 12px;
+        text-align: center;
+      }
+      .forgot-pin-button {
+        border: 0;
+        background: transparent;
+        color: #e8c978;
+        font: inherit;
+        font-weight: 800;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        cursor: pointer;
+        padding: 8px 12px;
+      }
+      .pin-reset-status {
+        margin-top: 14px;
+      }
+      .pin-reset-waiting {
+        padding: 16px;
+        border: 1px solid rgba(197, 160, 89, 0.65);
+        border-radius: 16px;
+        background: rgba(197, 160, 89, 0.08);
+        line-height: 1.65;
+      }
+      .pin-reset-waiting strong,
+      .pin-reset-waiting span {
+        display: block;
+      }
+      .pin-reset-waiting span {
+        margin-top: 6px;
+        color: #bbb;
+      }
+      .change-pin-panel {
+        margin-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 14px;
+      }
+      .change-pin-panel summary {
+        cursor: pointer;
+        color: #e7ca82;
+        font-weight: 800;
+      }
+      .change-pin-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .change-pin-grid .field { margin: 0; }
+      .change-pin-grid button { grid-column: 1 / -1; width: 100%; }
+      @media (max-width: 520px) {
+        .change-pin-grid { grid-template-columns: 1fr; }
+        .change-pin-grid button { grid-column: auto; }
+      }
     </style>
   </head>
   <body class="app-page">
@@ -617,6 +673,11 @@
               </button>
             </div>
           </form>
+          <div class="forgot-pin-row">
+            <button id="forgotPinButton" class="forgot-pin-button" type="button">
+              Forgot your PIN? · نسيت الرقم السري؟
+            </button>
+          </div>
         </div>
 
         <div id="createStep" class="access-step hidden">
@@ -665,6 +726,51 @@
                 Back to sign in · العودة للدخول
               </button>
             </div>
+          </form>
+        </div>
+
+        <div id="resetStep" class="access-step hidden">
+          <h2 class="phone-auth-title">Reset your access PIN</h2>
+          <p class="phone-auth-help">
+            Enter your mobile number, then ask a member of staff to approve the reset.
+            <span class="phone-auth-help-ar" dir="rtl">أدخل رقم هاتفك، ثم اطلب من الموظف الموافقة على إعادة التعيين.</span>
+          </p>
+
+          <form id="pinResetRequestForm">
+            <div class="field full">
+              <label>Mobile number · رقم الهاتف</label>
+              <input id="resetPhone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="07... or +44..." />
+            </div>
+            <div class="auth-inline-actions">
+              <button id="requestPinResetButton" class="primary-btn" type="submit">
+                Ask staff to approve · طلب موافقة الموظف
+              </button>
+              <button id="backFromResetButton" class="ghost-btn" type="button">
+                Back · رجوع
+              </button>
+            </div>
+          </form>
+
+          <div id="pinResetStatus" class="pin-reset-status"></div>
+
+          <form id="newPinAfterResetForm" class="hidden">
+            <div class="pin-reset-waiting">
+              <strong>Reset approved ✓ · تمت الموافقة</strong>
+              <span>Create a new 4-digit PIN. Your older saved cards will be signed out.</span>
+            </div>
+            <div class="form-grid" style="margin-top:14px">
+              <div class="field">
+                <label>New 4-digit PIN</label>
+                <input id="resetNewPin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
+              </div>
+              <div class="field">
+                <label>Confirm new PIN</label>
+                <input id="confirmResetNewPin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
+              </div>
+            </div>
+            <button id="saveResetPinButton" class="gold-btn" type="submit" style="width:100%">
+              Save new PIN · حفظ الرقم الجديد
+            </button>
           </form>
         </div>
 
@@ -779,6 +885,22 @@
           <div class="collapsible-content">
             <div id="profileDetails" style="line-height: 1.8; color: #ddd; direction: ltr"></div>
             <p>Ask a member of staff if any membership details need to be corrected.</p>
+            <details class="change-pin-panel">
+              <summary>Change access PIN · تغيير الرقم السري</summary>
+              <form id="changePinForm" class="change-pin-grid">
+                <div class="field">
+                  <label>New 4-digit PIN</label>
+                  <input id="changePin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
+                </div>
+                <div class="field">
+                  <label>Confirm PIN</label>
+                  <input id="confirmChangePin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
+                </div>
+                <button id="changePinButton" class="ghost-btn" type="submit">
+                  Save new PIN · حفظ الرقم الجديد
+                </button>
+              </form>
+            </details>
             <div class="form-actions">
               <button class="ghost-btn" type="button" id="switchMembership">
                 Remove saved card from this device
@@ -818,6 +940,8 @@
       let activeBundle = null;
       let requestInProgress = false;
       let restoredCardNoticePending = false;
+      let activePinResetToken = "";
+      let pinResetPollTimer = null;
 
       const REWARD_SELECTION_KEY_PREFIX =
         "kweiderRewards.checkoutSelection.v1.";
@@ -1078,6 +1202,11 @@
           "createCardButton",
           "backToLoginButton",
           "savePinButton",
+          "forgotPinButton",
+          "requestPinResetButton",
+          "backFromResetButton",
+          "saveResetPinButton",
+          "changePinButton",
           "refreshCard",
           "switchMembership",
           "markMessagesRead",
@@ -1149,17 +1278,75 @@
         return pin;
       }
 
+      function stopPinResetPolling() {
+        if (pinResetPollTimer) clearTimeout(pinResetPollTimer);
+        pinResetPollTimer = null;
+      }
+
       function showAccessStep(stepId) {
-        ["loginStep", "createStep"].forEach((id) => {
+        ["loginStep", "createStep", "resetStep"].forEach((id) => {
           $(id).classList.toggle("hidden", id !== stepId);
         });
+        if (stepId !== "resetStep") stopPinResetPolling();
       }
 
       function resetPinAccess(message = "", type = "info") {
+        stopPinResetPolling();
+        activePinResetToken = "";
         $("pinLoginForm").reset();
         $("newMemberForm").reset();
+        $("pinResetRequestForm").reset();
+        $("newPinAfterResetForm").reset();
+        $("newPinAfterResetForm").classList.add("hidden");
+        $("pinResetStatus").innerHTML = "";
         showAccessStep("loginStep");
         notice("formMessage", message, type);
+      }
+
+      function renderPinResetWaiting(message, status = "pending") {
+        const className = status === "approved"
+          ? "notice ok"
+          : status === "error"
+            ? "notice error"
+            : "pin-reset-waiting";
+        const box = document.createElement("div");
+        box.className = className;
+        box.textContent = String(message || "");
+        $("pinResetStatus").replaceChildren(box);
+      }
+
+      async function pollPinResetStatus() {
+        stopPinResetPolling();
+        if (!activePinResetToken || $("resetStep").classList.contains("hidden")) return;
+
+        try {
+          const result = await callApi({
+            action: "check_pin_reset",
+            resetToken: activePinResetToken,
+          });
+          const status = result?.pinResetRequest?.status || "";
+
+          if (status === "approved") {
+            renderPinResetWaiting("Approved by staff ✓ · تمت موافقة الموظف", "approved");
+            $("pinResetRequestForm").classList.add("hidden");
+            $("newPinAfterResetForm").classList.remove("hidden");
+            setTimeout(() => $("resetNewPin").focus(), 50);
+            return;
+          }
+
+          if (["expired", "cancelled", "used"].includes(status)) {
+            activePinResetToken = "";
+            $("pinResetRequestForm").classList.remove("hidden");
+            renderPinResetWaiting("This request is no longer active. Start again. · انتهت صلاحية الطلب، ابدأ من جديد.", "error");
+            return;
+          }
+
+          renderPinResetWaiting("Waiting for staff approval… Keep this screen open. · بانتظار موافقة الموظف، اترك هذه الشاشة مفتوحة.");
+          pinResetPollTimer = setTimeout(pollPinResetStatus, 2500);
+        } catch (error) {
+          renderPinResetWaiting(error.message || "The reset status could not be checked.", "error");
+          pinResetPollTimer = setTimeout(pollPinResetStatus, 4000);
+        }
       }
 
       async function saveReturnedCard(result) {
@@ -1777,6 +1964,82 @@
         });
       });
 
+      $("forgotPinButton").addEventListener("click", () => {
+        stopPinResetPolling();
+        activePinResetToken = "";
+        $("pinResetRequestForm").classList.remove("hidden");
+        $("newPinAfterResetForm").classList.add("hidden");
+        $("pinResetStatus").innerHTML = "";
+        $("resetPhone").value = $("loginPhone").value.trim();
+        showAccessStep("resetStep");
+        notice("formMessage", "", "info");
+        setTimeout(() => $("resetPhone").focus(), 50);
+      });
+
+      $("backFromResetButton").addEventListener("click", () => {
+        const phone = $("resetPhone").value.trim();
+        stopPinResetPolling();
+        activePinResetToken = "";
+        showAccessStep("loginStep");
+        $("loginPhone").value = phone;
+        $("loginPin").value = "";
+        $("pinResetRequestForm").classList.remove("hidden");
+        $("newPinAfterResetForm").classList.add("hidden");
+        $("pinResetStatus").innerHTML = "";
+      });
+
+      $("pinResetRequestForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (requestInProgress) return;
+
+        setLoading(true);
+        renderPinResetWaiting("Starting your PIN reset… · جارٍ بدء إعادة التعيين…");
+        try {
+          const result = await callApi({
+            action: "request_pin_reset",
+            phone: $("resetPhone").value.trim(),
+          });
+          if (!result?.resetToken) throw new Error("The secure reset request was not returned.");
+          activePinResetToken = result.resetToken;
+          $("pinResetRequestForm").classList.add("hidden");
+          renderPinResetWaiting("Request sent. Ask a member of staff to find your card and press Approve PIN reset. · تم إرسال الطلب، اطلب من الموظف فتح بطاقتك والضغط على الموافقة.");
+          pollPinResetStatus();
+        } catch (error) {
+          renderPinResetWaiting(error.message, "error");
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      $("newPinAfterResetForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (requestInProgress || !activePinResetToken) return;
+
+        const pin = validFourDigitPin($("resetNewPin").value);
+        if (pin !== validFourDigitPin($("confirmResetNewPin").value)) {
+          renderPinResetWaiting("The two PIN entries do not match. · الرقمان غير متطابقين.", "error");
+          return;
+        }
+
+        setLoading(true);
+        renderPinResetWaiting("Saving your new PIN… · جارٍ حفظ الرقم الجديد…");
+        try {
+          const result = await callApi({
+            action: "complete_pin_reset",
+            resetToken: activePinResetToken,
+            pin,
+          });
+          stopPinResetPolling();
+          activePinResetToken = "";
+          await saveReturnedCard(result);
+          notice("cardMessage", "Your PIN was changed successfully. Older saved cards were signed out. · تم تغيير الرقم السري وتسجيل خروج البطاقات القديمة.", "ok");
+        } catch (error) {
+          renderPinResetWaiting(error.message, "error");
+        } finally {
+          setLoading(false);
+        }
+      });
+
       $("pinLoginForm").addEventListener("submit", async (event) => {
         event.preventDefault();
         if (requestInProgress) return;
@@ -1885,6 +2148,36 @@
           setLoading(false);
         }
       });
+      $("changePinForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (requestInProgress) return;
+
+        const pin = validFourDigitPin($("changePin").value);
+        if (pin !== validFourDigitPin($("confirmChangePin").value)) {
+          notice("cardMessage", "The two PIN entries do not match.", "error");
+          return;
+        }
+
+        const token = localStorage.getItem(MEMBER_TOKEN_KEY);
+        if (!token) {
+          showRegistration("No rewards card is saved on this device.", "error");
+          return;
+        }
+
+        setLoading(true);
+        notice("cardMessage", "Changing your access PIN…", "info");
+        try {
+          const result = await callApi({ action: "set_member_pin", token, pin });
+          render(result);
+          $("changePinForm").reset();
+          notice("cardMessage", "Your access PIN was changed successfully. · تم تغيير الرقم السري بنجاح.", "ok");
+        } catch (error) {
+          notice("cardMessage", error.message, "error");
+        } finally {
+          setLoading(false);
+        }
+      });
+
       $("refreshCard").addEventListener("click", () => loadSavedCard(false));
       $("markMessagesRead").addEventListener("click", async () => {
         if (requestInProgress) return;
@@ -1937,7 +2230,13 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
 
+      window.addEventListener("pagehide", stopPinResetPolling);
+
       document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && activePinResetToken && !requestInProgress) {
+          pollPinResetStatus();
+          return;
+        }
         if (!document.hidden && activeBundle && !requestInProgress) {
           loadSavedCard(false);
         }
