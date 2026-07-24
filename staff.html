@@ -124,6 +124,166 @@
         text-align: center;
         line-height: 1.55;
       }
+
+      .quick-checkout-card {
+        border-color: rgba(239, 214, 149, 0.72);
+        background:
+          radial-gradient(circle at 85% 0%, rgba(197, 160, 89, 0.16), transparent 44%),
+          #151515;
+      }
+      .quick-checkout-card h3 {
+        margin-bottom: 5px;
+      }
+      .quick-checkout-subtitle {
+        margin: 0 0 14px;
+        color: #aaa;
+        line-height: 1.5;
+      }
+      .customer-choice {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        padding: 12px 13px;
+        border: 1px solid rgba(197, 160, 89, 0.42);
+        border-radius: 13px;
+        background: rgba(197, 160, 89, 0.075);
+      }
+      .customer-choice span {
+        display: block;
+        color: #a9a9a9;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .customer-choice strong {
+        display: block;
+        margin-top: 3px;
+        color: #efd695;
+        font-size: 17px;
+        line-height: 1.25;
+      }
+      .customer-choice small {
+        display: block;
+        margin-top: 3px;
+        color: #bfb7a5;
+        font-size: 11px;
+      }
+      .quick-bill-field input {
+        font-size: 24px;
+        font-weight: 800;
+      }
+      .quick-checkout-hint {
+        margin: 6px 0 0;
+        color: #9b9b9b;
+        font-size: 11px;
+        line-height: 1.45;
+      }
+      .quick-breakfast-confirm {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin: 13px 0 0;
+        padding: 11px 12px;
+        border: 1px solid rgba(197, 160, 89, 0.42);
+        border-radius: 12px;
+        color: #ddd;
+        line-height: 1.45;
+      }
+      .quick-breakfast-confirm input {
+        width: 19px;
+        height: 19px;
+        margin-top: 1px;
+        accent-color: #c5a059;
+      }
+      .quick-checkout-preview {
+        margin-top: 14px;
+      }
+      .quick-checkout-summary {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 7px 14px;
+      }
+      .quick-checkout-summary span {
+        color: #bdbdbd;
+      }
+      .quick-checkout-summary strong {
+        color: #f0d895;
+        text-align: right;
+      }
+      .quick-checkout-summary .payable {
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,.1);
+        color: #fff;
+        font-size: 17px;
+      }
+      .quick-checkout-summary .payable-value {
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,.1);
+        color: #bde8c9;
+        font-size: 18px;
+      }
+      .quick-more {
+        margin-top: 12px;
+      }
+      .quick-more summary,
+      .staff-advanced > summary {
+        cursor: pointer;
+        list-style: none;
+        color: #e8d090;
+        font-weight: 800;
+      }
+      .quick-more summary::-webkit-details-marker,
+      .staff-advanced > summary::-webkit-details-marker {
+        display: none;
+      }
+      .quick-more summary::after,
+      .staff-advanced > summary::after {
+        content: "⌄";
+        float: right;
+        color: #c5a059;
+      }
+      .quick-more[open] summary::after,
+      .staff-advanced[open] > summary::after {
+        content: "⌃";
+      }
+      .quick-more-content {
+        padding-top: 12px;
+      }
+      .complete-checkout-btn {
+        width: 100%;
+        min-height: 52px;
+        margin-top: 14px;
+        font-size: 16px;
+      }
+      .checkout-result {
+        margin-top: 14px;
+        padding: 13px;
+        border: 1px solid rgba(143, 202, 158, 0.55);
+        border-radius: 13px;
+        background: rgba(74, 145, 92, 0.12);
+      }
+      .checkout-result strong {
+        color: #c4ebcf;
+        font-size: 16px;
+      }
+      .staff-advanced > summary {
+        font-size: 17px;
+      }
+      .staff-advanced-content {
+        display: grid;
+        gap: 18px;
+        padding-top: 18px;
+      }
+      .advanced-section {
+        padding-top: 17px;
+        border-top: 1px solid rgba(255,255,255,.09);
+      }
+      .advanced-section:first-child {
+        padding-top: 0;
+        border-top: 0;
+      }
+
       @media (max-width: 640px) {
         .transaction-item {
           align-items: flex-start;
@@ -245,98 +405,178 @@
             </div>
           </div>
 
-          <div class="app-card">
-            <h3>Restore customer card</h3>
-            <p class="recovery-warning">
-              Create a secure one-time recovery link for this member. The link
-              is valid for 15 minutes. When the customer opens it, previous
-              saved cards for this membership are signed out.
+          <div class="app-card quick-checkout-card">
+            <h3>Quick checkout · إتمام الفاتورة</h3>
+            <p class="quick-checkout-subtitle">
+              Scan the customer QR, enter the bill amount, then complete the checkout.
             </p>
-            <div class="form-actions">
-              <button id="generateRecoveryLink" class="ghost-btn" type="button">
-                Generate recovery link
-              </button>
-              <button id="copyRecoveryLink" class="gold-btn hidden" type="button">
-                Copy link
-              </button>
-            </div>
-            <div id="recoveryLinkBox" class="recovery-link-box hidden">
-              <div class="field">
-                <label for="recoveryLink">Customer recovery link</label>
-                <input id="recoveryLink" type="text" readonly />
-              </div>
-              <p id="recoveryExpiry" class="field-hint" style="margin-bottom:0"></p>
-            </div>
-          </div>
 
-          <div class="app-card">
-            <h3>Add purchase points</h3>
-            <div class="form-grid">
-              <div class="field">
-                <label for="purchaseAmount">Purchase amount (£)</label>
-                <input
-                  id="purchaseAmount"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  inputmode="decimal"
-                />
-              </div>
-              <div class="field">
-                <label for="earnReceipt">Receipt number</label>
-                <input id="earnReceipt" autocomplete="off" />
+            <div class="customer-choice">
+              <div>
+                <span>Customer choice · اختيار العميل</span>
+                <strong id="quickRewardChoice">No reward selected</strong>
+                <small id="quickRewardChoiceNote">Points will be added only.</small>
               </div>
             </div>
-            <div class="form-actions">
-              <button id="addPoints" class="primary-btn">Add points</button>
-            </div>
-          </div>
 
-          <div class="app-card">
-            <h3>Redeem reward</h3>
-            <div class="form-grid">
-              <div class="field full">
-                <label for="memberReward">Available reward</label>
-                <select id="memberReward">
-                  <option value="">No rewards available</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="redeemPurchaseAmount">
-                  Purchase amount (£)
-                  <span class="field-hint"
-                    >— required for £5 and £10 bill rewards</span
-                  >
-                </label>
-                <input
-                  id="redeemPurchaseAmount"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  inputmode="decimal"
-                />
-              </div>
-              <div class="field">
-                <label for="redeemReceipt"
-                  >Receipt/reference
-                  <span class="field-hint">(optional)</span></label
-                >
-                <input id="redeemReceipt" autocomplete="off" />
-              </div>
+            <div class="field quick-bill-field">
+              <label id="quickAmountLabel" for="quickPurchaseAmount">
+                Bill amount (£)
+              </label>
+              <input
+                id="quickPurchaseAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                autocomplete="off"
+              />
+              <p id="quickAmountHint" class="quick-checkout-hint">
+                Enter the total before applying a £5 or £10 reward.
+              </p>
             </div>
+
+            <label
+              id="quickBreakfastConfirmationRow"
+              class="quick-breakfast-confirm hidden"
+            >
+              <input id="quickBreakfastConfirmed" type="checkbox" />
+              <span>
+                Eligible Breakfast for Two order confirmed.<br />
+                <span dir="rtl">تم التأكد من طلب الفطور المؤهل لشخصين.</span>
+              </span>
+            </label>
+
+            <details class="quick-more">
+              <summary>Receipt / more details · رقم الإيصال</summary>
+              <div class="quick-more-content">
+                <div class="field">
+                  <label for="quickReceipt">
+                    Receipt/reference
+                    <span class="field-hint">(optional — generated automatically)</span>
+                  </label>
+                  <input id="quickReceipt" autocomplete="off" />
+                </div>
+              </div>
+            </details>
+
             <div
-              id="rewardPreview"
-              class="notice info reward-preview"
+              id="quickCheckoutPreview"
+              class="notice info quick-checkout-preview"
               aria-live="polite"
             >
-              Select an available reward.
+              Enter the bill amount.
             </div>
-            <div class="form-actions">
-              <button id="redeemReward" class="gold-btn" disabled>
-                Redeem selected reward
-              </button>
-            </div>
+
+            <button
+              id="completeCheckout"
+              class="gold-btn complete-checkout-btn"
+              type="button"
+              disabled
+            >
+              Complete checkout · إتمام الفاتورة
+            </button>
+
+            <div id="quickCheckoutResult"></div>
           </div>
+
+          <details class="app-card staff-advanced">
+            <summary>Advanced options · خيارات متقدمة</summary>
+            <div class="staff-advanced-content">
+              <section class="advanced-section">
+                <h3>Restore customer card</h3>
+                <p class="recovery-warning">
+                  Create a secure one-time recovery link for this member. The link
+                  is valid for 15 minutes. When the customer opens it, previous
+                  saved cards for this membership are signed out.
+                </p>
+                <div class="form-actions">
+                  <button id="generateRecoveryLink" class="ghost-btn" type="button">
+                    Generate recovery link
+                  </button>
+                  <button id="copyRecoveryLink" class="gold-btn hidden" type="button">
+                    Copy link
+                  </button>
+                </div>
+                <div id="recoveryLinkBox" class="recovery-link-box hidden">
+                  <div class="field">
+                    <label for="recoveryLink">Customer recovery link</label>
+                    <input id="recoveryLink" type="text" readonly />
+                  </div>
+                  <p id="recoveryExpiry" class="field-hint" style="margin-bottom:0"></p>
+                </div>
+              </section>
+
+              <section class="advanced-section">
+                <h3>Add purchase points manually</h3>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="purchaseAmount">Purchase amount (£)</label>
+                    <input
+                      id="purchaseAmount"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      inputmode="decimal"
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="earnReceipt">Receipt number</label>
+                    <input id="earnReceipt" autocomplete="off" />
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button id="addPoints" class="primary-btn">Add points</button>
+                </div>
+              </section>
+
+              <section class="advanced-section">
+                <h3>Redeem reward manually</h3>
+                <div class="form-grid">
+                  <div class="field full">
+                    <label for="memberReward">Available reward</label>
+                    <select id="memberReward">
+                      <option value="">No rewards available</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="redeemPurchaseAmount">
+                      Purchase amount (£)
+                      <span class="field-hint">
+                        — required for £5 and £10 bill rewards
+                      </span>
+                    </label>
+                    <input
+                      id="redeemPurchaseAmount"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      inputmode="decimal"
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="redeemReceipt">
+                      Receipt/reference
+                      <span class="field-hint">(optional)</span>
+                    </label>
+                    <input id="redeemReceipt" autocomplete="off" />
+                  </div>
+                </div>
+                <div
+                  id="rewardPreview"
+                  class="notice info reward-preview"
+                  aria-live="polite"
+                >
+                  Select an available reward.
+                </div>
+                <div class="form-actions">
+                  <button id="redeemReward" class="gold-btn" disabled>
+                    Redeem selected reward
+                  </button>
+                </div>
+              </section>
+            </div>
+          </details>
 
           <div class="app-card">
             <h3>Recent activity</h3>
@@ -379,6 +619,10 @@
       let qrScanner = null;
       let scanning = false;
       let scanHandled = false;
+
+      let pendingQrRewardId = "";
+      let quickSelectedRewardId = "";
+      let quickSelectionFromCustomer = false;
 
       function hasConfiguration() {
         return SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_");
@@ -576,6 +820,286 @@
             Math.round((discount + Number.EPSILON) * 100) / 100,
           ),
         };
+      }
+
+
+      function parseCustomerQr(value) {
+        const raw = String(value || "").trim();
+        const withoutPrefix = raw
+          .replace(/^KWEIDER-LOYALTY:/i, "")
+          .replace(/^KWEIDER-REWARDS:/i, "");
+        const parts = withoutPrefix.split("|");
+        const search = String(parts.shift() || "").trim();
+        let memberRewardId = "";
+
+        for (const part of parts) {
+          const match = String(part).match(/^MR:([0-9a-f-]{36})$/i);
+          if (match) {
+            memberRewardId = match[1].toLowerCase();
+            break;
+          }
+        }
+
+        return { raw, search, memberRewardId };
+      }
+
+      function quickAvailableRewards() {
+        return memberRewards.filter(isRewardAvailable);
+      }
+
+      function quickRewardById(memberRewardId) {
+        return (
+          quickAvailableRewards().find(
+            (reward) =>
+              String(readField(reward, "id") || "") ===
+              String(memberRewardId || ""),
+          ) || null
+        );
+      }
+
+      function fixedRewardCandidate(reward) {
+        const definition = definitionForReward(reward);
+        const amount = fixedRewardAmount(definition, reward);
+        return amount === null
+          ? null
+          : { reward, definition, amount };
+      }
+
+      function bestFixedRewardThatFits(billAmount) {
+        return quickAvailableRewards()
+          .map(fixedRewardCandidate)
+          .filter(
+            (candidate) =>
+              candidate &&
+              candidate.amount > 0 &&
+              candidate.amount <= billAmount,
+          )
+          .sort((left, right) => right.amount - left.amount)[0] || null;
+      }
+
+      function bestAvailableFixedReward() {
+        return quickAvailableRewards()
+          .map(fixedRewardCandidate)
+          .filter(Boolean)
+          .sort((left, right) => right.amount - left.amount)[0] || null;
+      }
+
+      function quickSelectedDetails() {
+        const reward = quickRewardById(quickSelectedRewardId);
+        const definition = reward ? definitionForReward(reward) : null;
+        return {
+          reward,
+          definition,
+          kind: reward ? rewardKindOf(definition, reward) : "",
+          title: reward ? rewardTitle(definition, reward) : "",
+          fixedAmount: reward ? fixedRewardAmount(definition, reward) : null,
+        };
+      }
+
+      function checkoutPlan() {
+        const amount = Number($("quickPurchaseAmount").value);
+        const pointsPerPound = Number(settings.pointsPerPound || 1);
+        const selected = quickSelectedDetails();
+
+        if (!Number.isFinite(amount) || amount < 0) {
+          return {
+            valid: false,
+            message: "Enter a valid bill amount.",
+          };
+        }
+
+        if (selected.kind === "breakfast_for_two") {
+          if (!$("quickBreakfastConfirmed").checked) {
+            return {
+              valid: false,
+              breakfast: true,
+              message:
+                "Confirm that the order contains the eligible Breakfast for Two.",
+            };
+          }
+
+          return {
+            valid: true,
+            breakfast: true,
+            selectedRewardId: quickSelectedRewardId,
+            rewardTitle: selected.title,
+            billAmount: amount,
+            discountAmount: null,
+            amountPaid: amount,
+            pointsAdded: Math.floor(amount * pointsPerPound),
+            note:
+              "For breakfast rewards, this amount must be what the customer pays after the free breakfast is removed.",
+          };
+        }
+
+        if (amount <= 0) {
+          return {
+            valid: false,
+            message: "Enter the bill amount.",
+          };
+        }
+
+        if (selected.reward) {
+          if (
+            selected.fixedAmount !== null &&
+            amount >= selected.fixedAmount
+          ) {
+            const amountPaid =
+              Math.round(
+                (amount - selected.fixedAmount + Number.EPSILON) * 100,
+              ) / 100;
+            return {
+              valid: true,
+              selectedRewardId: quickSelectedRewardId,
+              rewardTitle: selected.title,
+              billAmount: amount,
+              discountAmount: selected.fixedAmount,
+              amountPaid,
+              pointsAdded: Math.floor(amountPaid * pointsPerPound),
+            };
+          }
+
+          const fallback = bestFixedRewardThatFits(amount);
+          if (fallback) {
+            const amountPaid =
+              Math.round(
+                (amount - fallback.amount + Number.EPSILON) * 100,
+              ) / 100;
+            return {
+              valid: true,
+              selectedRewardId: quickSelectedRewardId,
+              rewardTitle: rewardTitle(
+                fallback.definition,
+                fallback.reward,
+              ),
+              billAmount: amount,
+              discountAmount: fallback.amount,
+              amountPaid,
+              pointsAdded: Math.floor(amountPaid * pointsPerPound),
+              fallback: true,
+              note:
+                "The selected reward is larger than this bill. The best smaller reward will be used instead.",
+            };
+          }
+
+          return {
+            valid: true,
+            selectedRewardId: quickSelectedRewardId,
+            rewardTitle: "",
+            billAmount: amount,
+            discountAmount: 0,
+            amountPaid: amount,
+            pointsAdded: Math.floor(amount * pointsPerPound),
+            rewardSkipped: true,
+            note:
+              "The selected reward is larger than this bill, so it will stay available for later.",
+          };
+        }
+
+        return {
+          valid: true,
+          selectedRewardId: null,
+          rewardTitle: "",
+          billAmount: amount,
+          discountAmount: 0,
+          amountPaid: amount,
+          pointsAdded: Math.floor(amount * pointsPerPound),
+        };
+      }
+
+      function renderQuickCheckout() {
+        if (!member) return;
+
+        const selected = quickSelectedDetails();
+        const hasReward = Boolean(selected.reward);
+        const breakfast = selected.kind === "breakfast_for_two";
+
+        $("quickRewardChoice").textContent = hasReward
+          ? selected.title
+          : "No reward selected";
+        $("quickRewardChoiceNote").textContent = hasReward
+          ? quickSelectionFromCustomer
+            ? "Selected on the customer phone · اختيار العميل"
+            : "Selected by staff · تم اختيارها من الموظف"
+          : "Points will be added only · ستضاف النقاط فقط";
+
+        $("quickBreakfastConfirmationRow").classList.toggle(
+          "hidden",
+          !breakfast,
+        );
+        $("quickAmountLabel").textContent = breakfast
+          ? "Amount customer pays after breakfast reward (£)"
+          : "Bill amount before reward (£)";
+        $("quickAmountHint").textContent = breakfast
+          ? "Enter the final amount payable after the eligible breakfast has been removed."
+          : "Enter the till total before applying a £5 or £10 reward.";
+
+        const plan = checkoutPlan();
+        const preview = $("quickCheckoutPreview");
+
+        if (!plan.valid) {
+          preview.className =
+            "notice info quick-checkout-preview";
+          preview.textContent = plan.message;
+          $("completeCheckout").disabled = true;
+          return;
+        }
+
+        const rewardLine = plan.breakfast
+          ? `${plan.rewardTitle} will be used`
+          : plan.discountAmount > 0
+            ? `${plan.rewardTitle} · £${plan.discountAmount.toFixed(2)} off`
+            : plan.rewardSkipped
+              ? "Reward kept for later"
+              : "No reward used";
+
+        preview.className =
+          "notice ok quick-checkout-preview";
+        preview.innerHTML = `
+          <div class="quick-checkout-summary">
+            <span>Bill / entered amount</span>
+            <strong>£${plan.billAmount.toFixed(2)}</strong>
+            <span>Reward</span>
+            <strong>${escapeHtml(rewardLine)}</strong>
+            <span>Points added</span>
+            <strong>${plan.pointsAdded}</strong>
+            <span class="payable">Customer pays</span>
+            <strong class="payable-value">£${plan.amountPaid.toFixed(2)}</strong>
+          </div>
+          ${plan.note ? `<div class="field-hint" style="margin-top:10px">${escapeHtml(plan.note)}</div>` : ""}
+        `;
+        $("completeCheckout").disabled = false;
+      }
+
+      function prepareQuickCheckout() {
+        const availableIds = new Set(
+          quickAvailableRewards().map((reward) =>
+            String(readField(reward, "id") || ""),
+          ),
+        );
+
+        if (
+          pendingQrRewardId &&
+          availableIds.has(pendingQrRewardId)
+        ) {
+          quickSelectedRewardId = pendingQrRewardId;
+          quickSelectionFromCustomer = true;
+        } else if (
+          !availableIds.has(quickSelectedRewardId)
+        ) {
+          quickSelectedRewardId = "";
+          quickSelectionFromCustomer = false;
+        }
+
+        $("quickPurchaseAmount").value = "";
+        $("quickReceipt").value = "";
+        $("quickBreakfastConfirmed").checked = false;
+        $("quickCheckoutResult").innerHTML = "";
+        renderQuickCheckout();
+
+        setTimeout(() => {
+          $("quickPurchaseAmount").focus();
+        }, 80);
       }
 
       function syncRedeemButton() {
@@ -789,12 +1313,19 @@
         memberTransactions = [];
         memberRewards = [];
         rewardDefinitions = [];
+        pendingQrRewardId = "";
+        quickSelectedRewardId = "";
+        quickSelectionFromCustomer = false;
         $("memberPanel").classList.add("hidden");
         $("transactionList").innerHTML = "";
         $("memberReward").innerHTML =
           '<option value="">No rewards available</option>';
         $("redeemPurchaseAmount").value = "";
         $("redeemReceipt").value = "";
+        $("quickPurchaseAmount").value = "";
+        $("quickReceipt").value = "";
+        $("quickBreakfastConfirmed").checked = false;
+        $("quickCheckoutResult").innerHTML = "";
         $("recoveryLink").value = "";
         $("recoveryExpiry").textContent = "";
         $("recoveryLinkBox").classList.add("hidden");
@@ -966,13 +1497,11 @@
 
         renderRewardOptions(memberRewards, rewardDefinitions);
         renderTransactions(memberTransactions);
+        prepareQuickCheckout();
       }
 
       function cleanMemberSearch(value) {
-        return String(value || "")
-          .trim()
-          .replace(/^KWEIDER-LOYALTY:/i, "")
-          .replace(/^KWEIDER-REWARDS:/i, "");
+        return parseCustomerQr(value).search;
       }
 
       async function findMember(value) {
@@ -1063,6 +1592,9 @@
         setBusy(button, true, "Searching...");
         message("staffMessage", "");
         try {
+          pendingQrRewardId = "";
+          quickSelectedRewardId = "";
+          quickSelectionFromCustomer = false;
           await findMember($("memberSearch").value);
         } catch (error) {
           resetMember();
@@ -1079,6 +1611,160 @@
       $("memberSearch").addEventListener("keydown", (event) => {
         if (event.key === "Enter") $("findMember").click();
       });
+
+
+      $("quickPurchaseAmount").addEventListener(
+        "input",
+        renderQuickCheckout,
+      );
+      $("quickBreakfastConfirmed").addEventListener(
+        "change",
+        renderQuickCheckout,
+      );
+
+      $("completeCheckout").addEventListener(
+        "click",
+        async () => {
+          if (!member) return;
+
+          const plan = checkoutPlan();
+          if (!plan.valid) {
+            renderQuickCheckout();
+            return;
+          }
+
+          const button = $("completeCheckout");
+          setBusy(button, true, "Completing...");
+          message("staffMessage", "");
+
+          try {
+            const data = await apiRequest({
+              action: "staff_complete_checkout",
+              memberId: member.id,
+              purchaseAmount: plan.billAmount,
+              memberRewardId:
+                plan.selectedRewardId || null,
+              breakfastConfirmed:
+                $("quickBreakfastConfirmed").checked,
+              receiptReference:
+                $("quickReceipt").value.trim() || null,
+              idempotencyKey: createIdempotencyKey(),
+            });
+
+            const operation = data.operation || {};
+            const reward = readField(operation, "reward");
+            const rewardTitleText = String(
+              readField(reward, "titleEn", "title_en") || "",
+            );
+            const discountAmount = Number(
+              readField(
+                operation,
+                "discountAmount",
+                "discount_amount",
+              ) || 0,
+            );
+            const amountPaid = Number(
+              readField(operation, "amountPaid", "amount_paid") ||
+                plan.amountPaid ||
+                0,
+            );
+            const pointsAdded = Number(
+              readField(operation, "pointsAdded", "points_added") ||
+                0,
+            );
+            const newBalance = Number(
+              readField(
+                operation,
+                "newPointsBalance",
+                "new_points_balance",
+              ) || data.member?.points || 0,
+            );
+            const fallbackApplied = Boolean(
+              readField(
+                operation,
+                "fallbackApplied",
+                "fallback_applied",
+              ),
+            );
+            const rewardUsed = Boolean(
+              readField(operation, "rewardUsed", "reward_used"),
+            );
+
+            pendingQrRewardId = "";
+            quickSelectedRewardId = "";
+            quickSelectionFromCustomer = false;
+            renderMember(data);
+
+            const rewardLine = rewardUsed
+              ? `${escapeHtml(rewardTitleText || "Reward")} used${
+                  discountAmount > 0
+                    ? ` · £${discountAmount.toFixed(2)} off`
+                    : ""
+                }`
+              : "No reward used";
+
+            $("quickCheckoutResult").innerHTML = `
+              <div class="checkout-result">
+                <strong>Checkout completed ✓ · تمت العملية</strong>
+                <div class="quick-checkout-summary" style="margin-top:10px">
+                  <span>Reward</span>
+                  <strong>${rewardLine}</strong>
+                  <span>Customer pays</span>
+                  <strong>£${amountPaid.toFixed(2)}</strong>
+                  <span>Points added</span>
+                  <strong>${pointsAdded}</strong>
+                  <span>New balance</span>
+                  <strong>${newBalance} pts</strong>
+                </div>
+                ${
+                  fallbackApplied
+                    ? '<div class="field-hint" style="margin-top:9px">A smaller suitable reward was used automatically.</div>'
+                    : ""
+                }
+                <button
+                  type="button"
+                  class="gold-btn"
+                  data-scan-next
+                  style="width:100%;margin-top:14px"
+                >
+                  Scan next customer · مسح العميل التالي
+                </button>
+              </div>`;
+
+            message(
+              "staffMessage",
+              "Checkout completed successfully.",
+              "ok",
+            );
+          } catch (error) {
+            message(
+              "staffMessage",
+              error.message ||
+                "The checkout could not be completed.",
+              "error",
+            );
+          } finally {
+            setBusy(button, false, "Completing...");
+            renderQuickCheckout();
+          }
+        },
+      );
+
+      $("quickCheckoutResult").addEventListener(
+        "click",
+        async (event) => {
+          const button = event.target.closest("[data-scan-next]");
+          if (!button) return;
+
+          pendingQrRewardId = "";
+          quickSelectedRewardId = "";
+          quickSelectionFromCustomer = false;
+          $("memberSearch").value = "";
+          resetMember();
+          message("staffMessage", "");
+          await startQrScanner();
+        },
+      );
 
       $("generateRecoveryLink").addEventListener("click", async () => {
         if (!member) return;
@@ -1307,7 +1993,7 @@ Discount to apply: £${discount.toFixed(2)}.`;
 
       $("stopScan").addEventListener("click", stopCamera);
 
-      $("scanQr").addEventListener("click", async () => {
+      async function startQrScanner() {
         message("staffMessage", "");
 
         if (!window.isSecureContext) {
@@ -1340,6 +2026,10 @@ Discount to apply: £${discount.toFixed(2)}.`;
         await stopCamera();
         $("scanArea").classList.remove("hidden");
         $("scanQr").disabled = true;
+        $("scanArea").scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
         scanning = true;
         scanHandled = false;
 
@@ -1353,7 +2043,8 @@ Discount to apply: £${discount.toFixed(2)}.`;
           if (!scanning || scanHandled) return;
 
           const rawValue = String(decodedText || "").trim();
-          const value = cleanMemberSearch(rawValue);
+          const parsedQr = parseCustomerQr(rawValue);
+          const value = parsedQr.search;
           const isKweiderCode =
             /^KWEIDER-(LOYALTY|REWARDS):/i.test(rawValue) ||
             /^KW-/i.test(value);
@@ -1368,6 +2059,11 @@ Discount to apply: £${discount.toFixed(2)}.`;
           }
 
           scanHandled = true;
+          pendingQrRewardId = parsedQr.memberRewardId;
+          quickSelectedRewardId = parsedQr.memberRewardId;
+          quickSelectionFromCustomer = Boolean(
+            parsedQr.memberRewardId,
+          );
           $("memberSearch").value = value;
 
           try {
@@ -1432,7 +2128,9 @@ Discount to apply: £${discount.toFixed(2)}.`;
 
           message("staffMessage", userMessage, "error");
         }
-      });
+      }
+
+      $("scanQr").addEventListener("click", startQrScanner);
 
       window.addEventListener("pagehide", () => {
         stopCamera();

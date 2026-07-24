@@ -1,4 +1,4 @@
-const CACHE = "kweider-pwa-v3.5.1";
+const CACHE = "kweider-pwa-v3.6.0";
 
 const CORE = [
   "./",

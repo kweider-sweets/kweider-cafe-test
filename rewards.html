@@ -343,6 +343,110 @@
         line-height: 1.5;
       }
 
+
+      .card-reward-picker {
+        margin-top: 14px;
+        padding: 13px;
+        border: 1px solid rgba(197, 160, 89, 0.62);
+        border-radius: 15px;
+        background:
+          linear-gradient(135deg, rgba(197, 160, 89, 0.15), rgba(197, 160, 89, 0.04)),
+          rgba(10, 10, 10, 0.68);
+      }
+      .card-reward-picker.hidden {
+        display: none;
+      }
+      .card-reward-kicker {
+        color: #d8bd7b;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .card-reward-choices {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 9px;
+      }
+      .reward-choice-chip {
+        flex: 1 1 105px;
+        min-height: 50px;
+        padding: 8px 10px;
+        border: 1px solid rgba(197, 160, 89, 0.45);
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.4);
+        color: #ddd;
+        cursor: pointer;
+        text-align: left;
+      }
+      .reward-choice-chip strong {
+        display: block;
+        color: #ead18f;
+        font-size: 13px;
+        line-height: 1.2;
+      }
+      .reward-choice-chip span {
+        display: block;
+        margin-top: 3px;
+        color: #aaa18d;
+        font-size: 10px;
+        line-height: 1.25;
+      }
+      .reward-choice-chip.selected {
+        border-color: #efd695;
+        background: linear-gradient(135deg, rgba(197, 160, 89, 0.34), rgba(197, 160, 89, 0.1));
+        box-shadow: 0 0 0 1px rgba(239, 214, 149, 0.16), 0 0 18px rgba(197, 160, 89, 0.14);
+      }
+      .card-selected-reward {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .card-selected-reward strong {
+        display: block;
+        color: #f0d895;
+        font-size: 18px;
+        line-height: 1.2;
+      }
+      .card-selected-reward span {
+        display: block;
+        margin-top: 3px;
+        color: #c9c1b0;
+        font-size: 11px;
+        line-height: 1.35;
+      }
+      .card-reward-use {
+        min-height: 42px;
+        padding: 8px 13px;
+        white-space: nowrap;
+      }
+      .card-reward-use.confirmed {
+        border-color: #8fca9e;
+        background: rgba(74, 145, 92, 0.16);
+        color: #c4ebcf;
+      }
+      .card-reward-expiry {
+        margin-top: 7px;
+        color: #8f8f8f;
+        font-size: 10px;
+      }
+      .qr-selection-status {
+        min-height: 18px;
+        margin: 2px 0 3px;
+        color: #bde8c9;
+        font-size: 11px;
+        font-weight: 800;
+        text-align: center;
+      }
+      .qr-selection-status:empty {
+        display: none;
+      }
+
       @media (max-width: 480px) {
         .app-shell {
           padding-inline: 10px;
@@ -494,12 +598,29 @@
               <span>REWARDS · المكافآت</span>
             </div>
           </div>
+
+          <div id="cardRewardPicker" class="card-reward-picker hidden">
+            <div class="card-reward-kicker">
+              Your available reward · مكافأتك الجاهزة
+            </div>
+            <div id="cardRewardChoices" class="card-reward-choices"></div>
+            <div class="card-selected-reward">
+              <div>
+                <strong id="cardSelectedRewardTitle"></strong>
+                <span id="cardSelectedRewardSubtitle"></span>
+                <div id="cardSelectedRewardExpiry" class="card-reward-expiry"></div>
+              </div>
+              <button id="confirmRewardChoice" class="gold-btn card-reward-use" type="button">
+                Use at checkout
+              </button>
+            </div>
+          </div>
         </div>
 
         <div id="cardMessage"></div>
         <div id="messagesCard" class="app-card compact-messages-card">
           <div class="compact-section-head">
-            <h3>Rewards & Messages · المكافآت والرسائل</h3>
+            <h3>Messages · الرسائل</h3>
             <div class="message-tools">
               <div id="messageBadge" class="message-badge">0</div>
               <div id="messageActions" class="compact-message-actions">
@@ -510,7 +631,6 @@
             </div>
           </div>
 
-          <div id="availableRewardsList" class="compact-stack"></div>
           <div id="memberMessages" class="compact-stack"></div>
         </div>
 
@@ -523,6 +643,7 @@
           </div>
 
           <div id="qrCode" class="qr-wrap compact-qr"></div>
+          <div id="qrSelectionStatus" class="qr-selection-status"></div>
           <div class="qr-caption compact-qr-caption">
             Show QR at checkout · <span dir="rtl">أظهر الرمز عند الدفع</span>
           </div>
@@ -585,6 +706,14 @@
       let activeBundle = null;
       let requestInProgress = false;
       let restoredCardNoticePending = false;
+
+      const REWARD_SELECTION_KEY_PREFIX =
+        "kweiderRewards.checkoutSelection.v1.";
+      let customerSelectionMemberCode = "";
+      let customerSelectedRewardId = "";
+      let customerRewardIntentConfirmed = false;
+      let customerAvailableRewards = [];
+      let customerRewardDefinitions = [];
 
       function esc(value) {
         return String(value ?? "").replace(
@@ -831,6 +960,7 @@
         $("refreshCard").disabled = isLoading;
         $("switchMembership").disabled = isLoading;
         $("markMessagesRead").disabled = isLoading;
+        $("confirmRewardChoice").disabled = isLoading;
       }
 
       async function callApi(payload) {
@@ -916,6 +1046,11 @@
 
       function showRegistration(message = "", type = "info") {
         activeBundle = null;
+        customerSelectionMemberCode = "";
+        customerSelectedRewardId = "";
+        customerRewardIntentConfirmed = false;
+        customerAvailableRewards = [];
+        customerRewardDefinitions = [];
         $("membershipArea").classList.add("hidden");
         $("registrationCard").classList.remove("hidden");
         notice("formMessage", message, type);
@@ -951,6 +1086,237 @@
           breakfast_for_two: "Breakfast for Two ready · فطور لشخصين جاهز",
         };
         return labels[code] || rewardTitle(definition, reward);
+      }
+
+
+      function rewardDisplayDetails(reward, definition) {
+        const code = definitionCodeOf(definition) || rewardCodeOf(reward);
+        const details = {
+          discount_3: {
+            shortTitle: "£5 OFF",
+            titleAr: "خصم £5 على فاتورتك القادمة",
+          },
+          discount_5: {
+            shortTitle: "£10 OFF",
+            titleAr: "خصم £10 على فاتورتك القادمة",
+          },
+          breakfast_for_two: {
+            shortTitle: "BREAKFAST ×2",
+            titleAr: "فطور لشخصين",
+          },
+        }[code] || {
+          shortTitle: rewardTitle(definition, reward),
+          titleAr: String(readField(definition, "titleAr", "title_ar") || ""),
+        };
+
+        const expiresAt = readField(reward, "expiresAt", "expires_at");
+        const expiryTime = expiresAt ? new Date(expiresAt).getTime() : NaN;
+        const expiryText = Number.isFinite(expiryTime)
+          ? new Date(expiryTime).toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })
+          : "";
+
+        return { ...details, expiryText };
+      }
+
+      function rewardSelectionKey(memberCode) {
+        return `${REWARD_SELECTION_KEY_PREFIX}${memberCode}`;
+      }
+
+      function readStoredRewardSelection(memberCode) {
+        try {
+          const raw = localStorage.getItem(rewardSelectionKey(memberCode));
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          return parsed && typeof parsed === "object" ? parsed : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function clearStoredRewardSelection(memberCode) {
+        if (!memberCode) return;
+        localStorage.removeItem(rewardSelectionKey(memberCode));
+      }
+
+      function rewardPriority(reward, definitions) {
+        const definition = definitionForReward(reward, definitions) || {};
+        const maximum = Number(
+          readField(definition, "maximumDiscount", "maximum_discount"),
+        );
+        if (Number.isFinite(maximum) && maximum > 0) return maximum;
+        return Number(
+          readField(definition, "thresholdPoints", "threshold_points") || 0,
+        );
+      }
+
+      function selectedCustomerReward() {
+        return (
+          customerAvailableRewards.find(
+            (reward) =>
+              String(readField(reward, "id") || "") ===
+              customerSelectedRewardId,
+          ) || null
+        );
+      }
+
+      function renderMemberQr(member) {
+        $("qrCode").innerHTML = "";
+
+        let qrText = `KWEIDER-REWARDS:${member.memberCode}`;
+        const selectedReward = selectedCustomerReward();
+
+        if (
+          customerRewardIntentConfirmed &&
+          selectedReward &&
+          customerSelectedRewardId
+        ) {
+          qrText += `|MR:${customerSelectedRewardId}`;
+        }
+
+        if (window.QRCode && member.memberCode) {
+          new QRCode($("qrCode"), {
+            text: qrText,
+            width: 170,
+            height: 170,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H,
+          });
+        } else {
+          $("qrCode").innerHTML =
+            `<div style="color:#000;padding:20px">${esc(member.memberCode || "")}</div>`;
+        }
+
+        if (
+          customerRewardIntentConfirmed &&
+          selectedReward
+        ) {
+          const definition =
+            definitionForReward(
+              selectedReward,
+              customerRewardDefinitions,
+            ) || {};
+          const display = rewardDisplayDetails(
+            selectedReward,
+            definition,
+          );
+          $("qrSelectionStatus").textContent =
+            `${display.shortTitle} selected ✓ · تم اختيار المكافأة`;
+        } else {
+          $("qrSelectionStatus").textContent = "";
+        }
+      }
+
+      function renderCustomerRewardPicker(
+        member,
+        availableRewards,
+        definitions,
+      ) {
+        customerAvailableRewards = [...availableRewards].sort(
+          (left, right) =>
+            rewardPriority(left, definitions) -
+            rewardPriority(right, definitions),
+        );
+        customerRewardDefinitions = definitions;
+
+        const memberCode = String(member.memberCode || "");
+        const availableIds = new Set(
+          customerAvailableRewards.map((reward) =>
+            String(readField(reward, "id") || ""),
+          ),
+        );
+
+        const sameMember =
+          customerSelectionMemberCode === memberCode;
+        const stored = readStoredRewardSelection(memberCode);
+        const storedId = String(stored?.memberRewardId || "");
+
+        if (storedId && !availableIds.has(storedId)) {
+          clearStoredRewardSelection(memberCode);
+        }
+
+        if (
+          !sameMember ||
+          !availableIds.has(customerSelectedRewardId)
+        ) {
+          customerSelectedRewardId =
+            availableIds.has(storedId)
+              ? storedId
+              : String(
+                  readField(
+                    customerAvailableRewards[
+                      customerAvailableRewards.length - 1
+                    ],
+                    "id",
+                  ) || "",
+                );
+          customerRewardIntentConfirmed =
+            availableIds.has(storedId) &&
+            stored?.confirmed === true;
+        }
+
+        customerSelectionMemberCode = memberCode;
+
+        if (!customerAvailableRewards.length) {
+          customerSelectedRewardId = "";
+          customerRewardIntentConfirmed = false;
+          clearStoredRewardSelection(memberCode);
+          $("cardRewardPicker").classList.add("hidden");
+          renderMemberQr(member);
+          return;
+        }
+
+        $("cardRewardPicker").classList.remove("hidden");
+        $("cardRewardChoices").innerHTML =
+          customerAvailableRewards
+            .map((reward) => {
+              const id = String(readField(reward, "id") || "");
+              const definition =
+                definitionForReward(reward, definitions) || {};
+              const display = rewardDisplayDetails(
+                reward,
+                definition,
+              );
+              return `
+                <button
+                  type="button"
+                  class="reward-choice-chip${id === customerSelectedRewardId ? " selected" : ""}"
+                  data-reward-id="${esc(id)}"
+                >
+                  <strong>${esc(display.shortTitle)}</strong>
+                  <span>${esc(display.titleAr)}</span>
+                </button>`;
+            })
+            .join("");
+
+        const reward = selectedCustomerReward();
+        const definition =
+          definitionForReward(reward, definitions) || {};
+        const display = rewardDisplayDetails(reward, definition);
+
+        $("cardSelectedRewardTitle").textContent =
+          display.shortTitle;
+        $("cardSelectedRewardSubtitle").textContent =
+          display.titleAr;
+        $("cardSelectedRewardExpiry").textContent =
+          display.expiryText
+            ? `Valid until ${display.expiryText}`
+            : "";
+
+        const button = $("confirmRewardChoice");
+        button.classList.toggle(
+          "confirmed",
+          customerRewardIntentConfirmed,
+        );
+        button.textContent = customerRewardIntentConfirmed
+          ? "Selected ✓"
+          : "Use at checkout";
+
+        renderMemberQr(member);
       }
 
       function compactMessageCard(message) {
@@ -1059,45 +1425,29 @@
         $("rewardAvailable").textContent = String(availableRewards.length);
         renderRewardJourney(points, memberRewards, rewardDefinitions);
 
-        $("availableRewardsList").innerHTML = availableRewards.length
-          ? availableRewards
-              .map((reward) => {
-                const definition =
-                  definitionForReward(reward, rewardDefinitions) || {};
-                const code = definitionCodeOf(definition) || rewardCodeOf(reward);
-                const expiresAt = readField(reward, "expiresAt", "expires_at");
-                const expiryTime = expiresAt ? new Date(expiresAt).getTime() : NaN;
-                const expiryText = Number.isFinite(expiryTime)
-                  ? new Date(expiryTime).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })
-                  : "";
-                const instruction = code === "breakfast_for_two"
-                  ? "Show this reward at checkout · أظهر هذه المكافأة عند الدفع"
-                  : "Use on your next eligible purchase · استخدمها في فاتورتك القادمة";
+        renderCustomerRewardPicker(
+          member,
+          availableRewards,
+          rewardDefinitions,
+        );
 
-                return `
-                  <article class="compact-reward-card">
-                    <strong>${esc(compactRewardTitle(reward, definition))}</strong>
-                    <p>${esc(instruction)}</p>
-                    ${expiryText ? `<div class="compact-date">Valid until ${esc(expiryText)}</div>` : ""}
-                  </article>`;
-              })
-              .join("")
-          : "";
-
-        const memberMessages = Array.isArray(bundle.messages)
+        const rawMemberMessages = Array.isArray(bundle.messages)
           ? bundle.messages
           : [];
-        const unreadMessageCount = Number.isFinite(
-          Number(bundle.unreadMessageCount),
-        )
-          ? Number(bundle.unreadMessageCount)
-          : memberMessages.filter(
-              (message) => !readField(message, "isRead", "is_read"),
-            ).length;
+        const memberMessages = rawMemberMessages.filter((message) => {
+          const relatedRewardId = readField(
+            message,
+            "relatedRewardId",
+            "related_reward_id",
+          );
+          const type = String(
+            readField(message, "type", "messageType", "message_type") || "",
+          ).toLowerCase();
+          return !relatedRewardId && !type.includes("reward");
+        });
+        const unreadMessageCount = memberMessages.filter(
+          (message) => !readField(message, "isRead", "is_read"),
+        ).length;
 
         $("messageBadge").textContent =
           unreadMessageCount > 99 ? "99+" : String(unreadMessageCount);
@@ -1121,7 +1471,7 @@
         }
 
         $("messagesCard").style.display =
-          availableRewards.length || memberMessages.length ? "block" : "none";
+          memberMessages.length ? "block" : "none";
 
         $("profileDetails").innerHTML =
           `<strong>Phone:</strong> ${esc(member.phone || "—")}<br>` +
@@ -1144,22 +1494,6 @@
         $("activityMoreLabel").textContent = olderTransactions.length
           ? `View earlier activity (${olderTransactions.length}) · عرض العمليات السابقة`
           : "";
-
-        $("qrCode").innerHTML = "";
-        const qrText = `KWEIDER-LOYALTY:${member.memberCode}`;
-        if (window.QRCode && member.memberCode) {
-          new QRCode($("qrCode"), {
-            text: qrText,
-            width: 170,
-            height: 170,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H,
-          });
-        } else {
-          $("qrCode").innerHTML =
-            `<div style="color:#000;padding:20px">${esc(member.memberCode || "")}</div>`;
-        }
 
         if (restoredCardNoticePending) {
           notice(
@@ -1217,6 +1551,66 @@
           setLoading(false);
         }
       }
+
+
+      $("cardRewardChoices").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-reward-id]");
+        if (!button || !activeBundle?.member) return;
+
+        customerSelectedRewardId = String(
+          button.dataset.rewardId || "",
+        );
+        customerRewardIntentConfirmed = false;
+        clearStoredRewardSelection(
+          activeBundle.member.memberCode,
+        );
+
+        renderCustomerRewardPicker(
+          activeBundle.member,
+          customerAvailableRewards,
+          customerRewardDefinitions,
+        );
+        notice(
+          "cardMessage",
+          "Choose Use at checkout when you are ready to show this reward to staff.",
+          "info",
+        );
+      });
+
+      $("confirmRewardChoice").addEventListener("click", () => {
+        if (
+          !activeBundle?.member ||
+          !selectedCustomerReward()
+        ) {
+          return;
+        }
+
+        customerRewardIntentConfirmed = true;
+        localStorage.setItem(
+          rewardSelectionKey(
+            activeBundle.member.memberCode,
+          ),
+          JSON.stringify({
+            memberRewardId: customerSelectedRewardId,
+            confirmed: true,
+          }),
+        );
+
+        renderCustomerRewardPicker(
+          activeBundle.member,
+          customerAvailableRewards,
+          customerRewardDefinitions,
+        );
+        notice(
+          "cardMessage",
+          "Reward selected. Show the QR code to a member of staff.",
+          "ok",
+        );
+        $("qrCode").scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
 
       $("memberForm").addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -1301,6 +1695,11 @@
 
         if (!confirmed) return;
 
+        if (activeBundle?.member?.memberCode) {
+          clearStoredRewardSelection(
+            activeBundle.member.memberCode,
+          );
+        }
         localStorage.removeItem(MEMBER_TOKEN_KEY);
         $("memberForm").reset();
         showRegistration("The saved card was removed from this device.", "ok");
