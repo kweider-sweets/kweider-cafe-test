@@ -495,6 +495,78 @@
           font-size: 8px;
         }
       }
+
+
+      .phone-auth-card {
+        max-width: 620px;
+        margin-inline: auto;
+      }
+      .phone-auth-title { margin-bottom: 8px; }
+      .phone-auth-help {
+        margin: 0 0 18px;
+        color: #bbb;
+        line-height: 1.55;
+      }
+      .phone-auth-help-ar {
+        display: block;
+        margin-top: 4px;
+        color: #d7c69b;
+      }
+      .access-step.hidden { display: none !important; }
+      .pin-input {
+        letter-spacing: .35em;
+        text-align: center;
+        font-size: 23px;
+        font-weight: 800;
+      }
+      .auth-inline-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .auth-inline-actions .primary-btn,
+      .auth-inline-actions .ghost-btn { flex: 1 1 170px; }
+      .access-security-note {
+        margin-top: 14px;
+        color: #888;
+        font-size: 12px;
+        line-height: 1.55;
+        text-align: center;
+      }
+      .pin-setup-panel {
+        margin-top: 14px;
+        padding: 13px;
+        border: 1px solid rgba(197,160,89,.58);
+        border-radius: 15px;
+        background: rgba(197,160,89,.08);
+      }
+      .pin-setup-panel.hidden { display: none !important; }
+      .pin-setup-panel strong {
+        display: block;
+        color: #f0d58c;
+        font-size: 14px;
+      }
+      .pin-setup-panel p {
+        margin: 5px 0 11px;
+        color: #c7c7c7;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+      .pin-setup-grid {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto;
+        gap: 8px;
+        align-items: end;
+      }
+      .pin-setup-grid .field { margin: 0; }
+      .pin-setup-grid label { font-size: 10px; }
+      .pin-setup-grid input { min-height: 43px; padding: 9px; }
+      .pin-setup-grid button { min-height: 43px; white-space: nowrap; }
+      @media (max-width: 560px) {
+        .pin-setup-grid { grid-template-columns: 1fr 1fr; }
+        .pin-setup-grid button { grid-column: 1 / -1; width: 100%; }
+      }
     </style>
   </head>
   <body class="app-page">
@@ -517,66 +589,90 @@
         <p class="reward-tagline reward-tagline-ar" dir="rtl">نقطة لكل £1 · مكافآت عند 50 · 100 · 200</p>
       </header>
 
-      <section id="registrationCard" class="app-card hidden">
-        <h2>Join Kweider Rewards</h2>
-        <p style="color: #bbb; line-height: 1.6">
-          Create your membership once. Your secure card will then be saved on
-          this device.
-        </p>
+      <section id="registrationCard" class="app-card phone-auth-card hidden">
+        <div id="loginStep" class="access-step">
+          <h2 class="phone-auth-title">Open your Kweider card</h2>
+          <p class="phone-auth-help">
+            Enter your mobile number and 4-digit PIN.
+            <span class="phone-auth-help-ar" dir="rtl">أدخل رقم هاتفك والرقم السري المكوّن من 4 أرقام.</span>
+          </p>
 
-        <form id="memberForm">
-          <div class="form-grid">
-            <div class="field">
-              <label>First name *</label>
-              <input
-                id="firstName"
-                autocomplete="given-name"
-                required
-                maxlength="50"
-              />
+          <form id="pinLoginForm">
+            <div class="form-grid">
+              <div class="field full">
+                <label>Mobile number · رقم الهاتف</label>
+                <input id="loginPhone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="07... or +44..." />
+              </div>
+              <div class="field full">
+                <label>4-digit PIN · الرقم السري</label>
+                <input id="loginPin" class="pin-input" type="password" inputmode="numeric" autocomplete="current-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
+              </div>
             </div>
-
-            <div class="field">
-              <label>Phone number *</label>
-              <input
-                id="phone"
-                type="tel"
-                autocomplete="tel"
-                required
-                placeholder="+44..."
-              />
+            <div class="auth-inline-actions">
+              <button class="primary-btn" type="submit" id="openCardButton">
+                Open my card · فتح بطاقتي
+              </button>
+              <button class="ghost-btn" type="button" id="newMemberButton">
+                New member · عضو جديد
+              </button>
             </div>
+          </form>
+        </div>
 
-            <div class="field">
-              <label>Email (optional)</label>
-              <input id="email" type="email" autocomplete="email" />
+        <div id="createStep" class="access-step hidden">
+          <h2 class="phone-auth-title">Create your Kweider card</h2>
+          <p class="phone-auth-help">
+            Add your name, mobile number and choose a 4-digit PIN.
+            <span class="phone-auth-help-ar" dir="rtl">أضف اسمك ورقم هاتفك واختر رقماً سرياً من 4 أرقام.</span>
+          </p>
+
+          <form id="newMemberForm">
+            <div class="form-grid">
+              <div class="field">
+                <label>First name *</label>
+                <input id="firstName" autocomplete="given-name" required maxlength="50" />
+              </div>
+              <div class="field">
+                <label>Mobile number *</label>
+                <input id="createPhone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="07... or +44..." />
+              </div>
+              <div class="field">
+                <label>Create 4-digit PIN *</label>
+                <input id="createPin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
+              </div>
+              <div class="field">
+                <label>Confirm PIN *</label>
+                <input id="confirmCreatePin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
+              </div>
+              <div class="field">
+                <label>Email (optional)</label>
+                <input id="email" type="email" autocomplete="email" />
+              </div>
+              <div class="field">
+                <label>Birthday (optional)</label>
+                <input id="birthday" type="date" />
+              </div>
+              <label class="consent-row field full">
+                <input id="marketingConsent" type="checkbox" />
+                <span>I agree to receive Kweider offers by SMS, WhatsApp or email. I can withdraw this consent at any time.</span>
+              </label>
             </div>
-
-            <div class="field">
-              <label>Birthday (optional)</label>
-              <input id="birthday" type="date" />
+            <div class="auth-inline-actions">
+              <button class="primary-btn" type="submit" id="createCardButton">
+                Create my card · إنشاء بطاقتي
+              </button>
+              <button class="ghost-btn" type="button" id="backToLoginButton">
+                Back to sign in · العودة للدخول
+              </button>
             </div>
-
-            <label class="consent-row field full">
-              <input id="marketingConsent" type="checkbox" />
-              <span>
-                I agree to receive Kweider offers by SMS, WhatsApp or email. I
-                can withdraw this consent at any time.
-              </span>
-            </label>
-          </div>
-
-          <div class="form-actions">
-            <button class="primary-btn" type="submit" id="submitMember">
-              Create Card
-            </button>
-            <button class="ghost-btn" type="button" id="showCurrent">
-              My saved card
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
 
         <div id="formMessage"></div>
+        <p class="access-security-note">
+          Your PIN securely opens your existing card on any of your devices.
+          <span dir="rtl">الرقم السري يفتح بطاقتك الحالية بأمان على أجهزتك.</span>
+        </p>
       </section>
 
       <section id="membershipArea" class="hidden">
@@ -597,6 +693,22 @@
               <strong id="rewardAvailable">0</strong>
               <span>REWARDS · المكافآت</span>
             </div>
+          </div>
+
+          <div id="pinSetupPanel" class="pin-setup-panel hidden">
+            <strong>Create your access PIN · أنشئ رقم الدخول السري</strong>
+            <p>Set this once to open the same card inside the installed app or on another device.</p>
+            <form id="pinSetupForm" class="pin-setup-grid">
+              <div class="field">
+                <label>4-digit PIN</label>
+                <input id="setupPin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
+              </div>
+              <div class="field">
+                <label>Confirm PIN</label>
+                <input id="confirmSetupPin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
+              </div>
+              <button id="savePinButton" class="gold-btn" type="submit">Save PIN · حفظ</button>
+            </form>
           </div>
 
           <div id="cardRewardPicker" class="card-reward-picker hidden">
@@ -953,50 +1065,70 @@
           : "";
       }
 
-      function setLoading(isLoading) {
-        requestInProgress = isLoading;
-        $("submitMember").disabled = isLoading;
-        $("showCurrent").disabled = isLoading;
-        $("refreshCard").disabled = isLoading;
-        $("switchMembership").disabled = isLoading;
-        $("markMessagesRead").disabled = isLoading;
-        $("confirmRewardChoice").disabled = isLoading;
+      function setDisabled(id, disabled) {
+        const element = $(id);
+        if (element) element.disabled = disabled;
       }
 
-      async function callApi(payload) {
+      function setLoading(isLoading) {
+        requestInProgress = isLoading;
+        [
+          "openCardButton",
+          "newMemberButton",
+          "createCardButton",
+          "backToLoginButton",
+          "savePinButton",
+          "refreshCard",
+          "switchMembership",
+          "markMessagesRead",
+          "confirmRewardChoice",
+        ].forEach((id) => setDisabled(id, isLoading));
+      }
+
+      async function readResponseJson(response, fallbackMessage) {
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error(fallbackMessage);
+        }
+
+        if (!response.ok || data?.ok === false) {
+          const error = new Error(
+            data?.message || data?.msg || data?.error_description || data?.error || fallbackMessage,
+          );
+          error.code = data?.code || data?.error_code || data?.error || "request_failed";
+          error.status = response.status;
+          throw error;
+        }
+
+        return data;
+      }
+
+      async function callApi(payload, customerAccessToken = "") {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         try {
+          const headers = {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+          };
+          if (customerAccessToken) {
+            headers.Authorization = `Bearer ${customerAccessToken}`;
+          }
+
           const response = await fetch(FUNCTION_URL, {
             method: "POST",
-            headers: {
-              apikey: SUPABASE_PUBLISHABLE_KEY,
-              "Content-Type": "application/json",
-            },
+            headers,
             body: JSON.stringify(payload),
             signal: controller.signal,
           });
 
-          let data;
-          try {
-            data = await response.json();
-          } catch {
-            throw new Error(
-              "The rewards service returned an invalid response.",
-            );
-          }
-
-          if (!response.ok || data.ok === false) {
-            const error = new Error(
-              data.message || "The rewards request could not be completed.",
-            );
-            error.code = data.code || "request_failed";
-            error.status = response.status;
-            throw error;
-          }
-
-          return data;
+          return await readResponseJson(
+            response,
+            "The rewards service returned an invalid response.",
+          );
         } catch (error) {
           if (error.name === "AbortError") {
             throw new Error(
@@ -1007,6 +1139,35 @@
         } finally {
           clearTimeout(timeoutId);
         }
+      }
+
+      function validFourDigitPin(value) {
+        const pin = String(value || "").trim();
+        if (!/^\d{4}$/.test(pin)) {
+          throw new Error("Enter a 4-digit PIN.");
+        }
+        return pin;
+      }
+
+      function showAccessStep(stepId) {
+        ["loginStep", "createStep"].forEach((id) => {
+          $(id).classList.toggle("hidden", id !== stepId);
+        });
+      }
+
+      function resetPinAccess(message = "", type = "info") {
+        $("pinLoginForm").reset();
+        $("newMemberForm").reset();
+        showAccessStep("loginStep");
+        notice("formMessage", message, type);
+      }
+
+      async function saveReturnedCard(result) {
+        if (!result?.token) {
+          throw new Error("The secure membership token was not returned.");
+        }
+        localStorage.setItem(MEMBER_TOKEN_KEY, result.token);
+        render(result);
       }
 
       function recoveryTokenFromUrl() {
@@ -1053,6 +1214,7 @@
         customerRewardDefinitions = [];
         $("membershipArea").classList.add("hidden");
         $("registrationCard").classList.remove("hidden");
+        showAccessStep("loginStep");
         notice("formMessage", message, type);
       }
 
@@ -1423,6 +1585,9 @@
         $("memberId").textContent = member.memberCode || "";
         $("memberPoints").textContent = points;
         $("rewardAvailable").textContent = String(availableRewards.length);
+        const pinConfigured = member.pinConfigured === true;
+        $("pinSetupPanel").classList.toggle("hidden", pinConfigured);
+        if (pinConfigured) $("pinSetupForm").reset();
         renderRewardJourney(points, memberRewards, rewardDefinitions);
 
         renderCustomerRewardPicker(
@@ -1514,7 +1679,7 @@
         if (!token) {
           showRegistration(
             showMissingMessage
-              ? "No rewards card is saved on this device yet."
+              ? "Enter your mobile number and PIN to open your Kweider card."
               : "",
             "info",
           );
@@ -1537,7 +1702,7 @@
           ) {
             localStorage.removeItem(MEMBER_TOKEN_KEY);
             showRegistration(
-              "The saved card on this device is no longer valid. Please ask a member of staff for assistance.",
+              "The saved card on this device is no longer valid. Enter your mobile number and PIN to reopen it.",
               "error",
             );
           } else {
@@ -1612,39 +1777,78 @@
         });
       });
 
-      $("memberForm").addEventListener("submit", async (event) => {
+      $("pinLoginForm").addEventListener("submit", async (event) => {
         event.preventDefault();
         if (requestInProgress) return;
 
-        const payload = {
-          action: "create_member",
-          firstName: $("firstName").value.trim(),
-          phone: $("phone").value.trim(),
-          email: $("email").value.trim() || null,
-          birthday: $("birthday").value || null,
-          marketingConsent: $("marketingConsent").checked,
-        };
+        setLoading(true);
+        notice("formMessage", "Opening your rewards card…", "info");
+        try {
+          const result = await callApi({
+            action: "login_with_pin",
+            phone: $("loginPhone").value.trim(),
+            pin: validFourDigitPin($("loginPin").value),
+          });
+          await saveReturnedCard(result);
+        } catch (error) {
+          let message = error.message;
+          if (error.code === "pin_not_set") {
+            message = "This card already exists but has no PIN yet. Open it on the device where the card is visible and create a PIN once.";
+          }
+          notice("formMessage", message, "error");
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      $("newMemberButton").addEventListener("click", () => {
+        const phone = $("loginPhone").value.trim();
+        $("newMemberForm").reset();
+        $("createPhone").value = phone;
+        showAccessStep("createStep");
+        notice("formMessage", "Create one card only for each mobile number.", "info");
+        setTimeout(() => $("firstName").focus(), 50);
+      });
+
+      $("backToLoginButton").addEventListener("click", () => {
+        const phone = $("createPhone").value.trim();
+        showAccessStep("loginStep");
+        $("loginPhone").value = phone;
+        $("loginPin").value = "";
+        notice("formMessage", "Enter your mobile number and PIN to open your card.", "info");
+      });
+
+      $("newMemberForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (requestInProgress) return;
+
+        const pin = validFourDigitPin($("createPin").value);
+        if (pin !== validFourDigitPin($("confirmCreatePin").value)) {
+          notice("formMessage", "The two PIN entries do not match.", "error");
+          return;
+        }
 
         setLoading(true);
         notice("formMessage", "Creating your secure rewards card…", "info");
-
         try {
-          const result = await callApi(payload);
-
-          if (!result.token) {
-            throw new Error("The secure membership token was not returned.");
-          }
-
-          localStorage.setItem(MEMBER_TOKEN_KEY, result.token);
-          $("memberForm").reset();
-          render(result);
+          const result = await callApi({
+            action: "create_member",
+            firstName: $("firstName").value.trim(),
+            phone: $("createPhone").value.trim(),
+            pin,
+            email: $("email").value.trim() || null,
+            birthday: $("birthday").value || null,
+            marketingConsent: $("marketingConsent").checked,
+          });
+          await saveReturnedCard(result);
         } catch (error) {
           if (error.code === "member_exists") {
-            notice(
-              "formMessage",
-              "A membership already exists for this phone number. Use “My saved card” on the device where it was created, or ask a member of staff for assistance.",
-              "error",
-            );
+            const phone = $("createPhone").value.trim();
+            showAccessStep("loginStep");
+            $("loginPhone").value = phone;
+            $("loginPin").value = "";
+            notice("formMessage", "A card already exists for this number. Enter its 4-digit PIN to open it.", "error");
+            setTimeout(() => $("loginPin").focus(), 50);
           } else {
             notice("formMessage", error.message, "error");
           }
@@ -1653,7 +1857,34 @@
         }
       });
 
-      $("showCurrent").addEventListener("click", () => loadSavedCard(true));
+      $("pinSetupForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (requestInProgress) return;
+
+        const pin = validFourDigitPin($("setupPin").value);
+        if (pin !== validFourDigitPin($("confirmSetupPin").value)) {
+          notice("cardMessage", "The two PIN entries do not match.", "error");
+          return;
+        }
+
+        const token = localStorage.getItem(MEMBER_TOKEN_KEY);
+        if (!token) {
+          showRegistration("No rewards card is saved on this device.", "error");
+          return;
+        }
+
+        setLoading(true);
+        notice("cardMessage", "Saving your access PIN…", "info");
+        try {
+          const result = await callApi({ action: "set_member_pin", token, pin });
+          render(result);
+          notice("cardMessage", "Your 4-digit PIN is ready. You can now open this card in the installed app or on another device.", "ok");
+        } catch (error) {
+          notice("cardMessage", error.message, "error");
+        } finally {
+          setLoading(false);
+        }
+      });
       $("refreshCard").addEventListener("click", () => loadSavedCard(false));
       $("markMessagesRead").addEventListener("click", async () => {
         if (requestInProgress) return;
@@ -1690,7 +1921,7 @@
 
       $("switchMembership").addEventListener("click", () => {
         const confirmed = confirm(
-          "Remove this rewards card from this device? This does not delete the membership, but you may need staff assistance to reopen it later.",
+          "Remove this rewards card from this device? You can reopen it anytime using your mobile number and 4-digit PIN.",
         );
 
         if (!confirmed) return;
@@ -1701,8 +1932,8 @@
           );
         }
         localStorage.removeItem(MEMBER_TOKEN_KEY);
-        $("memberForm").reset();
-        showRegistration("The saved card was removed from this device.", "ok");
+        resetPinAccess("The saved card was removed. Enter your mobile number and PIN to reopen it.", "ok");
+        showRegistration("The saved card was removed. Enter your mobile number and PIN to reopen it.", "ok");
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
 
