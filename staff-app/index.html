@@ -347,7 +347,103 @@
     .customer-choice{padding:11px}
     .complete-checkout-btn{min-height:58px;font-size:17px}
   }
-</style></head>
+</style>
+<style>
+  /* Compact employee checkout interface v4.1.0 */
+  .page-heading { display: none; }
+  .app-topbar { margin-bottom: 10px; }
+  #staffPanel { display: grid; gap: 10px; }
+  #staffPanel.hidden { display: none; }
+  #memberPanel { display: grid; gap: 10px; }
+  #memberPanel.hidden { display: none; }
+  .staff-identity-card { margin: 0; padding: 10px 13px; }
+  .staff-identity-card h2 { font-size: 15px; }
+  .staff-identity-card p { margin: 1px 0 0; font-size: 10px; }
+  .staff-identity-card .ghost-btn { min-height: 34px; padding: 6px 11px; font-size: 11px; }
+  .staff-scan-card { margin: 0; padding: 17px 14px; }
+  body.has-member #staffScanCard { display: none; }
+  .staff-global-message:empty { display: none; }
+  .staff-global-message .notice { margin: 0; }
+
+  .customer-summary-card { margin: 0; padding: 12px 14px; }
+  .customer-summary-main { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .customer-label { display: block; color: #aaa; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+  .customer-summary-card h2 { margin: 2px 0 0; font-size: 21px; line-height: 1.15; }
+  .points-pill { min-width: 78px; padding: 8px 10px; border: 1px solid rgba(197,160,89,.55); border-radius: 14px; text-align: center; background: rgba(197,160,89,.08); }
+  .points-pill strong { display: block; color: #efd695; font-size: 23px; line-height: 1; }
+  .points-pill span { display: block; margin-top: 3px; color: #aaa; font-size: 9px; font-weight: 800; }
+  .customer-details { margin-top: 9px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.08); }
+  .customer-details summary,
+  .staff-more-menu > summary,
+  .nested-details > summary { cursor: pointer; list-style: none; color: #dbc178; font-weight: 800; }
+  .customer-details summary { font-size: 11px; }
+  .customer-details summary::-webkit-details-marker,
+  .staff-more-menu > summary::-webkit-details-marker,
+  .nested-details > summary::-webkit-details-marker { display: none; }
+  .customer-details summary::after,
+  .staff-more-menu > summary::after,
+  .nested-details > summary::after { content: '⌄'; float: right; }
+  .customer-details[open] summary::after,
+  .staff-more-menu[open] > summary::after,
+  .nested-details[open] > summary::after { content: '⌃'; }
+  .customer-detail-lines { padding-top: 9px; color: #aaa; font-size: 11px; line-height: 1.55; }
+  .customer-detail-lines .member-reward-note { margin: 5px 0 0; font-size: 11px; }
+
+  .quick-checkout-card { margin: 0; padding: 15px 14px; }
+  .checkout-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .checkout-title-row h3 { margin: 0; font-size: 20px; }
+  .customer-choice { margin: 0 0 10px; padding: 9px 11px; }
+  .customer-choice span { font-size: 9px; }
+  .customer-choice strong { font-size: 15px; }
+  .customer-choice small { font-size: 9px; }
+  .quick-bill-field { margin-top: 0; }
+  .quick-bill-field label { font-size: 12px; }
+  .quick-bill-field input { min-height: 58px; font-size: 28px; }
+  .quick-checkout-hint { display: none; }
+  .quick-checkout-preview { margin-top: 10px; padding: 10px 11px; }
+  .quick-checkout-summary.compact { grid-template-columns: 1fr auto; gap: 5px 12px; }
+  .quick-checkout-summary.compact span { font-size: 12px; }
+  .quick-checkout-summary.compact strong { font-size: 15px; }
+  .quick-checkout-summary.compact .payable,
+  .quick-checkout-summary.compact .payable-value { padding-top: 7px; font-size: 18px; }
+  .compact-reward-line { margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,.08); color: #d9c184; font-size: 11px; line-height: 1.4; }
+  .complete-checkout-btn { min-height: 58px; margin-top: 10px; font-size: 18px; }
+  .checkout-result { margin-top: 10px; padding: 11px; }
+  .checkout-result .result-grid { display: grid; grid-template-columns: 1fr auto; gap: 5px 10px; margin-top: 8px; }
+  .checkout-result .result-grid span { color: #bbb; font-size: 11px; }
+  .checkout-result .result-grid strong { color: #f0d895; font-size: 13px; text-align: right; }
+
+  .pin-reset-approval { margin: 0; padding: 13px; }
+  .pin-reset-approval h3 { font-size: 16px; }
+  .pin-reset-approval p { font-size: 11px; }
+
+  .staff-more-menu { margin: 0; padding: 14px; }
+  .staff-more-menu > summary { font-size: 16px; }
+  .staff-more-content { display: grid; gap: 10px; padding-top: 12px; }
+  .compact-extra,
+  .nested-details { padding: 11px; border: 1px solid rgba(255,255,255,.09); border-radius: 12px; background: rgba(255,255,255,.018); }
+  .compact-extra h3 { margin: 0 0 8px; font-size: 14px; }
+  .compact-extra .field { margin: 0; }
+  .nested-details > summary { font-size: 13px; }
+  .nested-details-content { padding-top: 12px; }
+  .staff-advanced-content { gap: 12px; padding-top: 12px; }
+  .advanced-section { padding-top: 12px; }
+  .advanced-section h3 { font-size: 14px; }
+  .transaction-list { margin-top: 10px; gap: 7px; }
+  .transaction-item { padding: 10px; border-radius: 11px; }
+  .transaction-item strong { font-size: 12px; }
+  .transaction-item small { font-size: 9px; }
+  .transaction-points { min-width: 58px; font-size: 11px; }
+
+  @media (max-width: 640px) {
+    .app-shell { padding-top: max(8px, env(safe-area-inset-top)); }
+    .app-topbar { min-height: 44px; }
+    .app-brand img { max-height: 34px; }
+    .staff-scan-main { min-height: 60px; font-size: 17px; }
+    .customer-summary-card h2 { font-size: 19px; }
+  }
+</style>
+</head>
 <body class="app-page staff-installed-app">
 <main class="app-shell">
 <div class="app-topbar">
@@ -399,172 +495,90 @@
 </div>
 </div>
 </div>
-<div class="app-card staff-scan-card"><h2>Ready for checkout · جاهز للدفع</h2><p class="staff-scan-subtitle">Scan the customer QR. Then enter the bill amount only.</p><button class="gold-btn staff-scan-main" id="scanQr">Scan customer QR · مسح رمز العميل</button><div class="hidden qr-reader-shell" id="scanArea">
+<div class="app-card staff-scan-card" id="staffScanCard">
+<h2>Ready for checkout · جاهز للدفع</h2>
+<p class="staff-scan-subtitle">Scan the customer QR, then enter the bill amount.</p>
+<button class="gold-btn staff-scan-main" id="scanQr">Scan customer QR · مسح رمز العميل</button>
+<div class="hidden qr-reader-shell" id="scanArea">
 <div id="qrReader"></div>
-<p class="scanner-help">
-              Point the rear camera at the customer's Kweider QR code.<br/>
-              Keep the QR code clear and around 15–30 cm from the camera.
-            </p>
-<div class="form-actions">
-<button class="danger-btn" id="stopScan">Stop camera</button>
+<p class="scanner-help">Point the rear camera at the customer's QR code.</p>
+<div class="form-actions"><button class="danger-btn" id="stopScan">Stop camera</button></div>
 </div>
-</div><details class="manual-search"><summary>Search manually · البحث اليدوي</summary><div class="manual-search-content"><div class="field"><label for="memberSearch">Phone or membership code · الهاتف أو رقم العضوية</label><input autocomplete="off" id="memberSearch" placeholder="KW-..., 07..., +44... or 0044..."/></div><button class="ghost-btn" id="findMember">Find member · بحث</button></div></details><div aria-live="polite" id="staffMessage"></div></div>
+<details class="manual-search">
+<summary>Search manually · البحث اليدوي</summary>
+<div class="manual-search-content">
+<div class="field"><label for="memberSearch">Phone or membership code</label><input autocomplete="off" id="memberSearch" placeholder="KW-..., 07..., +44..."/></div>
+<button class="ghost-btn" id="findMember">Find member · بحث</button>
+</div>
+</details>
+</div>
+<div aria-live="polite" class="staff-global-message" id="staffMessage"></div>
 <div class="hidden" id="memberPanel">
-<div class="app-card">
-<div class="split">
-<div>
-<h2 id="staffMemberName"></h2>
-<p id="staffMemberMeta" style="color: #bbb; line-height: 1.7"></p>
-<p class="member-reward-note" id="staffRewardSummary"></p>
+<div class="app-card customer-summary-card">
+<div class="customer-summary-main">
+<div><span class="customer-label">Customer · العميل</span><h2 id="staffMemberName"></h2></div>
+<div class="points-pill"><strong id="staffPoints">0</strong><span>POINTS · نقطة</span></div>
 </div>
-<div class="metric">
-<strong id="staffPoints">0</strong>
-<span>CURRENT POINTS</span>
-</div>
-</div>
+<details class="customer-details">
+<summary>Customer details · بيانات العميل</summary>
+<div class="customer-detail-lines"><div id="staffMemberMeta"></div><p class="member-reward-note" id="staffRewardSummary"></p></div>
+</details>
 </div>
 <div class="app-card pin-reset-approval hidden" id="pinResetApprovalCard">
 <h3>PIN reset requested · طلب إعادة الرقم السري</h3>
-<p>The customer is waiting on their phone. Check the member name, then approve once.</p>
+<p>Check the customer name, then approve once.</p>
 <p class="pin-reset-time" id="pinResetRequestTime"></p>
-<div class="pin-reset-approved hidden" id="pinResetApprovedNote">
-              Approved ✓ The customer can now create a new PIN.
-            </div>
-<div class="form-actions">
-<button class="gold-btn" id="approvePinReset" type="button">
-                Approve PIN reset · موافقة
-              </button>
-</div>
+<div class="pin-reset-approved hidden" id="pinResetApprovedNote">Approved ✓ The customer can create a new PIN.</div>
+<div class="form-actions"><button class="gold-btn" id="approvePinReset" type="button">Approve PIN reset · موافقة</button></div>
 </div>
 <div class="app-card quick-checkout-card">
-<h3>Quick checkout · إتمام الفاتورة</h3>
-<p class="quick-checkout-subtitle">Enter the bill amount. The customer reward and points are calculated automatically.</p>
-<div class="customer-choice">
-<div>
-<span>Customer choice · اختيار العميل</span>
-<strong id="quickRewardChoice">No reward selected</strong>
-<small id="quickRewardChoiceNote">Points will be added only.</small>
-</div>
-</div>
+<div class="checkout-title-row"><h3>Checkout · الفاتورة</h3></div>
+<div class="customer-choice"><div><span>Customer choice · اختيار العميل</span><strong id="quickRewardChoice">No reward selected</strong><small id="quickRewardChoiceNote">Points only</small></div></div>
 <div class="field quick-bill-field">
-<label for="quickPurchaseAmount" id="quickAmountLabel">
-                Bill amount (£)
-              </label>
+<label for="quickPurchaseAmount" id="quickAmountLabel">Bill amount (£)</label>
 <input autocomplete="off" id="quickPurchaseAmount" inputmode="decimal" min="0" step="0.01" type="number"/>
-<p class="quick-checkout-hint" id="quickAmountHint">
-                Enter the total before applying a £5 or £10 reward.
-              </p>
+<p class="quick-checkout-hint" id="quickAmountHint"></p>
 </div>
-<label class="quick-breakfast-confirm hidden" id="quickBreakfastConfirmationRow">
-<input id="quickBreakfastConfirmed" type="checkbox"/>
-<span>
-                Eligible Breakfast for Two order confirmed.<br/>
-<span dir="rtl">تم التأكد من طلب الفطور المؤهل لشخصين.</span>
-</span>
-</label>
-<details class="quick-more">
-<summary>Receipt / more details · رقم الإيصال</summary>
-<div class="quick-more-content">
-<div class="field">
-<label for="quickReceipt">
-                    Receipt/reference
-                    <span class="field-hint">(optional — generated automatically)</span>
-</label>
-<input autocomplete="off" id="quickReceipt"/>
-</div>
-</div>
-</details>
-<div aria-live="polite" class="notice info quick-checkout-preview" id="quickCheckoutPreview">
-              Enter the bill amount.
-            </div>
-<button class="gold-btn complete-checkout-btn" disabled="" id="completeCheckout" type="button">
-              Complete checkout · إتمام الفاتورة
-            </button>
+<label class="quick-breakfast-confirm hidden" id="quickBreakfastConfirmationRow"><input id="quickBreakfastConfirmed" type="checkbox"/><span>Eligible Breakfast for Two confirmed.<br/><span dir="rtl">تم تأكيد الفطور المؤهل لشخصين.</span></span></label>
+<div aria-live="polite" class="notice info quick-checkout-preview" id="quickCheckoutPreview">Enter the bill amount.</div>
+<button class="gold-btn complete-checkout-btn" disabled="" id="completeCheckout" type="button">Complete checkout · إتمام الفاتورة</button>
 <div id="quickCheckoutResult"></div>
 </div>
-<details class="app-card staff-advanced">
+<details class="app-card staff-more-menu">
+<summary>More options · المزيد</summary>
+<div class="staff-more-content">
+<section class="compact-extra">
+<h3>Receipt / reference · رقم الإيصال</h3>
+<div class="field"><input autocomplete="off" id="quickReceipt" placeholder="Optional · اختياري"/></div>
+</section>
+<details class="nested-details">
+<summary>Recent activity · آخر العمليات</summary>
+<div class="nested-details-content"><div class="transaction-list" id="transactionList"></div></div>
+</details>
+<details class="nested-details staff-advanced">
 <summary>Manager tools · أدوات المدير</summary>
 <div class="staff-advanced-content">
 <section class="advanced-section legacy-recovery-tool">
 <h3>Restore customer card</h3>
-<p class="recovery-warning">
-                  Create a secure one-time recovery link for this member. The link
-                  is valid for 15 minutes. When the customer opens it, previous
-                  saved cards for this membership are signed out.
-                </p>
-<div class="form-actions">
-<button class="ghost-btn" id="generateRecoveryLink" type="button">
-                    Generate recovery link
-                  </button>
-<button class="gold-btn hidden" id="copyRecoveryLink" type="button">
-                    Copy link
-                  </button>
-</div>
-<div class="recovery-link-box hidden" id="recoveryLinkBox">
-<div class="field">
-<label for="recoveryLink">Customer recovery link</label>
-<input id="recoveryLink" readonly="" type="text"/>
-</div>
-<p class="field-hint" id="recoveryExpiry" style="margin-bottom:0"></p>
-</div>
+<p class="recovery-warning">Create a secure one-time recovery link.</p>
+<div class="form-actions"><button class="ghost-btn" id="generateRecoveryLink" type="button">Generate recovery link</button><button class="gold-btn hidden" id="copyRecoveryLink" type="button">Copy link</button></div>
+<div class="recovery-link-box hidden" id="recoveryLinkBox"><div class="field"><label for="recoveryLink">Customer recovery link</label><input id="recoveryLink" readonly="" type="text"/></div><p class="field-hint" id="recoveryExpiry" style="margin-bottom:0"></p></div>
 </section>
 <section class="advanced-section">
-<h3>Add purchase points manually</h3>
-<div class="form-grid">
-<div class="field">
-<label for="purchaseAmount">Purchase amount (£)</label>
-<input id="purchaseAmount" inputmode="decimal" min="0.01" step="0.01" type="number"/>
-</div>
-<div class="field">
-<label for="earnReceipt">Receipt number</label>
-<input autocomplete="off" id="earnReceipt"/>
-</div>
-</div>
-<div class="form-actions">
-<button class="primary-btn" id="addPoints">Add points</button>
-</div>
+<h3>Add points manually</h3>
+<div class="form-grid"><div class="field"><label for="purchaseAmount">Purchase amount (£)</label><input id="purchaseAmount" inputmode="decimal" min="0.01" step="0.01" type="number"/></div><div class="field"><label for="earnReceipt">Receipt number</label><input autocomplete="off" id="earnReceipt"/></div></div>
+<div class="form-actions"><button class="primary-btn" id="addPoints">Add points</button></div>
 </section>
 <section class="advanced-section">
-<h3>Redeem reward manually</h3>
-<div class="form-grid">
-<div class="field full">
-<label for="memberReward">Available reward</label>
-<select id="memberReward">
-<option value="">No rewards available</option>
-</select>
-</div>
-<div class="field">
-<label for="redeemPurchaseAmount">
-                      Purchase amount (£)
-                      <span class="field-hint">
-                        — required for £5 and £10 bill rewards
-                      </span>
-</label>
-<input id="redeemPurchaseAmount" inputmode="decimal" min="0.01" step="0.01" type="number"/>
-</div>
-<div class="field">
-<label for="redeemReceipt">
-                      Receipt/reference
-                      <span class="field-hint">(optional)</span>
-</label>
-<input autocomplete="off" id="redeemReceipt"/>
-</div>
-</div>
-<div aria-live="polite" class="notice info reward-preview" id="rewardPreview">
-                  Select an available reward.
-                </div>
-<div class="form-actions">
-<button class="gold-btn" disabled="" id="redeemReward">
-                    Redeem selected reward
-                  </button>
-</div>
+<h3>Redeem manually</h3>
+<div class="form-grid"><div class="field full"><label for="memberReward">Available reward</label><select id="memberReward"><option value="">No rewards available</option></select></div><div class="field"><label for="redeemPurchaseAmount">Purchase amount (£)</label><input id="redeemPurchaseAmount" inputmode="decimal" min="0.01" step="0.01" type="number"/></div><div class="field"><label for="redeemReceipt">Receipt/reference</label><input autocomplete="off" id="redeemReceipt"/></div></div>
+<div aria-live="polite" class="notice info reward-preview" id="rewardPreview">Select an available reward.</div>
+<div class="form-actions"><button class="gold-btn" disabled="" id="redeemReward">Redeem selected reward</button></div>
 </section>
 </div>
 </details>
-<div class="app-card">
-<h3>Recent activity</h3>
-<div class="transaction-list" id="transactionList"></div>
 </div>
+</details>
 </div>
 </section>
 </main>
@@ -1070,17 +1084,14 @@
         preview.className =
           "notice ok quick-checkout-preview";
         preview.innerHTML = `
-          <div class="quick-checkout-summary">
-            <span>Bill / entered amount</span>
-            <strong>£${plan.billAmount.toFixed(2)}</strong>
-            <span>Reward</span>
-            <strong>${escapeHtml(rewardLine)}</strong>
-            <span>Points added</span>
-            <strong>${plan.pointsAdded}</strong>
-            <span class="payable">Customer pays</span>
+          <div class="quick-checkout-summary compact">
+            <span>Points added · النقاط</span>
+            <strong>+${plan.pointsAdded}</strong>
+            <span class="payable">Customer pays · يدفع العميل</span>
             <strong class="payable-value">£${plan.amountPaid.toFixed(2)}</strong>
           </div>
-          ${plan.note ? `<div class="field-hint" style="margin-top:10px">${escapeHtml(plan.note)}</div>` : ""}
+          <div class="compact-reward-line">${escapeHtml(rewardLine)}</div>
+          ${plan.note ? `<div class="field-hint" style="margin-top:7px">${escapeHtml(plan.note)}</div>` : ""}
         `;
         $("completeCheckout").disabled = false;
       }
@@ -1323,6 +1334,7 @@
       }
 
       function resetMember() {
+        document.body.classList.remove("has-member");
         member = null;
         memberTransactions = [];
         memberRewards = [];
@@ -1449,6 +1461,7 @@
         }
 
         list.innerHTML = transactions
+          .slice(0, 6)
           .map((transaction) => {
             const points = Number(transaction.pointsDelta || 0);
             const isRedeem = transaction.type === "redeem" || points < 0;
@@ -1479,6 +1492,7 @@
       }
 
       function renderMember(bundle) {
+        document.body.classList.add("has-member");
         member = bundle.member;
         memberTransactions = Array.isArray(bundle.transactions)
           ? bundle.transactions
@@ -1552,11 +1566,7 @@
           memberSearch: search,
         });
         renderMember(data);
-        message(
-          "staffMessage",
-          "Member found. Check the name before continuing.",
-          "ok",
-        );
+        message("staffMessage", "");
       }
 
       async function stopCamera() {
@@ -1746,37 +1756,18 @@
 
             $("quickCheckoutResult").innerHTML = `
               <div class="checkout-result">
-                <strong>Checkout completed ✓ · تمت العملية</strong>
-                <div class="quick-checkout-summary" style="margin-top:10px">
-                  <span>Reward</span>
-                  <strong>${rewardLine}</strong>
-                  <span>Customer pays</span>
-                  <strong>£${amountPaid.toFixed(2)}</strong>
-                  <span>Points added</span>
-                  <strong>${pointsAdded}</strong>
-                  <span>New balance</span>
-                  <strong>${newBalance} pts</strong>
+                <strong>Completed ✓ · تمت العملية</strong>
+                <div class="result-grid">
+                  <span>Reward</span><strong>${rewardLine}</strong>
+                  <span>Paid</span><strong>£${amountPaid.toFixed(2)}</strong>
+                  <span>Points</span><strong>+${pointsAdded}</strong>
+                  <span>Balance</span><strong>${newBalance}</strong>
                 </div>
-                ${
-                  fallbackApplied
-                    ? '<div class="field-hint" style="margin-top:9px">A smaller suitable reward was used automatically.</div>'
-                    : ""
-                }
-                <button
-                  type="button"
-                  class="gold-btn"
-                  data-scan-next
-                  style="width:100%;margin-top:14px"
-                >
-                  Scan next customer · مسح العميل التالي
-                </button>
+                ${fallbackApplied ? '<div class="field-hint" style="margin-top:7px">A smaller suitable reward was used automatically.</div>' : ""}
+                <button type="button" class="gold-btn" data-scan-next style="width:100%;margin-top:10px">Scan next customer · العميل التالي</button>
               </div>`;
 
-            message(
-              "staffMessage",
-              "Checkout completed successfully.",
-              "ok",
-            );
+            message("staffMessage", "");
           } catch (error) {
             message(
               "staffMessage",
