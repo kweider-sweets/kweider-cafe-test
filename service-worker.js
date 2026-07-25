@@ -1,30 +1,21 @@
-const CACHE = "kweider-customer-v4.0.0";
+const CACHE = "kweider-staff-v4.1.0";
 const CORE = [
   "./",
   "./index.html",
-  "./rewards.html",
-  "./staff.html",
-  "./privacy.html",
   "./offline.html",
   "./manifest.webmanifest",
-  "./logo.webp",
-  "./assets/css/app-shell.css",
-  "./assets/js/app-shell.js",
-  "./assets/vendor/qrcode-local.js",
-  "./assets/icons/icon-192.png",
-  "./assets/icons/icon-512.png",
-  "./assets/icons/apple-touch-icon.png",
-  "./staff-app/",
-  "./staff-app/index.html",
-  "./staff-app/manifest.webmanifest",
-  "./staff-app/icons/icon-192.png",
-  "./staff-app/icons/icon-512.png"
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/apple-touch-icon.png",
+  "../logo.webp",
+  "../assets/css/app-shell.css",
+  "../assets/js/app-shell.js"
 ];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => (key.startsWith("kweider-pwa-") || key.startsWith("kweider-customer-")) && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith("kweider-staff-") && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
 self.addEventListener("fetch", event => {
   const request = event.request;
@@ -32,7 +23,7 @@ self.addEventListener("fetch", event => {
   const url = new URL(request.url);
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).then(response => {
-      if (response && response.ok && url.origin === self.location.origin) caches.open(CACHE).then(cache => cache.put(request, response.clone()));
+      if (response && response.ok) caches.open(CACHE).then(cache => cache.put(request, response.clone()));
       return response;
     }).catch(async () => (await caches.match(request)) || (await caches.match("./offline.html"))));
     return;
