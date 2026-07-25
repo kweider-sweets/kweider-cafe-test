@@ -1386,13 +1386,26 @@
         return Uint8Array.from(raw, (character) => character.charCodeAt(0));
       }
 
-      function supportsDeviceNotifications() {
-        return Boolean(
-          window.isSecureContext &&
-          "serviceWorker" in navigator &&
-          "PushManager" in window &&
-          "Notification" in window,
-        );
+      async function supportsDeviceNotifications() {
+        if (
+          !window.isSecureContext ||
+          !("serviceWorker" in navigator) ||
+          !("Notification" in window)
+        ) {
+          return false;
+        }
+
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          return Boolean(
+            registration?.pushManager &&
+            typeof registration.pushManager.getSubscription === "function" &&
+            typeof registration.pushManager.subscribe === "function",
+          );
+        } catch (error) {
+          console.warn("Unable to inspect notification support", error);
+          return false;
+        }
       }
 
       function isIosDevice() {
@@ -1431,7 +1444,7 @@
         const requestId = ++notificationStateRequest;
         const accountEnabled = member.notificationConsent === true;
 
-        if (!supportsDeviceNotifications()) {
+        if (!(await supportsDeviceNotifications())) {
           renderNotificationStatus("Not supported on this browser", "warning");
           $("enableNotifications").classList.add("hidden");
           $("disableNotifications").classList.toggle("hidden", !accountEnabled);
@@ -1483,7 +1496,7 @@
           return;
         }
 
-        if (!supportsDeviceNotifications()) {
+        if (!(await supportsDeviceNotifications())) {
           notice("notificationMessage", "Notifications are not supported by this browser.", "error");
           return;
         }
