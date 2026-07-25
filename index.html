@@ -882,8 +882,30 @@
         'Meat'
     ];
 
+
+    async function clearCustomerAppBadge() {
+        try {
+            if ("clearAppBadge" in navigator) {
+                await navigator.clearAppBadge();
+            }
+        } catch (error) {
+            console.warn("Unable to clear the Kweider app badge:", error);
+        }
+
+        try {
+            if ("serviceWorker" in navigator) {
+                const registration = await navigator.serviceWorker.ready;
+                const worker = navigator.serviceWorker.controller || registration.active;
+                if (worker) worker.postMessage({ type: "CLEAR_APP_BADGE" });
+            }
+        } catch (error) {
+            console.warn("Unable to reset the saved badge count:", error);
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         goHome();
+        void clearCustomerAppBadge();
         
         let topButton = document.getElementById("backToTop");
         window.onscroll = function() {

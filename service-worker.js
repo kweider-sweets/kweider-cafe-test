@@ -1,4 +1,4 @@
-const CACHE = "kweider-customer-v4.2.2";
+const CACHE = "kweider-customer-v4.2.3";
 const CORE = [
   "./",
   "./index.html",
@@ -20,6 +20,60 @@ const CORE = [
   "./staff-app/icons/icon-192.png",
   "./staff-app/icons/icon-512.png"
 ];
+
+const BADGE_STATE_CACHE = "kweider-badge-state-v1";
+const BADGE_STATE_URL = new URL("./__kweider_badge_count__", self.location.href).href;
+
+async function readBadgeCount() {
+  try {
+    const cache = await caches.open(BADGE_STATE_CACHE);
+    const response = await cache.match(BADGE_STATE_URL);
+    if (!response) return 0;
+    const value = Number(await response.text());
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+async function writeBadgeCount(count) {
+  const safeCount = Math.max(0, Math.floor(Number(count) || 0));
+
+  try {
+    const cache = await caches.open(BADGE_STATE_CACHE);
+    if (safeCount > 0) {
+      await cache.put(
+        BADGE_STATE_URL,
+        new Response(String(safeCount), {
+          headers: { "Content-Type": "text/plain" },
+        }),
+      );
+    } else {
+      await cache.delete(BADGE_STATE_URL);
+    }
+  } catch {}
+
+  try {
+    if (safeCount > 0 && "setAppBadge" in self.navigator) {
+      await self.navigator.setAppBadge(safeCount);
+    } else if (safeCount === 0 && "clearAppBadge" in self.navigator) {
+      await self.navigator.clearAppBadge();
+    }
+  } catch (error) {
+    console.warn("Unable to update Kweider app badge:", error);
+  }
+
+  return safeCount;
+}
+
+async function incrementBadgeCount() {
+  const currentCount = await readBadgeCount();
+  return writeBadgeCount(currentCount + 1);
+}
+
+async function clearBadgeCount() {
+  return writeBadgeCount(0);
+}
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting()));
 });
@@ -75,7 +129,12 @@ self.addEventListener("push", event => {
     },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    Promise.all([
+      self.registration.showNotification(title, options),
+      incrementBadgeCount(),
+    ]),
+  );
 });
 
 self.addEventListener("notificationclick", event => {
@@ -84,7 +143,9 @@ self.addEventListener("notificationclick", event => {
     new URL("./rewards.html", self.location.href).href;
 
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then(windowClients => {
+    Promise.all([
+      clearBadgeCount(),
+      clients.matchAll({ type: "window", includeUncontrolled: true }).then(windowClients => {
       for (const client of windowClients) {
         try {
           const clientUrl = new URL(client.url);
@@ -95,8 +156,14 @@ self.addEventListener("notificationclick", event => {
           }
         } catch {}
       }
-      return clients.openWindow ? clients.openWindow(targetUrl) : undefined;
-    }),
+        return clients.openWindow ? clients.openWindow(targetUrl) : undefined;
+      }),
+    ]),
   );
+});
+
+self.addEventListener("message", event => {
+  if (event.data?.type !== "CLEAR_APP_BADGE") return;
+  event.waitUntil(clearBadgeCount());
 });
 

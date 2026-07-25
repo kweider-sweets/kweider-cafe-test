@@ -1301,6 +1301,28 @@
         if (element) element.disabled = disabled;
       }
 
+
+      async function clearCustomerAppBadge() {
+        try {
+          if ("clearAppBadge" in navigator) {
+            await navigator.clearAppBadge();
+          }
+        } catch (error) {
+          console.warn("Unable to clear the Kweider app badge:", error);
+        }
+
+        try {
+          if ("serviceWorker" in navigator) {
+            const registration = await navigator.serviceWorker.ready;
+            const worker =
+              navigator.serviceWorker.controller || registration.active;
+            worker?.postMessage({ type: "CLEAR_APP_BADGE" });
+          }
+        } catch (error) {
+          console.warn("Unable to reset the saved badge count:", error);
+        }
+      }
+
       function setLoading(isLoading) {
         requestInProgress = isLoading;
         [
@@ -2089,6 +2111,7 @@
         }
 
         activeBundle = bundle;
+        void clearCustomerAppBadge();
 
         const member = bundle.member;
         const points = Number(member.points || 0);
@@ -2583,6 +2606,7 @@
           return;
         }
         if (!document.hidden && activeBundle && !requestInProgress) {
+          void clearCustomerAppBadge();
           loadSavedCard(false);
           void syncNotificationPanel(activeBundle.member);
         }
