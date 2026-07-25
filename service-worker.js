@@ -1,4 +1,4 @@
-const CACHE = "kweider-customer-v4.0.0";
+const CACHE = "kweider-customer-v4.2.1";
 const CORE = [
   "./",
   "./index.html",
@@ -46,3 +46,57 @@ self.addEventListener("fetch", event => {
     }));
   }
 });
+
+self.addEventListener("push", event => {
+  let payload = {};
+
+  if (event.data) {
+    try {
+      payload = event.data.json();
+    } catch {
+      payload = { body: event.data.text() };
+    }
+  }
+
+  const title = payload.title || "Kweider Rewards";
+  const rewardsUrl = new URL("./rewards.html", self.location.href).href;
+  const iconUrl = new URL("./assets/icons/icon-192.png", self.location.href).href;
+  const badgeUrl = new URL("./assets/icons/icon-192.png", self.location.href).href;
+
+  const options = {
+    body: payload.body || "You have a new Kweider reward update.",
+    icon: payload.icon || iconUrl,
+    badge: payload.badge || badgeUrl,
+    tag: payload.tag || "kweider-rewards-update",
+    renotify: false,
+    data: {
+      url: payload.url || rewardsUrl,
+      messageId: payload.messageId || null,
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url ||
+    new URL("./rewards.html", self.location.href).href;
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(windowClients => {
+      for (const client of windowClients) {
+        try {
+          const clientUrl = new URL(client.url);
+          const target = new URL(targetUrl);
+          if (clientUrl.origin === target.origin && "focus" in client) {
+            if ("navigate" in client) client.navigate(targetUrl);
+            return client.focus();
+          }
+        } catch {}
+      }
+      return clients.openWindow ? clients.openWindow(targetUrl) : undefined;
+    }),
+  );
+});
+

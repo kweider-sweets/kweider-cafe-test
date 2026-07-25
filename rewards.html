@@ -623,6 +623,79 @@
         .change-pin-grid { grid-template-columns: 1fr; }
         .change-pin-grid button { grid-column: auto; }
       }
+
+      .notification-consent-copy {
+        display: grid;
+        gap: 5px;
+        line-height: 1.45;
+      }
+      .notification-consent-copy strong {
+        color: #efd695;
+        font-size: 14px;
+      }
+      .notification-consent-copy small {
+        color: #bdbdbd;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .notification-consent-copy .arabic-helper,
+      .notification-arabic-helper {
+        color: #a99f8d;
+        font-size: 11px;
+        line-height: 1.55;
+      }
+      .notification-panel {
+        margin: 14px 0;
+        padding: 14px;
+        border: 1px solid rgba(197, 160, 89, 0.52);
+        border-radius: 14px;
+        background: rgba(197, 160, 89, 0.07);
+      }
+      .notification-panel-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .notification-panel h4 {
+        margin: 0;
+        color: #efd695;
+        font-size: 16px;
+      }
+      .notification-status {
+        display: inline-flex;
+        margin-top: 7px;
+        padding: 5px 9px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        color: #ccc;
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .notification-status.enabled {
+        border-color: rgba(112, 204, 137, 0.55);
+        background: rgba(52, 130, 73, 0.15);
+        color: #aee8bd;
+      }
+      .notification-status.warning {
+        border-color: rgba(232, 190, 103, 0.5);
+        color: #efd695;
+      }
+      .notification-panel-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .notification-panel-actions button {
+        flex: 1 1 180px;
+      }
+      .notification-help {
+        margin: 10px 0 0 !important;
+      }
+      #notificationMessage:empty {
+        display: none;
+      }
     </style>
   </head>
   <body class="app-page">
@@ -656,26 +729,26 @@
           <form id="pinLoginForm">
             <div class="form-grid">
               <div class="field full">
-                <label>Mobile number · رقم الهاتف</label>
+                <label>Mobile number</label>
                 <input id="loginPhone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="07... or +44..." />
               </div>
               <div class="field full">
-                <label>4-digit PIN · الرقم السري</label>
+                <label>4-digit PIN</label>
                 <input id="loginPin" class="pin-input" type="password" inputmode="numeric" autocomplete="current-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
               </div>
             </div>
             <div class="auth-inline-actions">
               <button class="primary-btn" type="submit" id="openCardButton">
-                Open my card · فتح بطاقتي
+                Open My Card
               </button>
               <button class="ghost-btn" type="button" id="newMemberButton">
-                New member · عضو جديد
+                New Member
               </button>
             </div>
           </form>
           <div class="forgot-pin-row">
             <button id="forgotPinButton" class="forgot-pin-button" type="button">
-              Forgot your PIN? · نسيت الرقم السري؟
+              Forgot Your PIN?
             </button>
           </div>
         </div>
@@ -714,16 +787,26 @@
                 <input id="birthday" type="date" />
               </div>
               <label class="consent-row field full">
-                <input id="marketingConsent" type="checkbox" />
-                <span>I agree to receive Kweider offers by SMS, WhatsApp or email. I can withdraw this consent at any time.</span>
+                <input id="notificationConsent" type="checkbox" />
+                <span class="notification-consent-copy">
+                  <strong>Reward notifications on this device</strong>
+                  <small>
+                    Notify me when I am close to a reward, when a reward is ready,
+                    or when I have not visited for a while. You can turn notifications
+                    off at any time in My Details.
+                  </small>
+                  <small class="arabic-helper" dir="rtl">
+                    تذكير عند الاقتراب من المكافأة أو جاهزيتها أو عند مرور فترة دون زيارة.
+                  </small>
+                </span>
               </label>
             </div>
             <div class="auth-inline-actions">
               <button class="primary-btn" type="submit" id="createCardButton">
-                Create my card · إنشاء بطاقتي
+                Create My Card
               </button>
               <button class="ghost-btn" type="button" id="backToLoginButton">
-                Back to sign in · العودة للدخول
+                Back to Sign In
               </button>
             </div>
           </form>
@@ -738,15 +821,15 @@
 
           <form id="pinResetRequestForm">
             <div class="field full">
-              <label>Mobile number · رقم الهاتف</label>
+              <label>Mobile number</label>
               <input id="resetPhone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="07... or +44..." />
             </div>
             <div class="auth-inline-actions">
               <button id="requestPinResetButton" class="primary-btn" type="submit">
-                Ask staff to approve · طلب موافقة الموظف
+                Ask Staff to Approve
               </button>
               <button id="backFromResetButton" class="ghost-btn" type="button">
-                Back · رجوع
+                Back
               </button>
             </div>
           </form>
@@ -755,7 +838,7 @@
 
           <form id="newPinAfterResetForm" class="hidden">
             <div class="pin-reset-waiting">
-              <strong>Reset approved ✓ · تمت الموافقة</strong>
+              <strong>Reset Approved ✓</strong>
               <span>Create a new 4-digit PIN. Your older saved cards will be signed out.</span>
             </div>
             <div class="form-grid" style="margin-top:14px">
@@ -769,7 +852,7 @@
               </div>
             </div>
             <button id="saveResetPinButton" class="gold-btn" type="submit" style="width:100%">
-              Save new PIN · حفظ الرقم الجديد
+              Save New PIN
             </button>
           </form>
         </div>
@@ -793,16 +876,16 @@
           <div class="points-panel">
             <div class="metric">
               <strong id="memberPoints">0</strong>
-              <span>POINTS · النقاط</span>
+              <span>POINTS</span>
             </div>
             <div class="metric">
               <strong id="rewardAvailable">0</strong>
-              <span>REWARDS · المكافآت</span>
+              <span>REWARDS</span>
             </div>
           </div>
 
           <div id="pinSetupPanel" class="pin-setup-panel hidden">
-            <strong>Create your access PIN · أنشئ رقم الدخول السري</strong>
+            <strong>Create Your Access PIN</strong>
             <p>Set this once to open the same card inside the installed app or on another device.</p>
             <form id="pinSetupForm" class="pin-setup-grid">
               <div class="field">
@@ -813,13 +896,13 @@
                 <label>Confirm PIN</label>
                 <input id="confirmSetupPin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
               </div>
-              <button id="savePinButton" class="gold-btn" type="submit">Save PIN · حفظ</button>
+              <button id="savePinButton" class="gold-btn" type="submit">Save PIN</button>
             </form>
           </div>
 
           <div id="cardRewardPicker" class="card-reward-picker hidden">
             <div class="card-reward-kicker">
-              Your available reward · مكافأتك الجاهزة
+              Your Available Reward
             </div>
             <div id="cardRewardChoices" class="card-reward-choices"></div>
             <div class="card-selected-reward">
@@ -838,7 +921,7 @@
         <div id="cardMessage"></div>
         <div id="messagesCard" class="app-card compact-messages-card">
           <div class="compact-section-head">
-            <h3>Messages · الرسائل</h3>
+            <h3>Messages</h3>
             <div class="message-tools">
               <div id="messageBadge" class="message-badge">0</div>
               <div id="messageActions" class="compact-message-actions">
@@ -853,7 +936,7 @@
         </div>
 
         <div class="app-card reward-qr-card">
-          <h3 class="reward-journey-title">Next reward · المكافأة التالية</h3>
+          <h3 class="reward-journey-title">Next Reward</h3>
           <p id="progressText" class="reward-next-inline"></p>
           <div class="reward-journey" aria-label="Reward progress">
             <div class="journey-track"><span id="rewardProgress"></span></div>
@@ -872,7 +955,7 @@
         </div>
 
         <div class="app-card compact-activity-card">
-          <h3>Latest activity · آخر حركة</h3>
+          <h3>Latest Activity</h3>
           <ul id="transactions" class="transaction-list"></ul>
           <details id="activityMore" class="compact-inline-details hidden">
             <summary id="activityMoreLabel">View all activity</summary>
@@ -881,12 +964,38 @@
         </div>
 
         <details class="app-card collapsible-card">
-          <summary>My details · بياناتي</summary>
+          <summary>My Details</summary>
           <div class="collapsible-content">
             <div id="profileDetails" style="line-height: 1.8; color: #ddd; direction: ltr"></div>
             <p>Ask a member of staff if any membership details need to be corrected.</p>
+
+            <section class="notification-panel" aria-labelledby="notificationPanelTitle">
+              <div class="notification-panel-head">
+                <div>
+                  <h4 id="notificationPanelTitle">Reward Notifications</h4>
+                  <div id="notificationStatus" class="notification-status">Checking…</div>
+                </div>
+              </div>
+              <p class="notification-help">
+                Receive a reminder when you are close to a reward, when it becomes
+                ready, or after 21 days without a visit.
+              </p>
+              <p class="notification-arabic-helper" dir="rtl">
+                إشعارات للمكافآت فقط، ويمكن إيقافها في أي وقت.
+              </p>
+              <div class="notification-panel-actions">
+                <button id="enableNotifications" class="gold-btn" type="button">
+                  Enable Notifications
+                </button>
+                <button id="disableNotifications" class="ghost-btn hidden" type="button">
+                  Turn Off Notifications
+                </button>
+              </div>
+              <div id="notificationMessage" aria-live="polite"></div>
+            </section>
+
             <details class="change-pin-panel">
-              <summary>Change access PIN · تغيير الرقم السري</summary>
+              <summary>Change Access PIN</summary>
               <form id="changePinForm" class="change-pin-grid">
                 <div class="field">
                   <label>New 4-digit PIN</label>
@@ -897,7 +1006,7 @@
                   <input id="confirmChangePin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
                 </div>
                 <button id="changePinButton" class="ghost-btn" type="submit">
-                  Save new PIN · حفظ الرقم الجديد
+                  Save New PIN
                 </button>
               </form>
             </details>
@@ -919,10 +1028,6 @@
       </div>
     </main>
 
-    <nav class="bottom-nav">
-      <a href="index.html">Menu · المنيو</a>
-      <a href="rewards.html" class="active">Rewards · الولاء</a>
-    </nav>
 
     <script src="assets/vendor/qrcode-local.js"></script>
     <script src="assets/js/app-shell.js"></script>
@@ -934,6 +1039,7 @@
         "sb_publishable_yNgSShCyeQ6FfSy30T6-hg_9dLXXpwk";
       const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/kweider-rewards-api`;
       const MEMBER_TOKEN_KEY = "kweiderRewards.memberToken.v1";
+      const PUSH_PUBLIC_KEY = "BObV1-FPmgq3iFLHBWgc2h1SZoJWCaQ6i2lb38g_zvRbZdaIxQkxlvu-09Qnywtj-hR2VtFLXrT5fc_urWDbWUA";
 
       const $ = (id) => document.getElementById(id);
 
@@ -942,6 +1048,7 @@
       let restoredCardNoticePending = false;
       let activePinResetToken = "";
       let pinResetPollTimer = null;
+      let notificationStateRequest = 0;
 
       const REWARD_SELECTION_KEY_PREFIX =
         "kweiderRewards.checkoutSelection.v1.";
@@ -1211,6 +1318,8 @@
           "switchMembership",
           "markMessagesRead",
           "confirmRewardChoice",
+          "enableNotifications",
+          "disableNotifications",
         ].forEach((id) => setDisabled(id, isLoading));
       }
 
@@ -1267,6 +1376,233 @@
           throw error;
         } finally {
           clearTimeout(timeoutId);
+        }
+      }
+
+      function urlBase64ToUint8Array(value) {
+        const padding = "=".repeat((4 - (value.length % 4)) % 4);
+        const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+        const raw = atob(base64);
+        return Uint8Array.from(raw, (character) => character.charCodeAt(0));
+      }
+
+      function supportsDeviceNotifications() {
+        return Boolean(
+          window.isSecureContext &&
+          "serviceWorker" in navigator &&
+          "PushManager" in window &&
+          "Notification" in window,
+        );
+      }
+
+      function isIosDevice() {
+        return /iphone|ipad|ipod/i.test(navigator.userAgent || "");
+      }
+
+      function isStandaloneApp() {
+        return Boolean(
+          window.matchMedia?.("(display-mode: standalone)")?.matches ||
+          window.navigator.standalone === true,
+        );
+      }
+
+      function notificationDeviceLabel() {
+        const agent = navigator.userAgent || "";
+        if (/iphone|ipad|ipod/i.test(agent)) return "iPhone / iPad";
+        if (/android/i.test(agent)) return "Android";
+        return "Web browser";
+      }
+
+      async function currentPushSubscription() {
+        if (!("serviceWorker" in navigator)) return null;
+        const registration = await navigator.serviceWorker.ready;
+        return await registration.pushManager.getSubscription();
+      }
+
+      function renderNotificationStatus(text, state = "") {
+        const status = $("notificationStatus");
+        if (!status) return;
+        status.textContent = text;
+        status.className = `notification-status${state ? ` ${state}` : ""}`;
+      }
+
+      async function syncNotificationPanel(member = activeBundle?.member) {
+        if (!$("notificationStatus") || !member) return;
+        const requestId = ++notificationStateRequest;
+        const accountEnabled = member.notificationConsent === true;
+
+        if (!supportsDeviceNotifications()) {
+          renderNotificationStatus("Not supported on this browser", "warning");
+          $("enableNotifications").classList.add("hidden");
+          $("disableNotifications").classList.toggle("hidden", !accountEnabled);
+          return;
+        }
+
+        if (isIosDevice() && !isStandaloneApp()) {
+          renderNotificationStatus("Install the app first on iPhone", "warning");
+          $("enableNotifications").classList.remove("hidden");
+          $("disableNotifications").classList.toggle("hidden", !accountEnabled);
+          return;
+        }
+
+        if (Notification.permission === "denied") {
+          renderNotificationStatus("Blocked in browser settings", "warning");
+          $("enableNotifications").classList.add("hidden");
+          $("disableNotifications").classList.toggle("hidden", !accountEnabled);
+          return;
+        }
+
+        let subscription = null;
+        try {
+          subscription = await currentPushSubscription();
+        } catch (error) {
+          console.warn("Unable to inspect push subscription", error);
+        }
+        if (requestId !== notificationStateRequest) return;
+
+        const deviceEnabled = Boolean(subscription && accountEnabled);
+        if (deviceEnabled) {
+          renderNotificationStatus("Enabled on this device", "enabled");
+          $("enableNotifications").classList.add("hidden");
+          $("disableNotifications").classList.remove("hidden");
+        } else if (accountEnabled) {
+          renderNotificationStatus("Permission saved — enable this device", "warning");
+          $("enableNotifications").classList.remove("hidden");
+          $("disableNotifications").classList.remove("hidden");
+        } else {
+          renderNotificationStatus("Off");
+          $("enableNotifications").classList.remove("hidden");
+          $("disableNotifications").classList.add("hidden");
+        }
+      }
+
+      async function enableRewardNotifications() {
+        const token = localStorage.getItem(MEMBER_TOKEN_KEY);
+        if (!token) {
+          showRegistration("Open your Kweider card before enabling notifications.", "error");
+          return;
+        }
+
+        if (!supportsDeviceNotifications()) {
+          notice("notificationMessage", "Notifications are not supported by this browser.", "error");
+          return;
+        }
+
+        if (isIosDevice() && !isStandaloneApp()) {
+          notice(
+            "notificationMessage",
+            "On iPhone, install Kweider on the Home Screen first, then open the installed app and enable notifications.",
+            "info",
+          );
+          return;
+        }
+
+        setLoading(true);
+        notice("notificationMessage", "Requesting notification permission…", "info");
+        let preferenceEnabled = false;
+        let subscription = null;
+
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") {
+            throw new Error("Notification permission was not granted. You can change it later in your browser settings.");
+          }
+
+          const preferenceResult = await callApi({
+            action: "update_notification_preference",
+            token,
+            notificationConsent: true,
+          });
+          preferenceEnabled = true;
+
+          const registration = await navigator.serviceWorker.ready;
+          subscription = await registration.pushManager.getSubscription();
+          if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(PUSH_PUBLIC_KEY),
+            });
+          }
+
+          const subscriptionJson = subscription.toJSON();
+          const result = await callApi({
+            action: "save_push_subscription",
+            token,
+            pushEndpoint: subscription.endpoint,
+            pushP256dh: subscriptionJson.keys?.p256dh || "",
+            pushAuth: subscriptionJson.keys?.auth || "",
+            deviceLabel: notificationDeviceLabel(),
+            userAgent: navigator.userAgent || "",
+          });
+
+          render(result || preferenceResult);
+          notice(
+            "notificationMessage",
+            "Reward notifications are enabled on this device.",
+            "ok",
+          );
+          await syncNotificationPanel(result?.member || preferenceResult?.member);
+        } catch (error) {
+          if (subscription && preferenceEnabled) {
+            try { await subscription.unsubscribe(); } catch {}
+          }
+          if (preferenceEnabled) {
+            try {
+              await callApi({
+                action: "update_notification_preference",
+                token,
+                notificationConsent: false,
+              });
+            } catch {}
+          }
+          notice(
+            "notificationMessage",
+            error.message || "Notifications could not be enabled on this device.",
+            "error",
+          );
+          await syncNotificationPanel(activeBundle?.member);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function disableRewardNotifications() {
+        const token = localStorage.getItem(MEMBER_TOKEN_KEY);
+        if (!token) {
+          showRegistration("No rewards card is saved on this device.", "error");
+          return;
+        }
+
+        setLoading(true);
+        notice("notificationMessage", "Turning off notifications…", "info");
+
+        try {
+          const subscription = await currentPushSubscription();
+          if (subscription) {
+            await callApi({
+              action: "remove_push_subscription",
+              token,
+              pushEndpoint: subscription.endpoint,
+            });
+            await subscription.unsubscribe();
+          }
+
+          const result = await callApi({
+            action: "update_notification_preference",
+            token,
+            notificationConsent: false,
+          });
+          render(result);
+          notice("notificationMessage", "Reward notifications are turned off.", "ok");
+          await syncNotificationPanel(result.member);
+        } catch (error) {
+          notice(
+            "notificationMessage",
+            error.message || "Notifications could not be turned off.",
+            "error",
+          );
+        } finally {
+          setLoading(false);
         }
       }
 
@@ -1786,17 +2122,8 @@
         const rawMemberMessages = Array.isArray(bundle.messages)
           ? bundle.messages
           : [];
-        const memberMessages = rawMemberMessages.filter((message) => {
-          const relatedRewardId = readField(
-            message,
-            "relatedRewardId",
-            "related_reward_id",
-          );
-          const type = String(
-            readField(message, "type", "messageType", "message_type") || "",
-          ).toLowerCase();
-          return !relatedRewardId && !type.includes("reward");
-        });
+        // Show smart reward reminders as well as general account messages.
+        const memberMessages = rawMemberMessages;
         const unreadMessageCount = memberMessages.filter(
           (message) => !readField(message, "isRead", "is_read"),
         ).length;
@@ -1814,7 +2141,7 @@
           $("memberMessages").innerHTML = latestMessage +
             (olderMessages.length
               ? `<details class="compact-inline-details">
-                   <summary>Older messages (${olderMessages.length}) · الرسائل السابقة</summary>
+                   <summary>Older Messages (${olderMessages.length})</summary>
                    <div class="compact-stack">${olderMessages.map(compactMessageCard).join("")}</div>
                  </details>`
               : "");
@@ -1829,7 +2156,9 @@
           `<strong>Phone:</strong> ${esc(member.phone || "—")}<br>` +
           `<strong>Email:</strong> ${esc(member.email || "—")}<br>` +
           `<strong>Birthday:</strong> ${esc(member.birthday || "—")}<br>` +
-          `<strong>Marketing:</strong> ${member.marketingConsent ? "Opted in" : "Not opted in"}`;
+          `<strong>Reward notifications:</strong> ${member.notificationConsent ? "Allowed" : "Off"}`;
+
+        void syncNotificationPanel(member);
 
         const transactions = Array.isArray(bundle.transactions)
           ? bundle.transactions.slice(0, 10)
@@ -1844,7 +2173,7 @@
           .join("");
         $("activityMore").classList.toggle("hidden", !olderTransactions.length);
         $("activityMoreLabel").textContent = olderTransactions.length
-          ? `View earlier activity (${olderTransactions.length}) · عرض العمليات السابقة`
+          ? `View Earlier Activity (${olderTransactions.length})`
           : "";
 
         if (restoredCardNoticePending) {
@@ -2101,7 +2430,7 @@
             pin,
             email: $("email").value.trim() || null,
             birthday: $("birthday").value || null,
-            marketingConsent: $("marketingConsent").checked,
+            notificationConsent: $("notificationConsent").checked,
           });
           await saveReturnedCard(result);
         } catch (error) {
@@ -2178,6 +2507,9 @@
         }
       });
 
+      $("enableNotifications").addEventListener("click", enableRewardNotifications);
+      $("disableNotifications").addEventListener("click", disableRewardNotifications);
+
       $("refreshCard").addEventListener("click", () => loadSavedCard(false));
       $("markMessagesRead").addEventListener("click", async () => {
         if (requestInProgress) return;
@@ -2239,6 +2571,7 @@
         }
         if (!document.hidden && activeBundle && !requestInProgress) {
           loadSavedCard(false);
+          void syncNotificationPanel(activeBundle.member);
         }
       });
 
