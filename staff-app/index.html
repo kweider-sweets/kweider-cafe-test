@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+
+<html dir="ltr" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
+<meta content="#050505" name="theme-color"/>
+<title>Kweider Staff</title>
+<link href="manifest.webmanifest" rel="manifest"/>
+<link href="icons/apple-touch-icon.png" rel="apple-touch-icon"/>
+<link href="../assets/css/app-shell.css" rel="stylesheet"/>
+<style>
+      .staff-session-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .staff-session-bar p {
+        margin: 4px 0;
+        color: #bbb;
+      }
+      .staff-actions-inline {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .button-busy {
+        opacity: 0.65;
+        pointer-events: none;
+      }
+      .transaction-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .transaction-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+      .transaction-item strong,
+      .transaction-item span {
+        display: block;
+      }
+      .transaction-item small {
+        display: block;
+        margin-top: 5px;
+        color: #aaa;
+        line-height: 1.45;
+      }
+      .transaction-points {
+        min-width: 78px;
+        text-align: right;
+        font-weight: 700;
+      }
+      .transaction-points.positive {
+        color: #8fe3a5;
+      }
+      .transaction-points.negative {
+        color: #f1c46b;
+      }
+      .member-reward-note {
+        margin-top: 10px;
+        color: #d7b665;
+        line-height: 1.55;
+      }
+      .reward-preview {
+        margin-top: 14px;
+      }
+      .field-hint {
+        font-weight: 400;
+        color: #aaa;
+      }
+
+      .recovery-link-box {
+        margin-top: 16px;
+        padding: 14px;
+        border: 1px solid rgba(197, 160, 89, 0.45);
+        border-radius: 14px;
+        background: rgba(197, 160, 89, 0.07);
+      }
+
+      .recovery-link-box input {
+        width: 100%;
+        box-sizing: border-box;
+        direction: ltr;
+        font-family: monospace;
+      }
+
+      .recovery-warning {
+        color: #bbb;
+        line-height: 1.65;
+      }
+      .qr-reader-shell {
+        margin-top: 18px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 16px;
+        background: #080808;
+      }
+      #qrReader {
+        width: 100%;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #000;
+      }
+      #qrReader video {
+        width: 100% !important;
+        max-height: 62vh;
+        object-fit: cover;
+        border-radius: 12px;
+      }
+      .scanner-help {
+        margin: 10px 0 0;
+        color: #bbb;
+        text-align: center;
+        line-height: 1.55;
+      }
+
+      .quick-checkout-card {
+        border-color: rgba(239, 214, 149, 0.72);
+        background:
+          radial-gradient(circle at 85% 0%, rgba(197, 160, 89, 0.16), transparent 44%),
+          #151515;
+      }
+      .quick-checkout-card h3 {
+        margin-bottom: 5px;
+      }
+      .quick-checkout-subtitle {
+        margin: 0 0 14px;
+        color: #aaa;
+        line-height: 1.5;
+      }
+      .customer-choice {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        padding: 12px 13px;
+        border: 1px solid rgba(197, 160, 89, 0.42);
+        border-radius: 13px;
+        background: rgba(197, 160, 89, 0.075);
+      }
+      .customer-choice span {
+        display: block;
+        color: #a9a9a9;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .customer-choice strong {
+        display: block;
+        margin-top: 3px;
+        color: #efd695;
+        font-size: 17px;
+        line-height: 1.25;
+      }
+      .customer-choice small {
+        display: block;
+        margin-top: 3px;
+        color: #bfb7a5;
+        font-size: 11px;
+      }
+      .quick-bill-field input {
+        font-size: 24px;
+        font-weight: 800;
+      }
+      .quick-checkout-hint {
+        margin: 6px 0 0;
+        color: #9b9b9b;
+        font-size: 11px;
+        line-height: 1.45;
+      }
+      .quick-breakfast-confirm {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin: 13px 0 0;
+        padding: 11px 12px;
+        border: 1px solid rgba(197, 160, 89, 0.42);
+        border-radius: 12px;
+        color: #ddd;
+        line-height: 1.45;
+      }
+      .quick-breakfast-confirm input {
+        width: 19px;
+        height: 19px;
+        margin-top: 1px;
+        accent-color: #c5a059;
+      }
+      .quick-checkout-preview {
+        margin-top: 14px;
+      }
+      .quick-checkout-summary {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 7px 14px;
+      }
+      .quick-checkout-summary span {
+        color: #bdbdbd;
+      }
+      .quick-checkout-summary strong {
+        color: #f0d895;
+        text-align: right;
+      }
+      .quick-checkout-summary .payable {
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,.1);
+        color: #fff;
+        font-size: 17px;
+      }
+      .quick-checkout-summary .payable-value {
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,.1);
+        color: #bde8c9;
+        font-size: 18px;
+      }
+      .quick-more {
+        margin-top: 12px;
+      }
+      .quick-more summary,
+      .staff-advanced > summary {
+        cursor: pointer;
+        list-style: none;
+        color: #e8d090;
+        font-weight: 800;
+      }
+      .quick-more summary::-webkit-details-marker,
+      .staff-advanced > summary::-webkit-details-marker {
+        display: none;
+      }
+      .quick-more summary::after,
+      .staff-advanced > summary::after {
+        content: "⌄";
+        float: right;
+        color: #c5a059;
+      }
+      .quick-more[open] summary::after,
+      .staff-advanced[open] > summary::after {
+        content: "⌃";
+      }
+      .quick-more-content {
+        padding-top: 12px;
+      }
+      .complete-checkout-btn {
+        width: 100%;
+        min-height: 52px;
+        margin-top: 14px;
+        font-size: 16px;
+      }
+      .checkout-result {
+        margin-top: 14px;
+        padding: 13px;
+        border: 1px solid rgba(143, 202, 158, 0.55);
+        border-radius: 13px;
+        background: rgba(74, 145, 92, 0.12);
+      }
+      .checkout-result strong {
+        color: #c4ebcf;
+        font-size: 16px;
+      }
+      .staff-advanced > summary {
+        font-size: 17px;
+      }
+      .staff-advanced-content {
+        display: grid;
+        gap: 18px;
+        padding-top: 18px;
+      }
+      .advanced-section {
+        padding-top: 17px;
+        border-top: 1px solid rgba(255,255,255,.09);
+      }
+      .advanced-section:first-child {
+        padding-top: 0;
+        border-top: 0;
+      }
+
+      @media (max-width: 640px) {
+        .transaction-item {
+          align-items: flex-start;
+        }
+        .transaction-points {
+          min-width: 64px;
+        }
+      }
+    
+      .pin-reset-approval {
+        border-color: rgba(231, 185, 91, 0.85);
+        background: linear-gradient(135deg, rgba(197,160,89,.16), rgba(255,255,255,.025));
+      }
+      .pin-reset-approval h3 { margin-bottom: 8px; }
+      .pin-reset-approval p { margin: 0; color: #ccc; line-height: 1.55; }
+      .pin-reset-approval .pin-reset-time { margin-top: 8px; color: #e7ca82; font-weight: 700; }
+      .pin-reset-approved {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(70, 180, 110, .12);
+        border: 1px solid rgba(100, 220, 140, .45);
+        color: #9de7b5;
+        font-weight: 800;
+      }
+</style>
+<meta content="yes" name="apple-mobile-web-app-capable"/><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/><meta content="Kweider Staff" name="apple-mobile-web-app-title"/><style>
+  :root{color-scheme:dark}
+  body.staff-installed-app .app-shell{max-width:720px}
+  .page-heading{margin-bottom:16px}
+  .page-heading h1{font-size:clamp(30px,7vw,48px)}
+  .page-heading p{margin:5px 0;line-height:1.45}
+  .staff-identity-card{padding:14px 18px}
+  .staff-identity-card h2{font-size:19px;margin:0}
+  .staff-identity-card .staff-session-bar{flex-wrap:nowrap}
+  .staff-identity-card .ghost-btn{min-height:40px;padding:8px 14px}
+  .staff-scan-card{border-color:rgba(232,196,107,.72);background:radial-gradient(circle at 80% 0,rgba(197,160,89,.18),transparent 48%),#121212;text-align:center}
+  .staff-scan-card h2{margin-bottom:7px}
+  .staff-scan-subtitle{color:#bdbdbd;line-height:1.55;margin:0 auto 16px;max-width:440px}
+  .staff-scan-main{display:block;width:100%;min-height:66px;font-size:19px;font-weight:900;border-radius:18px}
+  .manual-search{margin-top:15px;border-top:1px solid rgba(255,255,255,.08);padding-top:13px;text-align:left}
+  .manual-search summary{cursor:pointer;color:#dbc178;font-weight:800;list-style:none}
+  .manual-search summary::-webkit-details-marker{display:none}
+  .manual-search summary::after{content:'⌄';float:right}
+  .manual-search[open] summary::after{content:'⌃'}
+  .manual-search-content{padding-top:13px}
+  .manual-search-content .ghost-btn{width:100%}
+  .staff-install-box{margin-top:18px;padding:14px;border:1px solid rgba(197,160,89,.38);border-radius:14px;background:rgba(197,160,89,.07)}
+  .staff-install-box strong{display:block;color:#edd58f}
+  .staff-install-box p{margin:6px 0 11px;color:#aaa;line-height:1.45}
+  .staff-install-box small{display:block;margin-top:8px;color:#aaa;line-height:1.45}
+  .legacy-recovery-tool{display:none}
+  #memberPanel>.app-card:first-child{padding:15px 17px}
+  .quick-checkout-card{scroll-margin-top:14px}
+  @media(max-width:640px){
+    .app-topbar{padding-top:max(8px,env(safe-area-inset-top))}
+    .page-heading{padding-top:4px}
+    .page-heading h1{font-size:34px}
+    .page-heading p{font-size:13px}
+    .staff-identity-card .staff-session-bar{align-items:center}
+    .staff-identity-card p{font-size:11px}
+    .quick-checkout-card{padding:18px 15px}
+    .customer-choice{padding:11px}
+    .complete-checkout-btn{min-height:58px;font-size:17px}
+  }
+</style></head>
+<body class="app-page staff-installed-app">
+<main class="app-shell">
+<div class="app-topbar">
+<a class="app-brand" href="#">
+<img alt="Kweider Sweets" src="../logo.webp"/>
+<span class="demo-badge">STAFF APP</span>
+</a>
+<a class="app-back" href="../index.html">Menu · المنيو</a>
+</div>
+<header class="page-heading"><h1>Kweider Staff</h1><p>Scan the customer QR and complete checkout in one step.</p><p dir="rtl">امسح رمز العميل وأتمم الفاتورة بخطوة واحدة.</p></header>
+<section class="app-card hidden" id="configurationCard">
+<h2>Configuration required</h2>
+<div class="notice error">
+          Add the Supabase Publishable key to the marked line inside
+          <strong>staff-app/index.html</strong>, then upload the file again.
+        </div>
+</section>
+<section class="app-card" id="loginCard">
+<h2>Staff sign in · دخول الموظف</h2>
+<div class="form-grid">
+<div class="field">
+<label for="staffEmail">Email</label>
+<input autocomplete="username" id="staffEmail" type="email" value="qw.co.uk@gmail.com"/>
+</div>
+<div class="field">
+<label for="staffPassword">Password</label>
+<input autocomplete="current-password" id="staffPassword" type="password"/>
+</div>
+</div>
+<div class="form-actions">
+<button class="primary-btn" id="staffLogin">Sign in</button>
+</div>
+<div aria-live="polite" id="loginMessage"></div>
+<div class="staff-install-box">
+<strong>Install Kweider Staff · تثبيت تطبيق الموظف</strong>
+<p>Install once for a full-screen staff app with its own icon.</p>
+<button class="ghost-btn" id="installStaffApp" type="button">Install app · تثبيت التطبيق</button>
+<small id="installStaffHelp"></small>
+</div></section>
+<section class="hidden" id="staffPanel">
+<div class="app-card staff-identity-card">
+<div class="staff-session-bar">
+<div>
+<h2 id="signedInName">Staff</h2>
+<p id="signedInRole"></p>
+</div>
+<div class="staff-actions-inline">
+<button class="ghost-btn" id="staffLogout">Sign out</button>
+</div>
+</div>
+</div>
+<div class="app-card staff-scan-card"><h2>Ready for checkout · جاهز للدفع</h2><p class="staff-scan-subtitle">Scan the customer QR. Then enter the bill amount only.</p><button class="gold-btn staff-scan-main" id="scanQr">Scan customer QR · مسح رمز العميل</button><div class="hidden qr-reader-shell" id="scanArea">
+<div id="qrReader"></div>
+<p class="scanner-help">
+              Point the rear camera at the customer's Kweider QR code.<br/>
+              Keep the QR code clear and around 15–30 cm from the camera.
+            </p>
+<div class="form-actions">
+<button class="danger-btn" id="stopScan">Stop camera</button>
+</div>
+</div><details class="manual-search"><summary>Search manually · البحث اليدوي</summary><div class="manual-search-content"><div class="field"><label for="memberSearch">Phone or membership code · الهاتف أو رقم العضوية</label><input autocomplete="off" id="memberSearch" placeholder="KW-..., 07..., +44... or 0044..."/></div><button class="ghost-btn" id="findMember">Find member · بحث</button></div></details><div aria-live="polite" id="staffMessage"></div></div>
+<div class="hidden" id="memberPanel">
+<div class="app-card">
+<div class="split">
+<div>
+<h2 id="staffMemberName"></h2>
+<p id="staffMemberMeta" style="color: #bbb; line-height: 1.7"></p>
+<p class="member-reward-note" id="staffRewardSummary"></p>
+</div>
+<div class="metric">
+<strong id="staffPoints">0</strong>
+<span>CURRENT POINTS</span>
+</div>
+</div>
+</div>
+<div class="app-card pin-reset-approval hidden" id="pinResetApprovalCard">
+<h3>PIN reset requested · طلب إعادة الرقم السري</h3>
+<p>The customer is waiting on their phone. Check the member name, then approve once.</p>
+<p class="pin-reset-time" id="pinResetRequestTime"></p>
+<div class="pin-reset-approved hidden" id="pinResetApprovedNote">
+              Approved ✓ The customer can now create a new PIN.
+            </div>
+<div class="form-actions">
+<button class="gold-btn" id="approvePinReset" type="button">
+                Approve PIN reset · موافقة
+              </button>
+</div>
+</div>
+<div class="app-card quick-checkout-card">
+<h3>Quick checkout · إتمام الفاتورة</h3>
+<p class="quick-checkout-subtitle">Enter the bill amount. The customer reward and points are calculated automatically.</p>
+<div class="customer-choice">
+<div>
+<span>Customer choice · اختيار العميل</span>
+<strong id="quickRewardChoice">No reward selected</strong>
+<small id="quickRewardChoiceNote">Points will be added only.</small>
+</div>
+</div>
+<div class="field quick-bill-field">
+<label for="quickPurchaseAmount" id="quickAmountLabel">
+                Bill amount (£)
+              </label>
+<input autocomplete="off" id="quickPurchaseAmount" inputmode="decimal" min="0" step="0.01" type="number"/>
+<p class="quick-checkout-hint" id="quickAmountHint">
+                Enter the total before applying a £5 or £10 reward.
+              </p>
+</div>
+<label class="quick-breakfast-confirm hidden" id="quickBreakfastConfirmationRow">
+<input id="quickBreakfastConfirmed" type="checkbox"/>
+<span>
+                Eligible Breakfast for Two order confirmed.<br/>
+<span dir="rtl">تم التأكد من طلب الفطور المؤهل لشخصين.</span>
+</span>
+</label>
+<details class="quick-more">
+<summary>Receipt / more details · رقم الإيصال</summary>
+<div class="quick-more-content">
+<div class="field">
+<label for="quickReceipt">
+                    Receipt/reference
+                    <span class="field-hint">(optional — generated automatically)</span>
+</label>
+<input autocomplete="off" id="quickReceipt"/>
+</div>
+</div>
+</details>
+<div aria-live="polite" class="notice info quick-checkout-preview" id="quickCheckoutPreview">
+              Enter the bill amount.
+            </div>
+<button class="gold-btn complete-checkout-btn" disabled="" id="completeCheckout" type="button">
+              Complete checkout · إتمام الفاتورة
+            </button>
+<div id="quickCheckoutResult"></div>
+</div>
+<details class="app-card staff-advanced">
+<summary>Manager tools · أدوات المدير</summary>
+<div class="staff-advanced-content">
+<section class="advanced-section legacy-recovery-tool">
+<h3>Restore customer card</h3>
+<p class="recovery-warning">
+                  Create a secure one-time recovery link for this member. The link
+                  is valid for 15 minutes. When the customer opens it, previous
+                  saved cards for this membership are signed out.
+                </p>
+<div class="form-actions">
+<button class="ghost-btn" id="generateRecoveryLink" type="button">
+                    Generate recovery link
+                  </button>
+<button class="gold-btn hidden" id="copyRecoveryLink" type="button">
+                    Copy link
+                  </button>
+</div>
+<div class="recovery-link-box hidden" id="recoveryLinkBox">
+<div class="field">
+<label for="recoveryLink">Customer recovery link</label>
+<input id="recoveryLink" readonly="" type="text"/>
+</div>
+<p class="field-hint" id="recoveryExpiry" style="margin-bottom:0"></p>
+</div>
+</section>
+<section class="advanced-section">
+<h3>Add purchase points manually</h3>
+<div class="form-grid">
+<div class="field">
+<label for="purchaseAmount">Purchase amount (£)</label>
+<input id="purchaseAmount" inputmode="decimal" min="0.01" step="0.01" type="number"/>
+</div>
+<div class="field">
+<label for="earnReceipt">Receipt number</label>
+<input autocomplete="off" id="earnReceipt"/>
+</div>
+</div>
+<div class="form-actions">
+<button class="primary-btn" id="addPoints">Add points</button>
+</div>
+</section>
+<section class="advanced-section">
+<h3>Redeem reward manually</h3>
+<div class="form-grid">
+<div class="field full">
+<label for="memberReward">Available reward</label>
+<select id="memberReward">
+<option value="">No rewards available</option>
+</select>
+</div>
+<div class="field">
+<label for="redeemPurchaseAmount">
+                      Purchase amount (£)
+                      <span class="field-hint">
+                        — required for £5 and £10 bill rewards
+                      </span>
+</label>
+<input id="redeemPurchaseAmount" inputmode="decimal" min="0.01" step="0.01" type="number"/>
+</div>
+<div class="field">
+<label for="redeemReceipt">
+                      Receipt/reference
+                      <span class="field-hint">(optional)</span>
+</label>
+<input autocomplete="off" id="redeemReceipt"/>
+</div>
+</div>
+<div aria-live="polite" class="notice info reward-preview" id="rewardPreview">
+                  Select an available reward.
+                </div>
+<div class="form-actions">
+<button class="gold-btn" disabled="" id="redeemReward">
+                    Redeem selected reward
+                  </button>
+</div>
+</section>
+</div>
+</details>
+<div class="app-card">
+<h3>Recent activity</h3>
+<div class="transaction-list" id="transactionList"></div>
+</div>
+</div>
+</section>
+</main>
+<script crossorigin="anonymous" referrerpolicy="no-referrer" src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script src="../assets/js/app-shell.js"></script>
+<script>
+      (() => {
+        if ("serviceWorker" in navigator) {
+          window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js", { scope: "./" }).catch(() => {}));
+        }
+        let installPrompt = null;
+        const installButton = () => document.getElementById("installStaffApp");
+        const help = () => document.getElementById("installStaffHelp");
+        window.addEventListener("beforeinstallprompt", (event) => {
+          event.preventDefault();
+          installPrompt = event;
+          const button = installButton();
+          if (button) button.classList.remove("hidden");
+        });
+        window.addEventListener("appinstalled", () => {
+          installPrompt = null;
+          if (help()) help().textContent = "Installed successfully · تم تثبيت التطبيق";
+        });
+        document.addEventListener("click", async (event) => {
+          if (event.target?.id !== "installStaffApp") return;
+          if (installPrompt) {
+            installPrompt.prompt();
+            await installPrompt.userChoice;
+            installPrompt = null;
+            return;
+          }
+          const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+          if (help()) help().textContent = ios
+            ? "On iPhone: Share → Add to Home Screen · على الآيفون: مشاركة ← إضافة إلى الشاشة الرئيسية"
+            : "Use the browser menu and choose Install app / Add to Home screen.";
+        });
+      })();
+    </script>
+    <script>
+      "use strict";
+
+      const SUPABASE_URL = "https://fwjiceleybxhgetsvsvp.supabase.co";
+
+      // REQUIRED: replace only the text between the quotation marks below.
+      const SUPABASE_PUBLISHABLE_KEY =
+        "sb_publishable_yNgSShCyeQ6FfSy30T6-hg_9dLXXpwk";
+
+      const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/kweider-rewards-api`;
+      const SESSION_KEY = "kweiderRewards.staffSession.v1";
+      const STAFF_APP_LOGIN_AT_KEY = "kweiderRewards.staffAppLoginAt.v1";
+      const STAFF_APP_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+      const $ = (id) => document.getElementById(id);
+
+      let session = null;
+      let staff = null;
+      let member = null;
+      let memberTransactions = [];
+      let memberRewards = [];
+      let pinResetRequest = null;
+      let rewardDefinitions = [];
+      let settings = {
+        pointsPerPound: 1,
+        pointsPerReward: 100,
+        rewardValue: 5,
+      };
+      let qrScanner = null;
+      let scanning = false;
+      let scanHandled = false;
+
+      let pendingQrRewardId = "";
+      let quickSelectedRewardId = "";
+      let quickSelectionFromCustomer = false;
+
+      function hasConfiguration() {
+        return SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_");
+      }
+
+      function message(targetId, text, type = "info") {
+        $(targetId).innerHTML = text
+          ? `<div class="notice ${type}">${escapeHtml(text)}</div>`
+          : "";
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function readField(object, ...keys) {
+        for (const key of keys) {
+          if (object && object[key] !== undefined && object[key] !== null) {
+            return object[key];
+          }
+        }
+        return null;
+      }
+
+      function createIdempotencyKey() {
+        if (globalThis.crypto?.randomUUID)
+          return globalThis.crypto.randomUUID();
+        return `web-${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+      }
+
+      function isRewardAvailable(reward) {
+        if (!reward || readField(reward, "status") !== "available")
+          return false;
+        const expiresAt = readField(reward, "expiresAt", "expires_at");
+        if (!expiresAt) return true;
+        const expiryTime = new Date(expiresAt).getTime();
+        return Number.isFinite(expiryTime) && expiryTime > Date.now();
+      }
+
+      function embeddedDefinitionOf(reward) {
+        const embedded = readField(
+          reward,
+          "definition",
+          "rewardDefinition",
+          "reward_definition",
+        );
+        return embedded && typeof embedded === "object" ? embedded : null;
+      }
+
+      function rewardCodeOf(reward) {
+        const embedded = embeddedDefinitionOf(reward);
+        return String(
+          readField(reward, "rewardCode", "reward_code", "code") ||
+            readField(embedded, "code") ||
+            "",
+        );
+      }
+
+      function rewardDefinitionIdOf(reward) {
+        const embedded = embeddedDefinitionOf(reward);
+        return String(
+          readField(
+            reward,
+            "rewardDefinitionId",
+            "reward_definition_id",
+            "definitionId",
+            "definition_id",
+          ) ||
+            readField(embedded, "id") ||
+            "",
+        );
+      }
+
+      function definitionCodeOf(definition) {
+        return String(readField(definition, "code") || "");
+      }
+
+      function definitionIdOf(definition) {
+        return String(readField(definition, "id") || "");
+      }
+
+      function definitionForReward(reward) {
+        const embedded = embeddedDefinitionOf(reward);
+        if (embedded) return embedded;
+
+        const definitionId = rewardDefinitionIdOf(reward);
+        if (definitionId) {
+          const byId = rewardDefinitions.find(
+            (definition) => definitionIdOf(definition) === definitionId,
+          );
+          if (byId) return byId;
+        }
+
+        const code = rewardCodeOf(reward);
+        if (code) {
+          const byCode = rewardDefinitions.find(
+            (definition) => definitionCodeOf(definition) === code,
+          );
+          if (byCode) return byCode;
+        }
+
+        return null;
+      }
+
+      function rewardTitle(definition, reward = null) {
+        const code =
+          definitionCodeOf(definition) || rewardCodeOf(reward);
+        const fallbackTitles = {
+          discount_3: "£5 Off Your Next Bill",
+          discount_5: "£10 Off Your Next Bill",
+          breakfast_for_two: "Breakfast for Two",
+        };
+
+        return String(
+          readField(definition, "titleEn", "title_en") ||
+            fallbackTitles[code] ||
+            code ||
+            "Reward",
+        );
+      }
+
+      function selectedRewardDetails() {
+        const select = $("memberReward");
+        const memberRewardId = select.value;
+        const reward =
+          memberRewards.find(
+            (item) => String(readField(item, "id") || "") === memberRewardId,
+          ) || null;
+        const definition = reward ? definitionForReward(reward) : null;
+        return { memberRewardId, reward, definition };
+      }
+
+      function rewardKindOf(definition, reward = null) {
+        return String(
+          readField(definition, "rewardKind", "reward_kind", "kind") ||
+            readField(embeddedDefinitionOf(reward), "rewardKind", "reward_kind", "kind") ||
+            "",
+        );
+      }
+
+      function fixedRewardAmount(definition, reward = null) {
+        const code = definitionCodeOf(definition) || rewardCodeOf(reward);
+        const configured = Number(
+          readField(definition, "maximumDiscount", "maximum_discount"),
+        );
+
+        if (code === "discount_3") {
+          return Number.isFinite(configured) && configured > 0 ? configured : 5;
+        }
+        if (code === "discount_5") {
+          return Number.isFinite(configured) && configured > 0 ? configured : 10;
+        }
+        return null;
+      }
+
+      function calculateFixedReward(definition, reward, purchaseAmount) {
+        const rewardAmount = fixedRewardAmount(definition, reward) || 0;
+        const billAmount = Number(purchaseAmount);
+        const discount = Math.min(
+          Math.max(0, rewardAmount),
+          Math.max(0, Number.isFinite(billAmount) ? billAmount : 0),
+        );
+        return {
+          rewardAmount,
+          discount: Math.round((discount + Number.EPSILON) * 100) / 100,
+        };
+      }
+
+      function calculateDiscount(definition, purchaseAmount) {
+        const percent = Number(
+          readField(definition, "percentOff", "percent_off") || 0,
+        );
+        const maximumRaw = readField(
+          definition,
+          "maximumDiscount",
+          "maximum_discount",
+        );
+        const maximum =
+          maximumRaw === null || maximumRaw === "" ? null : Number(maximumRaw);
+        const rawDiscount = (Number(purchaseAmount) * percent) / 100;
+        const discount =
+          Number.isFinite(maximum) && maximum >= 0
+            ? Math.min(rawDiscount, maximum)
+            : rawDiscount;
+        return {
+          percent,
+          maximum,
+          discount: Math.max(
+            0,
+            Math.round((discount + Number.EPSILON) * 100) / 100,
+          ),
+        };
+      }
+
+
+      function parseCustomerQr(value) {
+        const raw = String(value || "").trim();
+        const withoutPrefix = raw
+          .replace(/^KWEIDER-LOYALTY:/i, "")
+          .replace(/^KWEIDER-REWARDS:/i, "");
+        const parts = withoutPrefix.split("|");
+        const search = String(parts.shift() || "").trim();
+        let memberRewardId = "";
+
+        for (const part of parts) {
+          const match = String(part).match(/^MR:([0-9a-f-]{36})$/i);
+          if (match) {
+            memberRewardId = match[1].toLowerCase();
+            break;
+          }
+        }
+
+        return { raw, search, memberRewardId };
+      }
+
+      function quickAvailableRewards() {
+        return memberRewards.filter(isRewardAvailable);
+      }
+
+      function quickRewardById(memberRewardId) {
+        return (
+          quickAvailableRewards().find(
+            (reward) =>
+              String(readField(reward, "id") || "") ===
+              String(memberRewardId || ""),
+          ) || null
+        );
+      }
+
+      function fixedRewardCandidate(reward) {
+        const definition = definitionForReward(reward);
+        const amount = fixedRewardAmount(definition, reward);
+        return amount === null
+          ? null
+          : { reward, definition, amount };
+      }
+
+      function bestFixedRewardThatFits(billAmount) {
+        return quickAvailableRewards()
+          .map(fixedRewardCandidate)
+          .filter(
+            (candidate) =>
+              candidate &&
+              candidate.amount > 0 &&
+              candidate.amount <= billAmount,
+          )
+          .sort((left, right) => right.amount - left.amount)[0] || null;
+      }
+
+      function bestAvailableFixedReward() {
+        return quickAvailableRewards()
+          .map(fixedRewardCandidate)
+          .filter(Boolean)
+          .sort((left, right) => right.amount - left.amount)[0] || null;
+      }
+
+      function quickSelectedDetails() {
+        const reward = quickRewardById(quickSelectedRewardId);
+        const definition = reward ? definitionForReward(reward) : null;
+        return {
+          reward,
+          definition,
+          kind: reward ? rewardKindOf(definition, reward) : "",
+          title: reward ? rewardTitle(definition, reward) : "",
+          fixedAmount: reward ? fixedRewardAmount(definition, reward) : null,
+        };
+      }
+
+      function checkoutPlan() {
+        const amount = Number($("quickPurchaseAmount").value);
+        const pointsPerPound = Number(settings.pointsPerPound || 1);
+        const selected = quickSelectedDetails();
+
+        if (!Number.isFinite(amount) || amount < 0) {
+          return {
+            valid: false,
+            message: "Enter a valid bill amount.",
+          };
+        }
+
+        if (selected.kind === "breakfast_for_two") {
+          if (!$("quickBreakfastConfirmed").checked) {
+            return {
+              valid: false,
+              breakfast: true,
+              message:
+                "Confirm that the order contains the eligible Breakfast for Two.",
+            };
+          }
+
+          return {
+            valid: true,
+            breakfast: true,
+            selectedRewardId: quickSelectedRewardId,
+            rewardTitle: selected.title,
+            billAmount: amount,
+            discountAmount: null,
+            amountPaid: amount,
+            pointsAdded: Math.floor(amount * pointsPerPound),
+            note:
+              "For breakfast rewards, this amount must be what the customer pays after the free breakfast is removed.",
+          };
+        }
+
+        if (amount <= 0) {
+          return {
+            valid: false,
+            message: "Enter the bill amount.",
+          };
+        }
+
+        if (selected.reward) {
+          if (
+            selected.fixedAmount !== null &&
+            amount >= selected.fixedAmount
+          ) {
+            const amountPaid =
+              Math.round(
+                (amount - selected.fixedAmount + Number.EPSILON) * 100,
+              ) / 100;
+            return {
+              valid: true,
+              selectedRewardId: quickSelectedRewardId,
+              rewardTitle: selected.title,
+              billAmount: amount,
+              discountAmount: selected.fixedAmount,
+              amountPaid,
+              pointsAdded: Math.floor(amountPaid * pointsPerPound),
+            };
+          }
+
+          const fallback = bestFixedRewardThatFits(amount);
+          if (fallback) {
+            const amountPaid =
+              Math.round(
+                (amount - fallback.amount + Number.EPSILON) * 100,
+              ) / 100;
+            return {
+              valid: true,
+              selectedRewardId: quickSelectedRewardId,
+              rewardTitle: rewardTitle(
+                fallback.definition,
+                fallback.reward,
+              ),
+              billAmount: amount,
+              discountAmount: fallback.amount,
+              amountPaid,
+              pointsAdded: Math.floor(amountPaid * pointsPerPound),
+              fallback: true,
+              note:
+                "The selected reward is larger than this bill. The best smaller reward will be used instead.",
+            };
+          }
+
+          return {
+            valid: true,
+            selectedRewardId: quickSelectedRewardId,
+            rewardTitle: "",
+            billAmount: amount,
+            discountAmount: 0,
+            amountPaid: amount,
+            pointsAdded: Math.floor(amount * pointsPerPound),
+            rewardSkipped: true,
+            note:
+              "The selected reward is larger than this bill, so it will stay available for later.",
+          };
+        }
+
+        return {
+          valid: true,
+          selectedRewardId: null,
+          rewardTitle: "",
+          billAmount: amount,
+          discountAmount: 0,
+          amountPaid: amount,
+          pointsAdded: Math.floor(amount * pointsPerPound),
+        };
+      }
+
+      function renderQuickCheckout() {
+        if (!member) return;
+
+        const selected = quickSelectedDetails();
+        const hasReward = Boolean(selected.reward);
+        const breakfast = selected.kind === "breakfast_for_two";
+
+        $("quickRewardChoice").textContent = hasReward
+          ? selected.title
+          : "No reward selected";
+        $("quickRewardChoiceNote").textContent = hasReward
+          ? quickSelectionFromCustomer
+            ? "Selected on the customer phone · اختيار العميل"
+            : "Selected by staff · تم اختيارها من الموظف"
+          : "Points will be added only · ستضاف النقاط فقط";
+
+        $("quickBreakfastConfirmationRow").classList.toggle(
+          "hidden",
+          !breakfast,
+        );
+        $("quickAmountLabel").textContent = breakfast
+          ? "Amount customer pays after breakfast reward (£)"
+          : "Bill amount before reward (£)";
+        $("quickAmountHint").textContent = breakfast
+          ? "Enter the final amount payable after the eligible breakfast has been removed."
+          : "Enter the till total before applying a £5 or £10 reward.";
+
+        const plan = checkoutPlan();
+        const preview = $("quickCheckoutPreview");
+
+        if (!plan.valid) {
+          preview.className =
+            "notice info quick-checkout-preview";
+          preview.textContent = plan.message;
+          $("completeCheckout").disabled = true;
+          return;
+        }
+
+        const rewardLine = plan.breakfast
+          ? `${plan.rewardTitle} will be used`
+          : plan.discountAmount > 0
+            ? `${plan.rewardTitle} · £${plan.discountAmount.toFixed(2)} off`
+            : plan.rewardSkipped
+              ? "Reward kept for later"
+              : "No reward used";
+
+        preview.className =
+          "notice ok quick-checkout-preview";
+        preview.innerHTML = `
+          <div class="quick-checkout-summary">
+            <span>Bill / entered amount</span>
+            <strong>£${plan.billAmount.toFixed(2)}</strong>
+            <span>Reward</span>
+            <strong>${escapeHtml(rewardLine)}</strong>
+            <span>Points added</span>
+            <strong>${plan.pointsAdded}</strong>
+            <span class="payable">Customer pays</span>
+            <strong class="payable-value">£${plan.amountPaid.toFixed(2)}</strong>
+          </div>
+          ${plan.note ? `<div class="field-hint" style="margin-top:10px">${escapeHtml(plan.note)}</div>` : ""}
+        `;
+        $("completeCheckout").disabled = false;
+      }
+
+      function prepareQuickCheckout() {
+        const availableIds = new Set(
+          quickAvailableRewards().map((reward) =>
+            String(readField(reward, "id") || ""),
+          ),
+        );
+
+        if (
+          pendingQrRewardId &&
+          availableIds.has(pendingQrRewardId)
+        ) {
+          quickSelectedRewardId = pendingQrRewardId;
+          quickSelectionFromCustomer = true;
+        } else if (
+          !availableIds.has(quickSelectedRewardId)
+        ) {
+          quickSelectedRewardId = "";
+          quickSelectionFromCustomer = false;
+        }
+
+        $("quickPurchaseAmount").value = "";
+        $("quickReceipt").value = "";
+        $("quickBreakfastConfirmed").checked = false;
+        $("quickCheckoutResult").innerHTML = "";
+        renderQuickCheckout();
+
+        setTimeout(() => {
+          $("quickPurchaseAmount").focus();
+        }, 80);
+      }
+
+      function syncRedeemButton() {
+        $("redeemReward").disabled = !$("memberReward").value;
+      }
+
+      function updateRewardPreview() {
+        const { reward, definition } = selectedRewardDetails();
+        const preview = $("rewardPreview");
+        const purchaseInput = $("redeemPurchaseAmount");
+
+        if (!reward || !definition) {
+          purchaseInput.required = false;
+          preview.className = "notice info reward-preview";
+          preview.textContent = "Select an available reward.";
+          syncRedeemButton();
+          return;
+        }
+
+        const title = rewardTitle(definition, reward);
+        const kind = rewardKindOf(definition, reward);
+
+        const fixedAmount = fixedRewardAmount(definition, reward);
+
+        if (fixedAmount !== null) {
+          purchaseInput.required = true;
+          const amount = Number(purchaseInput.value);
+
+          if (!Number.isFinite(amount) || amount <= 0) {
+            preview.className = "notice info reward-preview";
+            preview.textContent = `${title}: enter the bill amount to confirm the discount.`;
+          } else {
+            const { rewardAmount, discount } = calculateFixedReward(
+              definition,
+              reward,
+              amount,
+            );
+            const limitedText =
+              amount < rewardAmount
+                ? " The discount cannot exceed the bill total."
+                : "";
+            preview.className = "notice ok reward-preview";
+            preview.textContent = `${title}: apply £${discount.toFixed(2)} off this £${amount.toFixed(2)} bill.${limitedText}`;
+          }
+        } else if (kind === "percent_discount") {
+          purchaseInput.required = true;
+          const amount = Number(purchaseInput.value);
+          const { percent, maximum, discount } = calculateDiscount(
+            definition,
+            amount,
+          );
+
+          if (!Number.isFinite(amount) || amount <= 0) {
+            preview.className = "notice info reward-preview";
+            preview.textContent = `${title}: enter the purchase amount to calculate the discount.`;
+          } else {
+            const capText = Number.isFinite(maximum)
+              ? ` (maximum £${maximum.toFixed(2)})`
+              : "";
+            preview.className = "notice ok reward-preview";
+            preview.textContent = `${title}: ${percent}% discount = £${discount.toFixed(2)} on a £${amount.toFixed(2)} purchase${capText}.`;
+          }
+        } else if (kind === "breakfast_for_two") {
+          purchaseInput.required = false;
+          preview.className = "notice ok reward-preview";
+          preview.textContent = `${title}: redeem the selected breakfast for two. A purchase amount is not required.`;
+        } else {
+          purchaseInput.required = false;
+          preview.className = "notice info reward-preview";
+          preview.textContent = title;
+        }
+
+        syncRedeemButton();
+      }
+
+      function setBusy(button, busy, busyText) {
+        if (!button.dataset.normalText)
+          button.dataset.normalText = button.textContent;
+        button.disabled = busy;
+        button.classList.toggle("button-busy", busy);
+        button.textContent = busy ? busyText : button.dataset.normalText;
+      }
+
+      function saveSession(nextSession) {
+        session = nextSession;
+        if (nextSession)
+          sessionStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
+        else sessionStorage.removeItem(SESSION_KEY);
+      }
+
+      function loadSession() {
+        try {
+          const raw = sessionStorage.getItem(SESSION_KEY);
+          session = raw ? JSON.parse(raw) : null;
+        } catch {
+          session = null;
+          sessionStorage.removeItem(SESSION_KEY);
+        }
+      }
+
+      async function readJson(response) {
+        const text = await response.text();
+        if (!text) return {};
+        try {
+          return JSON.parse(text);
+        } catch {
+          return { message: text };
+        }
+      }
+
+      async function authRequest(path, body, accessToken = "") {
+        const headers = {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          "Content-Type": "application/json",
+        };
+        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
+        const response = await fetch(`${SUPABASE_URL}${path}`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+        });
+        const data = await readJson(response);
+        if (!response.ok)
+          throw new Error(
+            data.message ||
+              data.error_description ||
+              data.error ||
+              "Authentication failed.",
+          );
+        return data;
+      }
+
+      async function signIn(email, password) {
+        const data = await authRequest("/auth/v1/token?grant_type=password", {
+          email,
+          password,
+        });
+        if (!data.access_token || !data.refresh_token)
+          throw new Error("The staff session could not be created.");
+        saveSession({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          expires_at:
+            data.expires_at ||
+            Math.floor(Date.now() / 1000) + Number(data.expires_in || 3600),
+          user: data.user || null,
+        });
+      }
+
+      async function refreshSession() {
+        if (!session?.refresh_token)
+          throw new Error("The staff session has expired. Sign in again.");
+        const data = await authRequest(
+          "/auth/v1/token?grant_type=refresh_token",
+          {
+            refresh_token: session.refresh_token,
+          },
+        );
+        if (!data.access_token || !data.refresh_token)
+          throw new Error("The staff session has expired. Sign in again.");
+        saveSession({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          expires_at:
+            data.expires_at ||
+            Math.floor(Date.now() / 1000) + Number(data.expires_in || 3600),
+          user: data.user || session.user || null,
+        });
+      }
+
+      async function ensureFreshSession() {
+        if (!session?.access_token)
+          throw new Error("Sign in with an authorised staff account.");
+        const expiresAt = Number(session.expires_at || 0);
+        if (expiresAt && expiresAt <= Math.floor(Date.now() / 1000) + 60)
+          await refreshSession();
+      }
+
+      async function apiRequest(payload, allowRefresh = true) {
+        await ensureFreshSession();
+        const response = await fetch(FUNCTION_URL, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await readJson(response);
+
+        if (response.status === 401 && allowRefresh && session?.refresh_token) {
+          await refreshSession();
+          return apiRequest(payload, false);
+        }
+
+        if (!response.ok || data.ok === false) {
+          const error = new Error(
+            data.message || "The rewards request failed.",
+          );
+          error.code = data.code || "";
+          error.status = response.status;
+          throw error;
+        }
+        return data;
+      }
+
+      function resetMember() {
+        member = null;
+        memberTransactions = [];
+        memberRewards = [];
+        pinResetRequest = null;
+        rewardDefinitions = [];
+        pendingQrRewardId = "";
+        quickSelectedRewardId = "";
+        quickSelectionFromCustomer = false;
+        $("memberPanel").classList.add("hidden");
+        $("transactionList").innerHTML = "";
+        $("memberReward").innerHTML =
+          '<option value="">No rewards available</option>';
+        $("redeemPurchaseAmount").value = "";
+        $("redeemReceipt").value = "";
+        $("quickPurchaseAmount").value = "";
+        $("quickReceipt").value = "";
+        $("quickBreakfastConfirmed").checked = false;
+        $("quickCheckoutResult").innerHTML = "";
+        $("recoveryLink").value = "";
+        $("recoveryExpiry").textContent = "";
+        $("recoveryLinkBox").classList.add("hidden");
+        $("copyRecoveryLink").classList.add("hidden");
+        $("pinResetApprovalCard").classList.add("hidden");
+        $("pinResetApprovedNote").classList.add("hidden");
+        $("approvePinReset").classList.remove("hidden");
+        $("pinResetRequestTime").textContent = "";
+        updateRewardPreview();
+      }
+
+      function renderStaff() {
+        $("signedInName").textContent = staff?.displayName || "Staff";
+        $("signedInRole").textContent = staff?.role
+          ? `Role: ${staff.role}`
+          : "";
+        $("loginCard").classList.add("hidden");
+        $("staffPanel").classList.remove("hidden");
+        setTimeout(() => $("scanQr")?.focus(), 80);
+      }
+
+      function renderRewardOptions(rewards, definitions) {
+        const select = $("memberReward");
+        select.innerHTML = "";
+
+        const lookupDefinitions = Array.isArray(definitions)
+          ? definitions
+          : [];
+
+        const findDefinition = (reward) => {
+          const embedded = embeddedDefinitionOf(reward);
+          if (embedded) return embedded;
+
+          const definitionId = rewardDefinitionIdOf(reward);
+          if (definitionId) {
+            const byId = lookupDefinitions.find(
+              (definition) => definitionIdOf(definition) === definitionId,
+            );
+            if (byId) return byId;
+          }
+
+          const code = rewardCodeOf(reward);
+          return (
+            lookupDefinitions.find(
+              (definition) => definitionCodeOf(definition) === code,
+            ) || null
+          );
+        };
+
+        const availableRewards = (rewards || [])
+          .filter(isRewardAvailable)
+          .sort((left, right) => {
+            const leftDefinition = findDefinition(left);
+            const rightDefinition = findDefinition(right);
+            return (
+              Number(
+                readField(
+                  leftDefinition,
+                  "thresholdPoints",
+                  "threshold_points",
+                ) || 0,
+              ) -
+              Number(
+                readField(
+                  rightDefinition,
+                  "thresholdPoints",
+                  "threshold_points",
+                ) || 0,
+              )
+            );
+          });
+
+        if (!availableRewards.length) {
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = "No rewards available";
+          select.appendChild(option);
+          updateRewardPreview();
+          return;
+        }
+
+        availableRewards.forEach((reward) => {
+          const definition = findDefinition(reward);
+          const title = rewardTitle(definition, reward);
+          const expiresAt = readField(reward, "expiresAt", "expires_at");
+          const expiryTime = expiresAt ? new Date(expiresAt).getTime() : NaN;
+          const expiryText = Number.isFinite(expiryTime)
+            ? ` · valid until ${new Date(expiryTime).toLocaleDateString("en-GB")}`
+            : "";
+
+          const option = document.createElement("option");
+          option.value = String(readField(reward, "id") || "");
+          option.textContent = `${title}${expiryText}`;
+          select.appendChild(option);
+        });
+
+        updateRewardPreview();
+      }
+
+      function renderTransactions(transactions) {
+        const list = $("transactionList");
+        if (!transactions?.length) {
+          list.innerHTML =
+            '<div class="notice info">No activity recorded yet.</div>';
+          return;
+        }
+
+        list.innerHTML = transactions
+          .map((transaction) => {
+            const points = Number(transaction.pointsDelta || 0);
+            const isRedeem = transaction.type === "redeem" || points < 0;
+            const title = isRedeem
+              ? `Reward redeemed${transaction.rewardValue ? ` · £${Number(transaction.rewardValue).toFixed(2)}` : ""}`
+              : `Purchase points${transaction.purchaseAmount !== null ? ` · £${Number(transaction.purchaseAmount).toFixed(2)}` : ""}`;
+            const date = transaction.createdAt
+              ? new Date(transaction.createdAt).toLocaleString("en-GB")
+              : "";
+            const details = [
+              transaction.receiptReference,
+              transaction.performedByName,
+              date,
+            ]
+              .filter(Boolean)
+              .join(" · ");
+            const pointsText = `${points > 0 ? "+" : ""}${points} pts`;
+            return `
+          <div class="transaction-item">
+            <div>
+              <strong>${escapeHtml(title)}</strong>
+              <small>${escapeHtml(details || transaction.notes || "")}</small>
+            </div>
+            <div class="transaction-points ${points < 0 ? "negative" : "positive"}">${escapeHtml(pointsText)}</div>
+          </div>`;
+          })
+          .join("");
+      }
+
+      function renderMember(bundle) {
+        member = bundle.member;
+        memberTransactions = Array.isArray(bundle.transactions)
+          ? bundle.transactions
+          : [];
+        const rewardsPayload =
+          bundle.rewards || bundle.memberRewards || bundle.member_rewards;
+        const definitionsPayload =
+          bundle.rewardDefinitions ||
+          bundle.reward_definitions ||
+          bundle.definitions;
+
+        memberRewards = Array.isArray(rewardsPayload) ? rewardsPayload : [];
+        rewardDefinitions = Array.isArray(definitionsPayload)
+          ? definitionsPayload
+          : [];
+        settings = bundle.settings || settings;
+        pinResetRequest = bundle.pinResetRequest || bundle.pin_reset_request || null;
+
+        const availableRewards = memberRewards.filter(isRewardAvailable);
+        const availableTitles = availableRewards
+          .map((reward) => rewardTitle(definitionForReward(reward), reward))
+          .filter(Boolean);
+
+        $("memberPanel").classList.remove("hidden");
+        $("staffMemberName").textContent = member.firstName || "Member";
+        $("staffMemberMeta").textContent =
+          `${member.memberCode} · ${member.phone}`;
+        $("staffPoints").textContent = Number(member.points || 0);
+        $("staffRewardSummary").textContent = availableRewards.length
+          ? `${availableRewards.length} reward${availableRewards.length === 1 ? "" : "s"} available: ${availableTitles.join(", ")}`
+          : "No rewards available yet.";
+
+        const resetStatus = String(pinResetRequest?.status || "");
+        const showReset = resetStatus === "pending" || resetStatus === "approved";
+        $("pinResetApprovalCard").classList.toggle("hidden", !showReset);
+        $("approvePinReset").classList.toggle("hidden", resetStatus !== "pending");
+        $("pinResetApprovedNote").classList.toggle("hidden", resetStatus !== "approved");
+        if (showReset) {
+          const requestedAt = pinResetRequest?.requestedAt
+            ? new Date(pinResetRequest.requestedAt).toLocaleString("en-GB")
+            : "just now";
+          const expiresAt = pinResetRequest?.expiresAt
+            ? new Date(pinResetRequest.expiresAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+            : "soon";
+          $("pinResetRequestTime").textContent = `Requested ${requestedAt} · expires ${expiresAt}`;
+        } else {
+          $("pinResetRequestTime").textContent = "";
+        }
+
+        $("recoveryLink").value = "";
+        $("recoveryExpiry").textContent = "";
+        $("recoveryLinkBox").classList.add("hidden");
+        $("copyRecoveryLink").classList.add("hidden");
+
+        renderRewardOptions(memberRewards, rewardDefinitions);
+        renderTransactions(memberTransactions);
+        prepareQuickCheckout();
+        setTimeout(() => document.querySelector(".quick-checkout-card")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+      }
+
+      function cleanMemberSearch(value) {
+        return parseCustomerQr(value).search;
+      }
+
+      async function findMember(value) {
+        const search = cleanMemberSearch(value);
+        if (!search)
+          throw new Error("Enter a membership code or phone number.");
+        const data = await apiRequest({
+          action: "staff_find_member",
+          memberSearch: search,
+        });
+        renderMember(data);
+        message(
+          "staffMessage",
+          "Member found. Check the name before continuing.",
+          "ok",
+        );
+      }
+
+      async function stopCamera() {
+        scanning = false;
+        scanHandled = false;
+
+        if (qrScanner) {
+          try {
+            await qrScanner.stop();
+          } catch {}
+          try {
+            qrScanner.clear();
+          } catch {}
+          qrScanner = null;
+        }
+
+        $("scanArea").classList.add("hidden");
+        $("qrReader").innerHTML = "";
+        $("scanQr").disabled = false;
+      }
+
+      $("staffLogin").addEventListener("click", async () => {
+        const button = $("staffLogin");
+        const email = $("staffEmail").value.trim();
+        const password = $("staffPassword").value;
+        message("loginMessage", "");
+
+        if (!email || !password) {
+          message(
+            "loginMessage",
+            "Enter the staff email and password.",
+            "error",
+          );
+          return;
+        }
+
+        setBusy(button, true, "Signing in...");
+        try {
+          await signIn(email, password);
+          const data = await apiRequest({ action: "staff_me" });
+          staff = data.staff;
+          localStorage.setItem(STAFF_APP_LOGIN_AT_KEY, String(Date.now()));
+          $("staffPassword").value = "";
+          renderStaff();
+        } catch (error) {
+          saveSession(null);
+          message("loginMessage", error.message || "Sign-in failed.", "error");
+        } finally {
+          setBusy(button, false, "Signing in...");
+        }
+      });
+
+      $("staffPassword").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") $("staffLogin").click();
+      });
+
+      $("staffLogout").addEventListener("click", async () => {
+        const token = session?.access_token || "";
+        try {
+          if (token) await authRequest("/auth/v1/logout", {}, token);
+        } catch {}
+        await stopCamera();
+        saveSession(null);
+        localStorage.removeItem(STAFF_APP_LOGIN_AT_KEY);
+        staff = null;
+        resetMember();
+        $("staffPanel").classList.add("hidden");
+        $("loginCard").classList.remove("hidden");
+        message("loginMessage", "Signed out successfully.", "ok");
+      });
+
+      $("findMember").addEventListener("click", async () => {
+        const button = $("findMember");
+        setBusy(button, true, "Searching...");
+        message("staffMessage", "");
+        try {
+          pendingQrRewardId = "";
+          quickSelectedRewardId = "";
+          quickSelectionFromCustomer = false;
+          await findMember($("memberSearch").value);
+        } catch (error) {
+          resetMember();
+          message(
+            "staffMessage",
+            error.message || "Member search failed.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Searching...");
+        }
+      });
+
+      $("memberSearch").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") $("findMember").click();
+      });
+
+
+      $("quickPurchaseAmount").addEventListener(
+        "input",
+        renderQuickCheckout,
+      );
+      $("quickBreakfastConfirmed").addEventListener(
+        "change",
+        renderQuickCheckout,
+      );
+
+      $("completeCheckout").addEventListener(
+        "click",
+        async () => {
+          if (!member) return;
+
+          const plan = checkoutPlan();
+          if (!plan.valid) {
+            renderQuickCheckout();
+            return;
+          }
+
+          const button = $("completeCheckout");
+          setBusy(button, true, "Completing...");
+          message("staffMessage", "");
+
+          try {
+            const data = await apiRequest({
+              action: "staff_complete_checkout",
+              memberId: member.id,
+              purchaseAmount: plan.billAmount,
+              memberRewardId:
+                plan.selectedRewardId || null,
+              breakfastConfirmed:
+                $("quickBreakfastConfirmed").checked,
+              receiptReference:
+                $("quickReceipt").value.trim() || null,
+              idempotencyKey: createIdempotencyKey(),
+            });
+
+            const operation = data.operation || {};
+            const reward = readField(operation, "reward");
+            const rewardTitleText = String(
+              readField(reward, "titleEn", "title_en") || "",
+            );
+            const discountAmount = Number(
+              readField(
+                operation,
+                "discountAmount",
+                "discount_amount",
+              ) || 0,
+            );
+            const amountPaid = Number(
+              readField(operation, "amountPaid", "amount_paid") ||
+                plan.amountPaid ||
+                0,
+            );
+            const pointsAdded = Number(
+              readField(operation, "pointsAdded", "points_added") ||
+                0,
+            );
+            const newBalance = Number(
+              readField(
+                operation,
+                "newPointsBalance",
+                "new_points_balance",
+              ) || data.member?.points || 0,
+            );
+            const fallbackApplied = Boolean(
+              readField(
+                operation,
+                "fallbackApplied",
+                "fallback_applied",
+              ),
+            );
+            const rewardUsed = Boolean(
+              readField(operation, "rewardUsed", "reward_used"),
+            );
+
+            pendingQrRewardId = "";
+            quickSelectedRewardId = "";
+            quickSelectionFromCustomer = false;
+            renderMember(data);
+
+            const rewardLine = rewardUsed
+              ? `${escapeHtml(rewardTitleText || "Reward")} used${
+                  discountAmount > 0
+                    ? ` · £${discountAmount.toFixed(2)} off`
+                    : ""
+                }`
+              : "No reward used";
+
+            $("quickCheckoutResult").innerHTML = `
+              <div class="checkout-result">
+                <strong>Checkout completed ✓ · تمت العملية</strong>
+                <div class="quick-checkout-summary" style="margin-top:10px">
+                  <span>Reward</span>
+                  <strong>${rewardLine}</strong>
+                  <span>Customer pays</span>
+                  <strong>£${amountPaid.toFixed(2)}</strong>
+                  <span>Points added</span>
+                  <strong>${pointsAdded}</strong>
+                  <span>New balance</span>
+                  <strong>${newBalance} pts</strong>
+                </div>
+                ${
+                  fallbackApplied
+                    ? '<div class="field-hint" style="margin-top:9px">A smaller suitable reward was used automatically.</div>'
+                    : ""
+                }
+                <button
+                  type="button"
+                  class="gold-btn"
+                  data-scan-next
+                  style="width:100%;margin-top:14px"
+                >
+                  Scan next customer · مسح العميل التالي
+                </button>
+              </div>`;
+
+            message(
+              "staffMessage",
+              "Checkout completed successfully.",
+              "ok",
+            );
+          } catch (error) {
+            message(
+              "staffMessage",
+              error.message ||
+                "The checkout could not be completed.",
+              "error",
+            );
+          } finally {
+            setBusy(button, false, "Completing...");
+            renderQuickCheckout();
+          }
+        },
+      );
+
+      $("quickCheckoutResult").addEventListener(
+        "click",
+        async (event) => {
+          const button = event.target.closest("[data-scan-next]");
+          if (!button) return;
+
+          pendingQrRewardId = "";
+          quickSelectedRewardId = "";
+          quickSelectionFromCustomer = false;
+          $("memberSearch").value = "";
+          resetMember();
+          message("staffMessage", "");
+          await startQrScanner();
+        },
+      );
+
+      $("approvePinReset").addEventListener("click", async () => {
+        if (!member || !pinResetRequest || pinResetRequest.status !== "pending") return;
+
+        const confirmed = confirm(
+          `Approve the PIN reset for ${member.firstName}? The customer will be able to create a new PIN for this card.`,
+        );
+        if (!confirmed) return;
+
+        const button = $("approvePinReset");
+        setBusy(button, true, "Approving...");
+        message("staffMessage", "");
+        try {
+          const data = await apiRequest({
+            action: "staff_approve_pin_reset",
+            memberId: member.id,
+          });
+          renderMember(data);
+          message(
+            "staffMessage",
+            "PIN reset approved. The customer can now create a new PIN on their phone.",
+            "ok",
+          );
+        } catch (error) {
+          message(
+            "staffMessage",
+            error.message || "The PIN reset could not be approved.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Approving...");
+        }
+      });
+
+      $("generateRecoveryLink").addEventListener("click", async () => {
+        if (!member) return;
+
+        const confirmed = confirm(
+          `Generate a 15-minute recovery link for ${member.firstName}? Once the customer opens it, all older saved cards for this membership will be signed out.`,
+        );
+
+        if (!confirmed) return;
+
+        const button = $("generateRecoveryLink");
+        setBusy(button, true, "Generating...");
+        message("staffMessage", "");
+
+        try {
+          const data = await apiRequest({
+            action: "staff_issue_recovery_token",
+            memberId: member.id,
+          });
+
+          if (!data.recoveryToken) {
+            throw new Error("The recovery token was not returned.");
+          }
+
+          const recoveryUrl = new URL("../rewards.html", window.location.href);
+          recoveryUrl.hash = `recover=${encodeURIComponent(data.recoveryToken)}`;
+
+          $("recoveryLink").value = recoveryUrl.toString();
+          $("recoveryLinkBox").classList.remove("hidden");
+          $("copyRecoveryLink").classList.remove("hidden");
+
+          const expiry = data.expiresAt
+            ? new Date(data.expiresAt).toLocaleString("en-GB")
+            : "15 minutes from now";
+          $("recoveryExpiry").textContent = `Valid until ${expiry}. Share it directly with the customer.`;
+
+          message(
+            "staffMessage",
+            "Recovery link generated. Copy it and send it directly to the customer.",
+            "ok",
+          );
+        } catch (error) {
+          message(
+            "staffMessage",
+            error.message || "The recovery link could not be generated.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Generating...");
+        }
+      });
+
+      $("copyRecoveryLink").addEventListener("click", async () => {
+        const link = $("recoveryLink").value;
+        if (!link) return;
+
+        try {
+          await navigator.clipboard.writeText(link);
+        } catch {
+          $("recoveryLink").focus();
+          $("recoveryLink").select();
+          document.execCommand("copy");
+        }
+
+        message("staffMessage", "Recovery link copied.", "ok");
+      });
+
+      $("addPoints").addEventListener("click", async () => {
+        if (!member) return;
+        const button = $("addPoints");
+        const purchaseAmount = Number($("purchaseAmount").value);
+        const receiptReference = $("earnReceipt").value.trim();
+
+        if (!Number.isFinite(purchaseAmount) || purchaseAmount <= 0) {
+          message("staffMessage", "Enter a valid purchase amount.", "error");
+          return;
+        }
+        if (!receiptReference) {
+          message("staffMessage", "Receipt number is required.", "error");
+          return;
+        }
+
+        setBusy(button, true, "Adding...");
+        try {
+          const data = await apiRequest({
+            action: "staff_add_purchase_points",
+            memberId: member.id,
+            purchaseAmount,
+            receiptReference,
+            idempotencyKey: createIdempotencyKey(),
+          });
+          renderMember(data);
+          $("purchaseAmount").value = "";
+          $("earnReceipt").value = "";
+          const duplicateText = data.operation?.duplicate
+            ? " This request had already been recorded."
+            : "";
+          message(
+            "staffMessage",
+            `${Number(data.operation?.pointsAdded || 0)} points added successfully.${duplicateText}`,
+            "ok",
+          );
+        } catch (error) {
+          message(
+            "staffMessage",
+            error.message || "Points could not be added.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Adding...");
+        }
+      });
+
+      $("memberReward").addEventListener("change", updateRewardPreview);
+      $("redeemPurchaseAmount").addEventListener("input", updateRewardPreview);
+
+      $("redeemReward").addEventListener("click", async () => {
+        if (!member) return;
+
+        const { memberRewardId, reward, definition } = selectedRewardDetails();
+        const rawPurchaseAmount = $("redeemPurchaseAmount").value.trim();
+        const purchaseAmount =
+          rawPurchaseAmount === "" ? null : Number(rawPurchaseAmount);
+        const receiptReference = $("redeemReceipt").value.trim();
+
+        if (!memberRewardId || !reward || !definition) {
+          message(
+            "staffMessage",
+            "The member does not have an available reward.",
+            "error",
+          );
+          return;
+        }
+
+        const kind = rewardKindOf(definition, reward);
+        const title = rewardTitle(definition, reward);
+
+        const fixedAmount = fixedRewardAmount(definition, reward);
+        const needsBillAmount =
+          fixedAmount !== null || kind === "percent_discount";
+
+        if (
+          needsBillAmount &&
+          (purchaseAmount === null ||
+            !Number.isFinite(purchaseAmount) ||
+            purchaseAmount <= 0)
+        ) {
+          message(
+            "staffMessage",
+            "Enter the bill amount to confirm the discount.",
+            "error",
+          );
+          $("redeemPurchaseAmount").focus();
+          return;
+        }
+
+        if (
+          purchaseAmount !== null &&
+          (!Number.isFinite(purchaseAmount) || purchaseAmount <= 0)
+        ) {
+          message("staffMessage", "Enter a valid purchase amount.", "error");
+          $("redeemPurchaseAmount").focus();
+          return;
+        }
+
+        let confirmationText = `Redeem ${title} for ${member.firstName}?`;
+        if (fixedAmount !== null) {
+          const { discount } = calculateFixedReward(
+            definition,
+            reward,
+            purchaseAmount,
+          );
+          confirmationText += `
+Discount to apply: £${discount.toFixed(2)}.`;
+        } else if (kind === "percent_discount") {
+          const { discount } = calculateDiscount(definition, purchaseAmount);
+          confirmationText += `
+Discount to apply: £${discount.toFixed(2)}.`;
+        }
+
+        if (!confirm(confirmationText)) return;
+
+        const button = $("redeemReward");
+        setBusy(button, true, "Redeeming...");
+        try {
+          const data = await apiRequest({
+            action: "staff_redeem_member_reward",
+            memberId: member.id,
+            memberRewardId,
+            purchaseAmount: rawPurchaseAmount || null,
+            receiptReference: receiptReference || null,
+            idempotencyKey: createIdempotencyKey(),
+          });
+
+          const operation = data.operation || {};
+          renderMember(data);
+          $("redeemPurchaseAmount").value = "";
+          $("redeemReceipt").value = "";
+
+          const redeemedKind = String(
+            readField(operation, "rewardKind", "reward_kind", "kind") || kind,
+          );
+          const redeemedValue = Number(
+            readField(operation, "rewardValue", "reward_value") || 0,
+          );
+          const duplicateText = operation.idempotent
+            ? " This request had already been completed."
+            : "";
+          const successText =
+            fixedAmount !== null || redeemedKind === "percent_discount"
+              ? `${title} redeemed successfully. Discount: £${redeemedValue.toFixed(2)}.${duplicateText}`
+              : `${title} redeemed successfully.${duplicateText}`;
+
+          message("staffMessage", successText, "ok");
+        } catch (error) {
+          message(
+            "staffMessage",
+            error.message || "Reward could not be redeemed.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Redeeming...");
+          syncRedeemButton();
+        }
+      });
+
+      $("stopScan").addEventListener("click", stopCamera);
+
+      async function startQrScanner() {
+        message("staffMessage", "");
+
+        if (!window.isSecureContext) {
+          message(
+            "staffMessage",
+            "Camera access requires the secure GitHub Pages address beginning with https://. It may not work when staff.html is opened directly from the device files.",
+            "error",
+          );
+          return;
+        }
+
+        if (!navigator.mediaDevices?.getUserMedia) {
+          message(
+            "staffMessage",
+            "This browser cannot access the camera. Use Chrome or the latest Huawei Browser.",
+            "error",
+          );
+          return;
+        }
+
+        if (typeof Html5Qrcode === "undefined") {
+          message(
+            "staffMessage",
+            "The QR scanner library did not load. Check the internet connection and reload the page.",
+            "error",
+          );
+          return;
+        }
+
+        await stopCamera();
+        $("scanArea").classList.remove("hidden");
+        $("scanQr").disabled = true;
+        $("scanArea").scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        scanning = true;
+        scanHandled = false;
+
+        qrScanner = new Html5Qrcode(
+          "qrReader",
+          { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] },
+          false,
+        );
+
+        const onScanSuccess = async (decodedText) => {
+          if (!scanning || scanHandled) return;
+
+          const rawValue = String(decodedText || "").trim();
+          const parsedQr = parseCustomerQr(rawValue);
+          const value = parsedQr.search;
+          const isKweiderCode =
+            /^KWEIDER-(LOYALTY|REWARDS):/i.test(rawValue) ||
+            /^KW-/i.test(value);
+
+          if (!isKweiderCode) {
+            message(
+              "staffMessage",
+              "This is not a Kweider Rewards QR code. Please scan the customer membership card.",
+              "error",
+            );
+            return;
+          }
+
+          scanHandled = true;
+          pendingQrRewardId = parsedQr.memberRewardId;
+          quickSelectedRewardId = parsedQr.memberRewardId;
+          quickSelectionFromCustomer = Boolean(
+            parsedQr.memberRewardId,
+          );
+          $("memberSearch").value = value;
+
+          try {
+            await stopCamera();
+            await findMember(value);
+          } catch (error) {
+            resetMember();
+            message(
+              "staffMessage",
+              error.message || "The membership QR code could not be opened.",
+              "error",
+            );
+          }
+        };
+
+        try {
+          await qrScanner.start(
+            { facingMode: "environment" },
+            {
+              fps: 10,
+              qrbox: (viewfinderWidth, viewfinderHeight) => {
+                const size = Math.floor(
+                  Math.min(viewfinderWidth, viewfinderHeight) * 0.72,
+                );
+                const safeSize = Math.max(180, Math.min(size, 320));
+                return { width: safeSize, height: safeSize };
+              },
+              aspectRatio: 1.333334,
+              disableFlip: false,
+            },
+            onScanSuccess,
+            () => {},
+          );
+
+          message(
+            "staffMessage",
+            "Camera ready. Point it at the customer QR code.",
+            "info",
+          );
+        } catch (error) {
+          await stopCamera();
+
+          const text = String(error?.message || error || "").toLowerCase();
+          let userMessage =
+            "Could not open the camera. Allow camera permission, then try again.";
+
+          if (text.includes("notallowed") || text.includes("permission")) {
+            userMessage =
+              "Camera permission was blocked. Allow camera access for this site in the browser settings, then try again.";
+          } else if (
+            text.includes("notfound") ||
+            text.includes("requested device not found")
+          ) {
+            userMessage = "No usable rear camera was found on this device.";
+          } else if (
+            text.includes("notreadable") ||
+            text.includes("trackstart")
+          ) {
+            userMessage =
+              "The camera is being used by another app. Close other camera apps and try again.";
+          }
+
+          message("staffMessage", userMessage, "error");
+        }
+      }
+
+      $("scanQr").addEventListener("click", startQrScanner);
+
+      window.addEventListener("pagehide", () => {
+        stopCamera();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && scanning) stopCamera();
+      });
+
+      async function start() {
+        if (!hasConfiguration()) {
+          $("loginCard").classList.add("hidden");
+          $("configurationCard").classList.remove("hidden");
+          return;
+        }
+
+        loadSession();
+        const loginAt = Number(localStorage.getItem(STAFF_APP_LOGIN_AT_KEY) || 0);
+        if (session?.access_token && (!loginAt || Date.now() - loginAt > STAFF_APP_MAX_AGE_MS)) {
+          saveSession(null);
+          localStorage.removeItem(STAFF_APP_LOGIN_AT_KEY);
+          session = null;
+          message("loginMessage", "Staff session expired. Sign in again · انتهت جلسة الموظف، يرجى تسجيل الدخول", "info");
+        }
+        if (!session?.access_token) return;
+
+        try {
+          const data = await apiRequest({ action: "staff_me" });
+          staff = data.staff;
+          renderStaff();
+        } catch {
+          saveSession(null);
+        }
+      }
+
+      start();
+    </script>
+</body>
+</html>

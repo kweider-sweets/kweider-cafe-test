@@ -1,0 +1,31 @@
+{
+  "id": "./",
+  "name": "Kweider Staff",
+  "short_name": "Kweider Staff",
+  "description": "Secure Kweider Rewards checkout app for authorised staff.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "orientation": "portrait",
+  "lang": "en-GB",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
