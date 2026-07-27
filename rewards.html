@@ -699,7 +699,7 @@
     </style>
 
     <style>
-      /* Password-free membership + Welcome Coffee v4.4.0 */
+      /* Password-free membership + Welcome Coffee v4.4.1 */
       #pinSetupPanel,
       .change-pin-panel,
       #forgotPinButton,
@@ -2339,7 +2339,7 @@
         if (!token) {
           showRegistration(
             showMissingMessage
-              ? "Enter your mobile number and PIN to open your Kweider card."
+              ? "Join with your first name and mobile number, or choose Already a Member? to restore your existing card. · سجّل باسمك ورقم هاتفك، أو اختر Already a Member? لاستعادة بطاقتك الحالية."
               : "",
             "info",
           );
@@ -2362,7 +2362,7 @@
           ) {
             localStorage.removeItem(MEMBER_TOKEN_KEY);
             showRegistration(
-              "The saved card on this device is no longer valid. Enter your mobile number and PIN to reopen it.",
+              "This card was moved to another device. Choose Already a Member? and ask staff to restore it here. · تم نقل البطاقة إلى جهاز آخر. اختر Already a Member? واطلب من الموظف استعادتها على هذا الجهاز.",
               "error",
             );
           } else {
