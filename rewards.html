@@ -697,6 +697,79 @@
         display: none;
       }
     </style>
+
+    <style>
+      /* Password-free membership + Welcome Coffee v4.4.0 */
+      #pinSetupPanel,
+      .change-pin-panel,
+      #forgotPinButton,
+      #resetStep {
+        display: none !important;
+      }
+
+      .welcome-coffee-card {
+        margin-top: 12px;
+        padding: 16px 18px;
+        border: 1px solid rgba(239, 214, 149, 0.7);
+        border-radius: 17px;
+        background:
+          radial-gradient(circle at 88% 0%, rgba(197,160,89,.2), transparent 48%),
+          rgba(197,160,89,.08);
+      }
+
+      .welcome-coffee-card.hidden {
+        display: none;
+      }
+
+      .welcome-coffee-card h3 {
+        margin: 0;
+        color: #efd695;
+        font-size: 20px;
+      }
+
+      .welcome-coffee-card p {
+        margin: 7px 0 0;
+        color: #ddd;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .welcome-coffee-status {
+        display: inline-flex;
+        margin-top: 10px;
+        padding: 6px 10px;
+        border: 1px solid rgba(143,202,158,.55);
+        border-radius: 999px;
+        color: #bde8c9;
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .welcome-coffee-status.used,
+      .welcome-coffee-status.expired {
+        border-color: rgba(255,255,255,.16);
+        color: #aaa;
+      }
+
+      .restore-help {
+        margin-top: 14px;
+        padding: 13px;
+        border: 1px solid rgba(197,160,89,.45);
+        border-radius: 14px;
+        background: rgba(197,160,89,.07);
+        color: #d8d0bc;
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .simple-registration-note {
+        margin-top: 12px;
+        color: #999;
+        font-size: 11px;
+        line-height: 1.45;
+        text-align: center;
+      }
+    </style>
   </head>
   <body class="app-page">
     <div id="appLoading" class="loading-layer">
@@ -719,11 +792,11 @@
       </header>
 
       <section id="registrationCard" class="app-card phone-auth-card hidden">
-        <div id="loginStep" class="access-step">
-          <h2 class="phone-auth-title">Open your Kweider card</h2>
+        <div id="loginStep" class="access-step hidden">
+          <h2 class="phone-auth-title">Restore an existing card</h2>
           <p class="phone-auth-help">
-            Enter your mobile number and 4-digit PIN.
-            <span class="phone-auth-help-ar" dir="rtl">أدخل رقم هاتفك والرقم السري المكوّن من 4 أرقام.</span>
+            Ask a member of staff to restore your card securely on this phone.
+            <span class="phone-auth-help-ar" dir="rtl">اطلب من الموظف استعادة بطاقتك بأمان على هذا الهاتف.</span>
           </p>
 
           <form id="pinLoginForm">
@@ -732,32 +805,28 @@
                 <label>Mobile number</label>
                 <input id="loginPhone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="07... or +44..." />
               </div>
-              <div class="field full">
-                <label>4-digit PIN</label>
-                <input id="loginPin" class="pin-input" type="password" inputmode="numeric" autocomplete="current-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
-              </div>
+              <input id="loginPin" type="hidden" value="" />
             </div>
             <div class="auth-inline-actions">
               <button class="primary-btn" type="submit" id="openCardButton">
-                Open My Card
+                Ask Staff to Restore
               </button>
               <button class="ghost-btn" type="button" id="newMemberButton">
-                New Member
+                Create New Membership
               </button>
             </div>
           </form>
-          <div class="forgot-pin-row">
-            <button id="forgotPinButton" class="forgot-pin-button" type="button">
-              Forgot Your PIN?
-            </button>
+          <button id="forgotPinButton" class="hidden" type="button">Hidden</button>
+          <div class="restore-help">
+            The employee will find your membership and create a secure one-time recovery link.
           </div>
         </div>
 
-        <div id="createStep" class="access-step hidden">
-          <h2 class="phone-auth-title">Create your Kweider card</h2>
+        <div id="createStep" class="access-step">
+          <h2 class="phone-auth-title">Join Kweider Rewards</h2>
           <p class="phone-auth-help">
-            Add your name, mobile number and choose a 4-digit PIN.
-            <span class="phone-auth-help-ar" dir="rtl">أضف اسمك ورقم هاتفك واختر رقماً سرياً من 4 أرقام.</span>
+            Enter your first name and mobile number. No password is required.
+            <span class="phone-auth-help-ar" dir="rtl">أدخل اسمك ورقم هاتفك فقط، دون كلمة سر.</span>
           </p>
 
           <form id="newMemberForm">
@@ -770,22 +839,10 @@
                 <label>Mobile number *</label>
                 <input id="createPhone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="07... or +44..." />
               </div>
-              <div class="field">
-                <label>Create 4-digit PIN *</label>
-                <input id="createPin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
-              </div>
-              <div class="field">
-                <label>Confirm PIN *</label>
-                <input id="confirmCreatePin" class="pin-input" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" required placeholder="••••" />
-              </div>
-              <div class="field">
-                <label>Email (optional)</label>
-                <input id="email" type="email" autocomplete="email" />
-              </div>
-              <div class="field">
-                <label>Birthday (optional)</label>
-                <input id="birthday" type="date" />
-              </div>
+              <input id="createPin" type="hidden" value="" />
+              <input id="confirmCreatePin" type="hidden" value="" />
+              <input id="email" type="hidden" value="" />
+              <input id="birthday" type="hidden" value="" />
               <label class="consent-row field full">
                 <input id="notificationConsent" type="checkbox" />
                 <span class="notification-consent-copy">
@@ -803,10 +860,10 @@
             </div>
             <div class="auth-inline-actions">
               <button class="primary-btn" type="submit" id="createCardButton">
-                Create My Card
+                Join & Claim Welcome Coffee
               </button>
               <button class="ghost-btn" type="button" id="backToLoginButton">
-                Back to Sign In
+                Already a Member?
               </button>
             </div>
           </form>
@@ -858,9 +915,9 @@
         </div>
 
         <div id="formMessage"></div>
-        <p class="access-security-note">
-          Your PIN securely opens your existing card on any of your devices.
-          <span dir="rtl">الرقم السري يفتح بطاقتك الحالية بأمان على أجهزتك.</span>
+        <p class="simple-registration-note">
+          One membership per mobile number. Your card stays saved on this device.
+          <span dir="rtl">عضوية واحدة لكل رقم هاتف، وتبقى البطاقة محفوظة على هذا الجهاز.</span>
         </p>
       </section>
 
@@ -916,6 +973,12 @@
               </button>
             </div>
           </div>
+        </div>
+
+        <div id="welcomeCoffeeCard" class="welcome-coffee-card hidden">
+          <h3>Welcome Coffee ☕</h3>
+          <p id="welcomeCoffeeText"></p>
+          <div id="welcomeCoffeeStatus" class="welcome-coffee-status"></div>
         </div>
 
         <div id="cardMessage"></div>
@@ -994,7 +1057,7 @@
               <div id="notificationMessage" aria-live="polite"></div>
             </section>
 
-            <details class="change-pin-panel">
+            <details class="change-pin-panel hidden">
               <summary>Change Access PIN</summary>
               <form id="changePinForm" class="change-pin-grid">
                 <div class="field">
@@ -1670,7 +1733,7 @@
         $("newPinAfterResetForm").reset();
         $("newPinAfterResetForm").classList.add("hidden");
         $("pinResetStatus").innerHTML = "";
-        showAccessStep("loginStep");
+        showAccessStep("createStep");
         notice("formMessage", message, type);
       }
 
@@ -1772,7 +1835,7 @@
         customerRewardDefinitions = [];
         $("membershipArea").classList.add("hidden");
         $("registrationCard").classList.remove("hidden");
-        showAccessStep("loginStep");
+        showAccessStep("createStep");
         notice("formMessage", message, type);
       }
 
@@ -2104,6 +2167,50 @@
           </li>`;
       }
 
+      function renderWelcomeCoffee(coffee) {
+        const card = $("welcomeCoffeeCard");
+        const text = $("welcomeCoffeeText");
+        const status = $("welcomeCoffeeStatus");
+
+        if (!coffee) {
+          card.classList.add("hidden");
+          return;
+        }
+
+        card.classList.remove("hidden");
+        const coffeeStatus = String(readField(coffee, "status") || "");
+        const expiresAt = readField(coffee, "expiresAt", "expires_at");
+        const expiryText = expiresAt
+          ? new Date(expiresAt).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "";
+
+        status.className = "welcome-coffee-status";
+
+        if (coffeeStatus === "available") {
+          text.textContent =
+            "Enjoy one complimentary Syrian coffee with your first paid dine-in order.";
+          status.textContent = expiryText
+            ? `READY · Valid until ${expiryText}`
+            : "READY";
+          return;
+        }
+
+        if (coffeeStatus === "redeemed") {
+          text.textContent = "Your welcome coffee has been enjoyed.";
+          status.textContent = "USED";
+          status.classList.add("used");
+          return;
+        }
+
+        text.textContent = "This welcome coffee offer has expired.";
+        status.textContent = "EXPIRED";
+        status.classList.add("expired");
+      }
+
       function render(bundle) {
         if (!bundle || !bundle.member) {
           showRegistration("The membership card could not be loaded.", "error");
@@ -2144,9 +2251,10 @@
         $("memberId").textContent = member.memberCode || "";
         $("memberPoints").textContent = points;
         $("rewardAvailable").textContent = String(availableRewards.length);
-        const pinConfigured = member.pinConfigured === true;
-        $("pinSetupPanel").classList.toggle("hidden", pinConfigured);
-        if (pinConfigured) $("pinSetupForm").reset();
+        $("pinSetupPanel").classList.add("hidden");
+        renderWelcomeCoffee(
+          bundle.welcomeCoffee || bundle.welcome_coffee || null,
+        );
         renderRewardJourney(points, memberRewards, rewardDefinitions);
 
         renderCustomerRewardPicker(
@@ -2407,26 +2515,14 @@
 
       $("pinLoginForm").addEventListener("submit", async (event) => {
         event.preventDefault();
-        if (requestInProgress) return;
-
-        setLoading(true);
-        notice("formMessage", "Opening your rewards card…", "info");
-        try {
-          const result = await callApi({
-            action: "login_with_pin",
-            phone: $("loginPhone").value.trim(),
-            pin: validFourDigitPin($("loginPin").value),
-          });
-          await saveReturnedCard(result);
-        } catch (error) {
-          let message = error.message;
-          if (error.code === "pin_not_set") {
-            message = "This card already exists but has no PIN yet. Open it on the device where the card is visible and create a PIN once.";
-          }
-          notice("formMessage", message, "error");
-        } finally {
-          setLoading(false);
-        }
+        const phone = $("loginPhone").value.trim();
+        notice(
+          "formMessage",
+          phone
+            ? "Please show this mobile number to a member of staff. They can restore your card securely."
+            : "Enter your mobile number, then ask a member of staff to restore your card.",
+          "info",
+        );
       });
 
       $("newMemberButton").addEventListener("click", () => {
@@ -2434,7 +2530,7 @@
         $("newMemberForm").reset();
         $("createPhone").value = phone;
         showAccessStep("createStep");
-        notice("formMessage", "Create one card only for each mobile number.", "info");
+        notice("formMessage", "Create one membership only for each mobile number.", "info");
         setTimeout(() => $("firstName").focus(), 50);
       });
 
@@ -2442,30 +2538,26 @@
         const phone = $("createPhone").value.trim();
         showAccessStep("loginStep");
         $("loginPhone").value = phone;
-        $("loginPin").value = "";
-        notice("formMessage", "Enter your mobile number and PIN to open your card.", "info");
+        notice(
+          "formMessage",
+          "Ask a member of staff to restore your existing card on this phone.",
+          "info",
+        );
       });
 
       $("newMemberForm").addEventListener("submit", async (event) => {
         event.preventDefault();
         if (requestInProgress) return;
 
-        const pin = validFourDigitPin($("createPin").value);
-        if (pin !== validFourDigitPin($("confirmCreatePin").value)) {
-          notice("formMessage", "The two PIN entries do not match.", "error");
-          return;
-        }
-
         setLoading(true);
-        notice("formMessage", "Creating your secure rewards card…", "info");
+        notice("formMessage", "Creating your rewards card…", "info");
         try {
           const result = await callApi({
             action: "create_member",
             firstName: $("firstName").value.trim(),
             phone: $("createPhone").value.trim(),
-            pin,
-            email: $("email").value.trim() || null,
-            birthday: $("birthday").value || null,
+            email: null,
+            birthday: null,
             notificationConsent: $("notificationConsent").checked,
           });
           await saveReturnedCard(result);
@@ -2474,9 +2566,12 @@
             const phone = $("createPhone").value.trim();
             showAccessStep("loginStep");
             $("loginPhone").value = phone;
-            $("loginPin").value = "";
-            notice("formMessage", "A card already exists for this number. Enter its 4-digit PIN to open it.", "error");
-            setTimeout(() => $("loginPin").focus(), 50);
+            notice(
+              "formMessage",
+              "A membership already exists for this number. Ask a member of staff to restore it on this phone.",
+              "error",
+            );
+            setTimeout(() => $("loginPhone").focus(), 50);
           } else {
             notice("formMessage", error.message, "error");
           }
@@ -2582,7 +2677,7 @@
 
       $("switchMembership").addEventListener("click", () => {
         const confirmed = confirm(
-          "Remove this rewards card from this device? You can reopen it anytime using your mobile number and 4-digit PIN.",
+          "Remove this rewards card from this device? A member of staff will be needed to restore it later.",
         );
 
         if (!confirmed) return;
@@ -2593,8 +2688,8 @@
           );
         }
         localStorage.removeItem(MEMBER_TOKEN_KEY);
-        resetPinAccess("The saved card was removed. Enter your mobile number and PIN to reopen it.", "ok");
-        showRegistration("The saved card was removed. Enter your mobile number and PIN to reopen it.", "ok");
+        resetPinAccess("The saved card was removed from this device.", "ok");
+        showRegistration("The saved card was removed. Ask staff to restore it if needed.", "ok");
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
 

@@ -443,6 +443,52 @@
     .customer-summary-card h2 { font-size: 19px; }
   }
 </style>
+
+<style>
+  /* Welcome Coffee + restore tools v4.4.0 */
+  .welcome-coffee-staff {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 10px 0 0;
+    padding: 12px;
+    border: 1px solid rgba(239,214,149,.64);
+    border-radius: 13px;
+    background: rgba(197,160,89,.09);
+    color: #eee;
+    line-height: 1.45;
+  }
+  .welcome-coffee-staff.hidden { display: none; }
+  .welcome-coffee-staff input {
+    width: 21px;
+    height: 21px;
+    margin-top: 1px;
+    accent-color: #c5a059;
+  }
+  .welcome-coffee-staff strong {
+    display: block;
+    color: #efd695;
+    font-size: 14px;
+  }
+  .welcome-coffee-staff small {
+    display: block;
+    margin-top: 3px;
+    color: #bdb5a2;
+    font-size: 11px;
+  }
+  .welcome-member-badge {
+    display: inline-flex;
+    margin-top: 7px;
+    padding: 5px 9px;
+    border: 1px solid rgba(143,202,158,.55);
+    border-radius: 999px;
+    color: #bde8c9;
+    font-size: 10px;
+    font-weight: 900;
+  }
+  .welcome-member-badge.hidden { display:none; }
+  .legacy-recovery-tool { display: block !important; }
+</style>
 </head>
 <body class="app-page staff-installed-app">
 <main class="app-shell">
@@ -521,7 +567,7 @@
 </div>
 <details class="customer-details">
 <summary>Customer details · بيانات العميل</summary>
-<div class="customer-detail-lines"><div id="staffMemberMeta"></div><p class="member-reward-note" id="staffRewardSummary"></p></div>
+<div class="customer-detail-lines"><div id="staffMemberMeta"></div><div id="staffWelcomeCoffeeBadge" class="welcome-member-badge hidden">NEW MEMBER · WELCOME COFFEE READY</div><p class="member-reward-note" id="staffRewardSummary"></p></div>
 </details>
 </div>
 <div class="app-card pin-reset-approval hidden" id="pinResetApprovalCard">
@@ -534,6 +580,13 @@
 <div class="app-card quick-checkout-card">
 <div class="checkout-title-row"><h3>Checkout · الفاتورة</h3></div>
 <div class="customer-choice"><div><span>Customer choice · اختيار العميل</span><strong id="quickRewardChoice">No reward selected</strong><small id="quickRewardChoiceNote">Points only</small></div></div>
+<label id="quickWelcomeCoffeeRow" class="welcome-coffee-staff hidden">
+  <input id="quickWelcomeCoffeeConfirmed" type="checkbox" />
+  <span>
+    <strong>Welcome Coffee available · قهوة ترحيبية متاحة</strong>
+    <small>Tick only when the complimentary Syrian coffee is served with this paid order.</small>
+  </span>
+</label>
 <div class="field quick-bill-field">
 <label for="quickPurchaseAmount" id="quickAmountLabel">Bill amount (£)</label>
 <input autocomplete="off" id="quickPurchaseAmount" inputmode="decimal" min="0" step="0.01" type="number"/>
@@ -559,9 +612,9 @@
 <summary>Manager tools · أدوات المدير</summary>
 <div class="staff-advanced-content">
 <section class="advanced-section legacy-recovery-tool">
-<h3>Restore customer card</h3>
-<p class="recovery-warning">Create a secure one-time recovery link.</p>
-<div class="form-actions"><button class="ghost-btn" id="generateRecoveryLink" type="button">Generate recovery link</button><button class="gold-btn hidden" id="copyRecoveryLink" type="button">Copy link</button></div>
+<h3>Restore card on a new phone</h3>
+<p class="recovery-warning">Find the customer, create a one-time link, then send or copy it to the customer’s phone.</p>
+<div class="form-actions"><button class="ghost-btn" id="generateRecoveryLink" type="button">Create recovery link</button><button class="gold-btn hidden" id="copyRecoveryLink" type="button">Copy link</button></div>
 <div class="recovery-link-box hidden" id="recoveryLinkBox"><div class="field"><label for="recoveryLink">Customer recovery link</label><input id="recoveryLink" readonly="" type="text"/></div><p class="field-hint" id="recoveryExpiry" style="margin-bottom:0"></p></div>
 </section>
 <section class="advanced-section">
@@ -637,6 +690,7 @@
       let member = null;
       let memberTransactions = [];
       let memberRewards = [];
+      let welcomeCoffee = null;
       let pinResetRequest = null;
       let rewardDefinitions = [];
       let settings = {
@@ -1055,6 +1109,17 @@
           "hidden",
           !breakfast,
         );
+        const welcomeAvailable = welcomeCoffeeAvailable(welcomeCoffee);
+        const enteredAmount = Number($("quickPurchaseAmount").value);
+        const paidOrderEntered = Number.isFinite(enteredAmount) && enteredAmount > 0;
+        $("quickWelcomeCoffeeRow").classList.toggle(
+          "hidden",
+          !welcomeAvailable,
+        );
+        $("quickWelcomeCoffeeConfirmed").disabled = !paidOrderEntered;
+        if (!paidOrderEntered) {
+          $("quickWelcomeCoffeeConfirmed").checked = false;
+        }
         $("quickAmountLabel").textContent = breakfast
           ? "Amount customer pays after breakfast reward (£)"
           : "Bill amount before reward (£)";
@@ -1091,6 +1156,9 @@
             <strong class="payable-value">£${plan.amountPaid.toFixed(2)}</strong>
           </div>
           <div class="compact-reward-line">${escapeHtml(rewardLine)}</div>
+          ${welcomeCoffeeAvailable(welcomeCoffee) && $("quickWelcomeCoffeeConfirmed").checked
+            ? '<div class="compact-reward-line">Welcome Coffee will be marked as used.</div>'
+            : ""}
           ${plan.note ? `<div class="field-hint" style="margin-top:7px">${escapeHtml(plan.note)}</div>` : ""}
         `;
         $("completeCheckout").disabled = false;
@@ -1119,6 +1187,7 @@
         $("quickPurchaseAmount").value = "";
         $("quickReceipt").value = "";
         $("quickBreakfastConfirmed").checked = false;
+        $("quickWelcomeCoffeeConfirmed").checked = false;
         $("quickCheckoutResult").innerHTML = "";
         renderQuickCheckout();
 
@@ -1338,6 +1407,7 @@
         member = null;
         memberTransactions = [];
         memberRewards = [];
+        welcomeCoffee = null;
         pinResetRequest = null;
         rewardDefinitions = [];
         pendingQrRewardId = "";
@@ -1491,6 +1561,16 @@
           .join("");
       }
 
+      function welcomeCoffeeAvailable(coffee) {
+        if (!coffee || String(readField(coffee, "status") || "") !== "available") {
+          return false;
+        }
+        const expiresAt = readField(coffee, "expiresAt", "expires_at");
+        if (!expiresAt) return true;
+        const expiry = new Date(expiresAt).getTime();
+        return Number.isFinite(expiry) && expiry > Date.now();
+      }
+
       function renderMember(bundle) {
         document.body.classList.add("has-member");
         member = bundle.member;
@@ -1509,6 +1589,7 @@
           ? definitionsPayload
           : [];
         settings = bundle.settings || settings;
+        welcomeCoffee = bundle.welcomeCoffee || bundle.welcome_coffee || null;
         pinResetRequest = bundle.pinResetRequest || bundle.pin_reset_request || null;
 
         const availableRewards = memberRewards.filter(isRewardAvailable);
@@ -1521,9 +1602,13 @@
         $("staffMemberMeta").textContent =
           `${member.memberCode} · ${member.phone}`;
         $("staffPoints").textContent = Number(member.points || 0);
+        const hasWelcomeCoffee = welcomeCoffeeAvailable(welcomeCoffee);
+        $("staffWelcomeCoffeeBadge").classList.toggle("hidden", !hasWelcomeCoffee);
         $("staffRewardSummary").textContent = availableRewards.length
           ? `${availableRewards.length} reward${availableRewards.length === 1 ? "" : "s"} available: ${availableTitles.join(", ")}`
-          : "No rewards available yet.";
+          : hasWelcomeCoffee
+            ? "Welcome Coffee is available with the first paid order."
+            : "No rewards available yet.";
 
         const resetStatus = String(pinResetRequest?.status || "");
         const showReset = resetStatus === "pending" || resetStatus === "approved";
@@ -1672,6 +1757,10 @@
         "change",
         renderQuickCheckout,
       );
+      $("quickWelcomeCoffeeConfirmed").addEventListener(
+        "change",
+        renderQuickCheckout,
+      );
 
       $("completeCheckout").addEventListener(
         "click",
@@ -1697,6 +1786,8 @@
                 plan.selectedRewardId || null,
               breakfastConfirmed:
                 $("quickBreakfastConfirmed").checked,
+              welcomeCoffeeConfirmed:
+                $("quickWelcomeCoffeeConfirmed").checked,
               receiptReference:
                 $("quickReceipt").value.trim() || null,
               idempotencyKey: createIdempotencyKey(),
@@ -1740,6 +1831,16 @@
             const rewardUsed = Boolean(
               readField(operation, "rewardUsed", "reward_used"),
             );
+            const coffeeRedemption =
+              data.welcomeCoffeeRedemption ||
+              data.welcome_coffee_redemption ||
+              null;
+            const coffeeUsed = Boolean(coffeeRedemption);
+            const coffeeWarning = String(
+              data.welcomeCoffeeWarning ||
+              data.welcome_coffee_warning ||
+              "",
+            );
 
             pendingQrRewardId = "";
             quickSelectedRewardId = "";
@@ -1762,8 +1863,10 @@
                   <span>Paid</span><strong>£${amountPaid.toFixed(2)}</strong>
                   <span>Points</span><strong>+${pointsAdded}</strong>
                   <span>Balance</span><strong>${newBalance}</strong>
+                  <span>Welcome Coffee</span><strong>${coffeeUsed ? "USED ✓" : "—"}</strong>
                 </div>
                 ${fallbackApplied ? '<div class="field-hint" style="margin-top:7px">A smaller suitable reward was used automatically.</div>' : ""}
+                ${coffeeWarning ? `<div class="notice error" style="margin-top:8px">${escapeHtml(coffeeWarning)}</div>` : ""}
                 <button type="button" class="gold-btn" data-scan-next style="width:100%;margin-top:10px">Scan next customer · العميل التالي</button>
               </div>`;
 
