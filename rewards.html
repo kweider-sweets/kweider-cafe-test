@@ -779,7 +779,7 @@
         text-align: center;
       }
 
-      /* Customer welcome + online shop journey v4.5.0 */
+      /* Customer welcome + online shop journey v4.5.1 */
       .welcome-intro {
         margin: -4px 0 20px;
         padding: 18px;
@@ -925,7 +925,8 @@
         90%, 100% { left: 118%; opacity: 0; }
       }
       @media (prefers-reduced-motion: reduce) {
-        .website-cta::after { animation: none; }
+        .website-cta::after,
+        .website-cta-arrow { animation: none; }
       }
       .website-cta-icon {
         display: flex;
@@ -970,20 +971,42 @@
       }
       .website-cta-arrow {
         display: flex;
-        width: 34px;
-        height: 34px;
+        width: 38px;
+        height: 38px;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
         background: linear-gradient(135deg, #a9823b, #efd695);
         color: #090909;
-        font-size: 17px;
+        font-size: 21px;
         font-weight: 900;
-        transition: transform 0.2s ease;
+        line-height: 1;
+        box-shadow:
+          0 0 0 0 rgba(239, 214, 149, 0.42),
+          0 10px 18px rgba(0, 0, 0, 0.22);
+        animation: websiteCtaPulse 2.2s ease-in-out infinite;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      @keyframes websiteCtaPulse {
+        0%, 100% {
+          transform: scale(1);
+          box-shadow:
+            0 0 0 0 rgba(239, 214, 149, 0.38),
+            0 10px 18px rgba(0, 0, 0, 0.22);
+        }
+        45% {
+          transform: scale(1.08);
+          box-shadow:
+            0 0 0 9px rgba(239, 214, 149, 0),
+            0 12px 20px rgba(0, 0, 0, 0.24);
+        }
+        60% {
+          transform: scale(1.02);
+        }
       }
       .website-cta:hover .website-cta-arrow,
       .website-cta:focus-visible .website-cta-arrow {
-        transform: translate(2px, -2px);
+        transform: scale(1.06);
       }
 
       @media (max-width: 480px) {
@@ -1198,7 +1221,7 @@
             <strong>Visit Our Website</strong>
             <small>Shop sweets, gifts & delivery · زيارة موقع قويدر والتسوق أون لاين</small>
           </span>
-          <span class="website-cta-arrow" aria-hidden="true">↗</span>
+          <span class="website-cta-arrow" aria-hidden="true">☝</span>
         </a>
 
         <div class="loyalty-card compact-loyalty-card">
@@ -1509,8 +1532,32 @@
         );
       }
 
+      function rewardStatusOf(reward) {
+        const rawStatus = String(readField(reward, "status") || "")
+          .trim()
+          .toLowerCase();
+
+        const normalized = {
+          available: "available",
+          ready: "available",
+          unlocked: "available",
+          issued: "available",
+          active: "available",
+          redeemed: "redeemed",
+          used: "redeemed",
+          claimed: "redeemed",
+          consumed: "redeemed",
+          expired: "expired",
+          cancelled: "expired",
+          canceled: "expired",
+          void: "expired",
+        };
+
+        return normalized[rawStatus] || rawStatus;
+      }
+
       function isAvailableReward(reward) {
-        if (!reward || readField(reward, "status") !== "available")
+        if (!reward || rewardStatusOf(reward) !== "available")
           return false;
         const expiresAt = readField(reward, "expiresAt", "expires_at");
         if (!expiresAt) return true;
@@ -1567,7 +1614,7 @@
 
       function levelStatus(memberRewards, level, cycleNumber, cyclePoints) {
         const reward = rewardForLevel(memberRewards, level, cycleNumber);
-        const status = String(readField(reward, "status") || "");
+        const status = rewardStatusOf(reward);
 
         if (status === "redeemed") return "redeemed";
         if (status === "available") {
