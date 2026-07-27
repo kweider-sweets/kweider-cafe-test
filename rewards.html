@@ -1021,6 +1021,214 @@
         .website-cta strong { font-size: 15px; }
         .website-cta small { font-size: 9.5px; }
       }
+
+
+      /* Refined mobile registration and rewards layout v4.5.2 */
+      .app-topbar {
+        padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+        align-items: flex-start;
+      }
+      .app-topbar .app-brand img {
+        margin-top: 5px;
+      }
+      .app-back {
+        min-height: 44px;
+        padding: 10px 17px;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .welcome-intro {
+        text-align: center;
+      }
+      .welcome-intro h2 {
+        margin: 0 0 8px;
+      }
+      .welcome-quote {
+        max-width: 470px;
+        margin: 5px auto 0 !important;
+        color: #ffffff !important;
+        text-align: center;
+      }
+      .welcome-quote-ar {
+        color: #ffffff !important;
+        font-size: 13px !important;
+        font-weight: 700;
+      }
+      .welcome-benefits-single {
+        grid-template-columns: minmax(0, 1fr);
+        max-width: 390px;
+        margin: 14px auto 0;
+      }
+      .welcome-benefit-featured {
+        display: flex;
+        min-height: 78px;
+        padding: 13px 16px;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        border-color: rgba(239, 214, 149, 0.68);
+        background:
+          radial-gradient(circle at 90% 0%, rgba(239, 214, 149, 0.18), transparent 44%),
+          rgba(0, 0, 0, 0.34);
+        text-align: left;
+      }
+      .welcome-benefit-featured .welcome-benefit-icon {
+        flex: 0 0 auto;
+        width: 38px;
+        height: 38px;
+        margin: 0;
+        font-size: 18px;
+      }
+      .welcome-benefit-copy {
+        min-width: 0;
+      }
+      .welcome-benefit-featured strong {
+        margin-top: 0;
+        font-size: 15px;
+      }
+      .welcome-benefit-featured small {
+        font-size: 11px;
+      }
+      .welcome-benefit-featured .welcome-benefit-ar {
+        color: #ffffff;
+        text-align: right;
+      }
+
+      .registration-intro {
+        margin: 0 0 12px;
+        text-align: center;
+      }
+      .registration-intro .phone-auth-help-ar {
+        color: #ffffff;
+      }
+
+      .notification-consent-highlight {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 13px;
+        margin-top: 4px;
+        padding: 14px 15px;
+        align-items: start;
+        border: 1px solid rgba(239, 214, 149, 0.85);
+        border-radius: 16px;
+        background:
+          radial-gradient(circle at 0% 0%, rgba(239, 214, 149, 0.13), transparent 46%),
+          rgba(197, 160, 89, 0.055);
+        box-shadow: 0 0 0 0 rgba(239, 214, 149, 0.3);
+        animation: notificationChoiceGlow 2.6s ease-in-out infinite;
+        cursor: pointer;
+      }
+      .notification-consent-highlight input[type="checkbox"] {
+        width: 25px;
+        height: 25px;
+        margin: 1px 0 0;
+        accent-color: #d8b866;
+        cursor: pointer;
+      }
+      .notification-consent-highlight:has(input:checked) {
+        animation: none;
+        border-color: rgba(143, 202, 158, 0.78);
+        background: rgba(74, 145, 92, 0.1);
+        box-shadow: 0 0 0 2px rgba(143, 202, 158, 0.08);
+      }
+      .notification-check-hint {
+        display: block;
+        width: fit-content;
+        margin-top: 2px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(239, 214, 149, 0.12);
+        color: #efd695 !important;
+        font-weight: 900;
+      }
+      @keyframes notificationChoiceGlow {
+        0%, 100% {
+          box-shadow: 0 0 0 0 rgba(239, 214, 149, 0.26);
+        }
+        50% {
+          box-shadow: 0 0 0 5px rgba(239, 214, 149, 0.055), 0 0 18px rgba(239, 214, 149, 0.14);
+        }
+      }
+
+      .compact-loyalty-card {
+        padding: 14px 16px;
+      }
+      .compact-loyalty-card .points-panel {
+        margin-top: 10px;
+        gap: 9px;
+      }
+      .compact-loyalty-card .metric {
+        min-height: 0;
+        padding: 8px 10px;
+      }
+      .compact-loyalty-card .metric strong {
+        font-size: 22px;
+        line-height: 1.05;
+      }
+      .compact-loyalty-card .metric span {
+        font-size: 10px;
+      }
+      .compact-loyalty-card .metric .cycle-counter {
+        margin-top: 4px;
+        font-size: 9px;
+      }
+
+      @media (max-width: 480px) {
+        .app-topbar {
+          padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+        }
+        .app-back {
+          padding: 9px 15px;
+          font-size: 15px;
+        }
+        .welcome-intro {
+          margin-bottom: 14px;
+          padding: 14px;
+        }
+        .welcome-intro h2 {
+          font-size: 23px;
+        }
+        .welcome-quote {
+          font-size: 12px !important;
+        }
+        .welcome-quote-ar {
+          font-size: 12.5px !important;
+        }
+        .welcome-benefit-featured {
+          min-height: 70px;
+          padding: 11px 13px;
+        }
+        .welcome-actions {
+          gap: 8px;
+          margin-top: 12px;
+        }
+        .welcome-action {
+          min-height: 43px;
+          padding: 8px 9px;
+        }
+        .notification-consent-highlight {
+          gap: 11px;
+          padding: 12px;
+        }
+        .compact-loyalty-card {
+          padding: 12px 14px;
+        }
+        .compact-loyalty-card .metric {
+          padding: 7px 9px;
+        }
+        .compact-loyalty-card .metric strong {
+          font-size: 21px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .notification-consent-highlight {
+          animation: none;
+        }
+      }
+
     </style>
   </head>
   <body class="app-page">
@@ -1032,7 +1240,6 @@
       <div class="app-topbar">
         <a href="index.html" class="app-brand">
           <img src="logo.webp" alt="Kweider" />
-          <span class="demo-badge">REWARDS</span>
         </a>
         <a href="index.html" class="app-back">← Menu</a>
       </div>
@@ -1076,26 +1283,18 @@
 
         <div id="createStep" class="access-step">
           <div class="welcome-intro">
-            <div class="welcome-eyebrow">Kweider · Menu · Rewards · Online</div>
             <h2>Welcome to Kweider</h2>
-            <p>Menu, rewards and online shopping in one place.</p>
-            <p dir="rtl">المنيو والمكافآت والتسوق أون لاين في مكان واحد.</p>
+            <p class="welcome-quote">“Install the app and enjoy a free Syrian coffee.”</p>
+            <p class="welcome-quote welcome-quote-ar" dir="rtl">«نزّل التطبيق واحصل على قهوة سورية مجاناً»</p>
 
-            <div class="welcome-benefits" aria-label="Kweider member benefits">
-              <div class="welcome-benefit">
+            <div class="welcome-benefits welcome-benefits-single" aria-label="Kweider welcome coffee">
+              <div class="welcome-benefit welcome-benefit-featured">
                 <span class="welcome-benefit-icon" aria-hidden="true">☕</span>
-                <strong>Welcome Coffee</strong>
-                <small>With your first paid order</small>
-              </div>
-              <div class="welcome-benefit">
-                <span class="welcome-benefit-icon" aria-hidden="true">★</span>
-                <strong>Earn Rewards</strong>
-                <small>1 point for every £1</small>
-              </div>
-              <div class="welcome-benefit">
-                <span class="welcome-benefit-icon" aria-hidden="true">↗</span>
-                <strong>Shop Online</strong>
-                <small>Sweets, gifts & delivery</small>
+                <span class="welcome-benefit-copy">
+                  <strong>Welcome Coffee</strong>
+                  <small>A complimentary Syrian coffee</small>
+                  <small class="welcome-benefit-ar" dir="rtl">قهوة سورية مجانية</small>
+                </span>
               </div>
             </div>
 
@@ -1104,15 +1303,14 @@
                 <span>View Menu<br /><span dir="rtl">عرض المنيو</span></span>
               </a>
               <a class="welcome-action primary" href="https://www.kweidersweets.co.uk/" target="_blank" rel="noopener noreferrer">
-                <span>Shop Online<br /><span dir="rtl">تسوق أون لاين</span></span>
+                <span>Shop Online<br /><span dir="rtl">تسوّق براحة</span></span>
               </a>
             </div>
           </div>
 
-          <h2 class="phone-auth-title">Join Kweider Rewards</h2>
-          <p class="phone-auth-help">
-            Enter your first name and mobile number. No password is required.
-            <span class="phone-auth-help-ar" dir="rtl">أدخل اسمك ورقم هاتفك فقط، دون كلمة سر.</span>
+          <p class="phone-auth-help registration-intro">
+            Enter your first name and mobile number.
+            <span class="phone-auth-help-ar" dir="rtl">أدخل اسمك ورقم هاتفك فقط.</span>
           </p>
 
           <form id="newMemberForm">
@@ -1129,24 +1327,19 @@
               <input id="confirmCreatePin" type="hidden" value="" />
               <input id="email" type="hidden" value="" />
               <input id="birthday" type="hidden" value="" />
-              <label class="consent-row field full">
+              <label class="consent-row field full notification-consent-highlight">
                 <input id="notificationConsent" type="checkbox" />
                 <span class="notification-consent-copy">
-                  <strong>Reward notifications on this device</strong>
-                  <small>
-                    Notify me when I am close to a reward, when a reward is ready,
-                    or when I have not visited for a while. You can turn notifications
-                    off at any time in My Details.
-                  </small>
-                  <small class="arabic-helper" dir="rtl">
-                    تذكير عند الاقتراب من المكافأة أو جاهزيتها أو عند مرور فترة دون زيارة.
-                  </small>
+                  <strong>Enable reward reminders</strong>
+                  <small>Get notified when a reward is ready or when you are close.</small>
+                  <small class="arabic-helper" dir="rtl">يصلك تنبيه عند اقتراب المكافأة أو جاهزيتها.</small>
+                  <small class="notification-check-hint">Tap the box to enable · <span dir="rtl">ضع علامة ✓ هنا</span></small>
                 </span>
               </label>
             </div>
             <div class="auth-inline-actions">
               <button class="primary-btn" type="submit" id="createCardButton">
-                Join & Claim Welcome Coffee
+                Create Card & Claim Free Coffee
               </button>
               <button class="ghost-btn" type="button" id="backToLoginButton">
                 Already a Member?
@@ -1219,7 +1412,7 @@
           <span class="website-cta-copy">
             <span class="website-cta-kicker">Kweider Online Shop</span>
             <strong>Visit Our Website</strong>
-            <small>Shop sweets, gifts & delivery · زيارة موقع قويدر والتسوق أون لاين</small>
+            <small>Shop sweets, gifts & delivery · تسوّق براحة</small>
           </span>
           <span class="website-cta-arrow" aria-hidden="true">☝</span>
         </a>
@@ -1264,7 +1457,7 @@
 
           <div id="cardRewardPicker" class="card-reward-picker hidden">
             <div class="card-reward-kicker">
-              Your Available Reward
+              Your Available Rewards
             </div>
             <div id="cardRewardChoices" class="card-reward-choices"></div>
             <div class="card-selected-reward">
