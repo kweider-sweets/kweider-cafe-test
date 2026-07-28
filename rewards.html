@@ -361,22 +361,100 @@
 
       .card-reward-picker {
         margin-top: 14px;
-        padding: 13px;
-        border: 1px solid rgba(197, 160, 89, 0.62);
-        border-radius: 15px;
+        padding: 0;
+        overflow: hidden;
+        border: 1px solid rgba(197, 160, 89, 0.68);
+        border-radius: 16px;
         background:
-          linear-gradient(135deg, rgba(197, 160, 89, 0.15), rgba(197, 160, 89, 0.04)),
-          rgba(10, 10, 10, 0.68);
+          radial-gradient(circle at 90% 0%, rgba(197, 160, 89, 0.17), transparent 43%),
+          linear-gradient(135deg, rgba(197, 160, 89, 0.11), rgba(0, 0, 0, 0.22)),
+          rgba(10, 10, 10, 0.72);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
       }
       .card-reward-picker.hidden {
         display: none;
       }
+      .card-reward-picker:not([open]) {
+        animation: rewardAccordionPulse 2.8s ease-in-out infinite;
+      }
+      .reward-accordion-summary {
+        display: flex;
+        min-height: 78px;
+        padding: 13px 15px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 13px;
+        cursor: pointer;
+        list-style: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .reward-accordion-summary::-webkit-details-marker {
+        display: none;
+      }
+      .reward-accordion-copy {
+        min-width: 0;
+      }
+      .reward-accordion-copy strong {
+        display: block;
+        color: #efd695;
+        font-size: 16px;
+        line-height: 1.25;
+      }
+      .reward-accordion-copy small {
+        display: block;
+        margin-top: 4px;
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.45;
+      }
+      .reward-accordion-copy small[dir="rtl"] {
+        font-size: 12px;
+      }
+      .reward-accordion-chevron {
+        display: inline-flex;
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(239, 214, 149, 0.46);
+        border-radius: 50%;
+        color: #efd695;
+        font-size: 19px;
+        line-height: 1;
+        transition: transform 0.24s ease, background 0.24s ease;
+      }
+      .card-reward-picker[open] .reward-accordion-chevron {
+        transform: rotate(180deg);
+        background: rgba(197, 160, 89, 0.12);
+      }
+      .reward-accordion-content {
+        padding: 0 13px 13px;
+        border-top: 1px solid rgba(255, 255, 255, 0.075);
+        animation: rewardAccordionReveal 0.28s ease both;
+      }
       .card-reward-kicker {
+        margin-top: 11px;
         color: #d8bd7b;
         font-size: 11px;
         font-weight: 900;
         letter-spacing: 0.08em;
         text-transform: uppercase;
+      }
+      @keyframes rewardAccordionPulse {
+        0%, 100% {
+          border-color: rgba(197, 160, 89, 0.58);
+          box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2), 0 0 0 rgba(239, 214, 149, 0);
+        }
+        50% {
+          border-color: rgba(239, 214, 149, 0.96);
+          box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2), 0 0 18px rgba(239, 214, 149, 0.2);
+        }
+      }
+      @keyframes rewardAccordionReveal {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
       }
       .card-reward-choices {
         display: flex;
@@ -1300,8 +1378,13 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .notification-consent-highlight {
+        .notification-consent-highlight,
+        .card-reward-picker:not([open]),
+        .reward-accordion-content {
           animation: none;
+        }
+        .reward-accordion-chevron {
+          transition: none;
         }
       }
 
@@ -1531,22 +1614,30 @@
             </form>
           </div>
 
-          <div id="cardRewardPicker" class="card-reward-picker hidden">
-            <div class="card-reward-kicker">
-              Your Available Rewards
-            </div>
-            <div id="cardRewardChoices" class="card-reward-choices"></div>
-            <div class="card-selected-reward">
-              <div>
-                <strong id="cardSelectedRewardTitle"></strong>
-                <span id="cardSelectedRewardSubtitle"></span>
-                <div id="cardSelectedRewardExpiry" class="card-reward-expiry"></div>
+          <details id="cardRewardPicker" class="card-reward-picker hidden">
+            <summary class="reward-accordion-summary">
+              <span class="reward-accordion-copy">
+                <strong id="rewardAccordionTitleEn">Open Your Rewards (0)</strong>
+                <small id="rewardAccordionStatusEn">Your rewards are ready to use</small>
+                <small id="rewardAccordionTitleAr" dir="rtl">افتح جوائزك (0) · جوائزك جاهزة للاستخدام</small>
+              </span>
+              <span class="reward-accordion-chevron" aria-hidden="true">⌄</span>
+            </summary>
+            <div class="reward-accordion-content">
+              <div class="card-reward-kicker">Your Available Rewards</div>
+              <div id="cardRewardChoices" class="card-reward-choices"></div>
+              <div class="card-selected-reward">
+                <div>
+                  <strong id="cardSelectedRewardTitle"></strong>
+                  <span id="cardSelectedRewardSubtitle"></span>
+                  <div id="cardSelectedRewardExpiry" class="card-reward-expiry"></div>
+                </div>
+                <button id="confirmRewardChoice" class="gold-btn card-reward-use" type="button">
+                  Use at checkout
+                </button>
               </div>
-              <button id="confirmRewardChoice" class="gold-btn card-reward-use" type="button">
-                Use at checkout
-              </button>
             </div>
-          </div>
+          </details>
 
           <div id="noRewardsMotivation" class="no-rewards-motivation hidden">
             <strong>✨ Keep collecting — your next reward is getting closer!</strong>
@@ -2652,11 +2743,19 @@
           customerSelectedRewardId = "";
           customerRewardIntentConfirmed = false;
           clearStoredRewardSelection(memberCode);
+          $("cardRewardPicker").removeAttribute("open");
           $("cardRewardPicker").classList.add("hidden");
           renderMemberQr(member);
           return;
         }
 
+        const rewardCount = customerAvailableRewards.length;
+        $("rewardAccordionTitleEn").textContent =
+          `Open Your Rewards (${rewardCount})`;
+        $("rewardAccordionStatusEn").textContent =
+          `You have ${rewardCount} reward${rewardCount === 1 ? "" : "s"} ready to use`;
+        $("rewardAccordionTitleAr").textContent =
+          `افتح جوائزك (${rewardCount}) · لديك ${rewardCount} ${rewardCount === 1 ? "جائزة" : "جوائز"} جاهزة للاستخدام`;
         $("cardRewardPicker").classList.remove("hidden");
         $("cardRewardChoices").innerHTML =
           customerAvailableRewards
