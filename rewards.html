@@ -456,6 +456,32 @@
         display: none;
       }
 
+
+      .no-rewards-motivation {
+        margin-top: 14px;
+        padding: 15px 16px;
+        border: 1px solid rgba(239, 214, 149, 0.56);
+        border-radius: 16px;
+        background:
+          radial-gradient(circle at 88% 0%, rgba(197, 160, 89, 0.18), transparent 46%),
+          rgba(197, 160, 89, 0.07);
+        text-align: center;
+      }
+      .no-rewards-motivation strong {
+        display: block;
+        color: #efd695;
+        font-size: 17px;
+        line-height: 1.35;
+      }
+      .no-rewards-motivation span {
+        display: block;
+        margin-top: 6px;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.55;
+      }
+
       @media (max-width: 480px) {
         .app-shell {
           padding-inline: 10px;
@@ -1514,6 +1540,11 @@
                 Use at checkout
               </button>
             </div>
+          </div>
+
+          <div id="noRewardsMotivation" class="no-rewards-motivation hidden">
+            <strong>✨ Keep collecting — your next reward is getting closer!</strong>
+            <span dir="rtl">✨ واصل جمع النقاط، فجائزتك التالية أصبحت أقرب!</span>
           </div>
         </div>
 
@@ -2687,11 +2718,19 @@
               year: "numeric",
             })
           : "";
-        const titleEn = String(
+        let titleEn = String(
           readField(message, "titleEn", "title_en") || "Kweider Rewards",
         );
-        const bodyEn = String(readField(message, "bodyEn", "body_en") || "");
-        const bodyAr = String(readField(message, "bodyAr", "body_ar") || "");
+        let bodyEn = String(readField(message, "bodyEn", "body_en") || "");
+        let bodyAr = String(readField(message, "bodyAr", "body_ar") || "");
+        const breakfastRewardMessage = /breakfast\s*(for\s*)?two|breakfast\s*[×x]2/i.test(
+          `${titleEn} ${bodyEn}`,
+        ) || /فطور\s*(مجاني\s*)?لشخصين/.test(bodyAr);
+        if (breakfastRewardMessage) {
+          titleEn = "🎉 Congratulations!";
+          bodyEn = "Your reward is a free breakfast for two! 🎉";
+          bodyAr = "🎉 مبروك! جائزتك فطور مجاني لشخصين 🎉";
+        }
 
         return `
           <article class="compact-message-card">
@@ -2829,6 +2868,10 @@
           availableRewards,
           rewardDefinitions,
         );
+        $("noRewardsMotivation").classList.toggle(
+          "hidden",
+          availableRewards.length > 0,
+        );
 
         const rawMemberMessages = Array.isArray(bundle.messages)
           ? bundle.messages
@@ -2846,9 +2889,16 @@
         $("messageActions").style.display =
           unreadMessageCount > 0 ? "block" : "none";
 
-        if (memberMessages.length) {
-          const latestMessage = compactMessageCard(memberMessages[0]);
-          const olderMessages = memberMessages.slice(1);
+        const unreadMessages = memberMessages.filter(
+          (message) => !readField(message, "isRead", "is_read"),
+        );
+        const readMessages = memberMessages.filter(
+          (message) => Boolean(readField(message, "isRead", "is_read")),
+        );
+
+        if (unreadMessages.length) {
+          const latestMessage = compactMessageCard(unreadMessages[0]);
+          const olderMessages = [...unreadMessages.slice(1), ...readMessages];
           $("memberMessages").innerHTML = latestMessage +
             (olderMessages.length
               ? `<details class="compact-inline-details">
@@ -2856,6 +2906,12 @@
                    <div class="compact-stack">${olderMessages.map(compactMessageCard).join("")}</div>
                  </details>`
               : "");
+        } else if (readMessages.length) {
+          $("memberMessages").innerHTML = `
+            <details class="compact-inline-details">
+              <summary>Previous Messages (${readMessages.length})</summary>
+              <div class="compact-stack">${readMessages.map(compactMessageCard).join("")}</div>
+            </details>`;
         } else {
           $("memberMessages").innerHTML = "";
         }
