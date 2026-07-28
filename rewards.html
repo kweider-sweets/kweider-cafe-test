@@ -77,6 +77,12 @@
       .compact-messages-card {
         padding: 16px 18px;
       }
+      .compact-messages-card.previous-only {
+        padding: 10px 18px;
+      }
+      .compact-messages-card.previous-only .compact-stack {
+        margin-top: 0;
+      }
       .compact-section-head {
         display: flex;
         align-items: center;
@@ -1556,7 +1562,7 @@
 
         <div id="cardMessage"></div>
         <div id="messagesCard" class="app-card compact-messages-card">
-          <div class="compact-section-head">
+          <div id="messagesHeader" class="compact-section-head">
             <h3>Messages</h3>
             <div class="message-tools">
               <div id="messageBadge" class="message-badge">0</div>
@@ -2888,6 +2894,12 @@
           unreadMessageCount > 0 ? "flex" : "none";
         $("messageActions").style.display =
           unreadMessageCount > 0 ? "block" : "none";
+        $("messagesHeader").style.display =
+          unreadMessageCount > 0 ? "flex" : "none";
+        $("messagesCard").classList.toggle(
+          "previous-only",
+          unreadMessageCount === 0 && memberMessages.length > 0,
+        );
 
         const unreadMessages = memberMessages.filter(
           (message) => !readField(message, "isRead", "is_read"),
