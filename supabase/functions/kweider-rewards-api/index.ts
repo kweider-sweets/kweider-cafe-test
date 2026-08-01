@@ -1474,7 +1474,7 @@ const redeemMemberReward = async (payload, ctx, staff)=>{
   const receiptReference = cleanText(payload.receiptReference);
   const idempotencyKey = cleanText(payload.idempotencyKey);
   const rawPurchaseAmount = payload.purchaseAmount;
-  const purchaseAmount = rawPurchaseAmount === null || rawPurchaseAmount === undefined || cleanText(rawPurchaseAmount) === "" ? null : Number(rawPurchaseAmount);
+  const purchaseAmount = rawPurchaseAmount === null || rawPurchaseAmount === undefined || (typeof rawPurchaseAmount === "string" && rawPurchaseAmount.trim() === "") ? null : Number(rawPurchaseAmount);
   if (!isUuid(memberId)) {
     throw new ApiError(400, "invalid_member_id", "Select a valid member.");
   }
