@@ -182,9 +182,25 @@ const getSettings = async (admin)=>{
     rewardValue: Number(data.reward_value)
   };
 };
-const formatMember = (member, settings)=>{
+const formatMember = (member, settings, rewards = [], rewardDefinitions = [])=>{
   const points = Number(member.points_balance ?? 0);
-  const availableRewards = Math.floor(points / settings.pointsPerReward);
+  const nowMs = Date.now();
+  const availableRewardRows = (rewards ?? []).filter((reward)=>{
+    if (reward?.status !== "available") return false;
+    if (!reward.expires_at) return true;
+    const expiresAtMs = new Date(reward.expires_at).getTime();
+    return Number.isFinite(expiresAtMs) && expiresAtMs > nowMs;
+  });
+  const definitionsByCode = new Map((rewardDefinitions ?? []).map((definition)=>[
+      definition.code,
+      definition
+    ]));
+  const availableRewards = availableRewardRows.length;
+  const availableRewardValue = availableRewardRows.reduce((total, reward)=>{
+    const maximumDiscount = definitionsByCode.get(reward.reward_code)?.maximum_discount;
+    const numericValue = maximumDiscount === null || maximumDiscount === undefined ? 0 : Number(maximumDiscount);
+    return total + (Number.isFinite(numericValue) ? numericValue : 0);
+  }, 0);
   return {
     id: member.id,
     memberCode: member.member_code,
@@ -204,7 +220,7 @@ const formatMember = (member, settings)=>{
     createdAt: member.created_at,
     pinConfigured: Boolean(member.access_pin_hash && member.access_pin_salt),
     availableRewards,
-    availableRewardValue: availableRewards * settings.rewardValue
+    availableRewardValue
   };
 };
 const formatTransactions = (transactions)=>(transactions ?? []).map((transaction)=>({
@@ -286,7 +302,7 @@ const loadMemberBundle = async (admin, memberId)=>{
       expiresAt: message.expires_at
     }));
   return {
-    member: formatMember(member, settings),
+    member: formatMember(member, settings, rewards ?? [], rewardDefinitions ?? []),
     transactions: formatTransactions(transactions ?? []),
     settings,
     rewardDefinitions: (rewardDefinitions ?? []).map((definition)=>({
