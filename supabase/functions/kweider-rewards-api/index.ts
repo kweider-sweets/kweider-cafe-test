@@ -1558,8 +1558,11 @@ const completeCheckout = async (payload, ctx, staff)=>{
   });
 };
 console.info("Kweider Rewards API v4.4.0 started");
+const localPublishableKey = cleanText(Deno.env.get("KWEIDER_LOCAL_PUBLISHABLE_KEY"));
+const localSecretKey = cleanText(Deno.env.get("KWEIDER_LOCAL_SECRET_KEY"));
+const localEnvOverrides = (localPublishableKey || localSecretKey) ? { env: { ...(localPublishableKey ? { publishableKeys: { default: localPublishableKey } } : {}), ...(localSecretKey ? { secretKeys: { default: localSecretKey } } : {}) } } : {};
 const rewardsApiFetch = withSupabase({
-  // Every browser request must include the publishable key in `apikey`.
+  ...localEnvOverrides,  // Every browser request must include the publishable key in `apikey`.
   // Staff JWTs are verified separately inside staff-only actions.
   auth: [
     "publishable",
