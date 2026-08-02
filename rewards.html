@@ -641,11 +641,19 @@
       .auth-inline-actions {
         display: flex;
         gap: 10px;
-        flex-wrap: wrap;
-        align-items: center;
+        flex-direction: column;
+        align-items: stretch;
       }
-      .auth-inline-actions .primary-btn,
-      .auth-inline-actions .ghost-btn { flex: 1 1 170px; }
+      .auth-inline-actions .primary-btn {
+        width: 100%;
+      }
+      .auth-inline-actions .ghost-btn {
+        align-self: center;
+        width: auto;
+        min-width: 220px;
+        padding: 10px 18px;
+        font-size: .9rem;
+      }
       .access-security-note {
         margin-top: 14px;
         color: #888;
@@ -1502,7 +1510,7 @@
                 Create Card & Claim Free Coffee
               </button>
               <button class="ghost-btn" type="button" id="backToLoginButton">
-                Already a Member?
+                Already a Member? Restore Existing Card
               </button>
             </div>
           </form>
@@ -2531,7 +2539,7 @@
         customerRewardDefinitions = [];
         $("membershipArea").classList.add("hidden");
         $("registrationCard").classList.remove("hidden");
-        showAccessStep("loginStep");
+        showAccessStep("createStep");
         notice("formMessage", message, type);
       }
 

@@ -1,4 +1,4 @@
-const CACHE = "kweider-customer-v4.5.2";
+const CACHE = "kweider-customer-v4.5.3";
 const CORE = [
   "./",
   "./index.html",
