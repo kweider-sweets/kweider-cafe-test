@@ -867,6 +867,7 @@
       #notificationMessage:empty {
         display: none;
       }
+      #loginStep .form-grid, #openCardButton { display: none !important; }
     </style>
 
     <style>
@@ -1466,8 +1467,8 @@
         <div id="loginStep" class="access-step hidden">
           <h2 class="phone-auth-title">Restore Existing Card<br><span dir="rtl">استعادة بطاقتي الحالية</span></h2>
           <p class="phone-auth-help">
-            Enter your mobile number and 4-digit PIN to restore the same card on this device.
-            <span class="phone-auth-help-ar" dir="rtl">أدخل رقم هاتفك والرقم السري من 4 أرقام لاستعادة نفس البطاقة.</span>
+            Ask a member of staff for a secure 15-minute recovery link. Open it on this device and your loyalty card will be restored automatically.
+            <span class="phone-auth-help-ar" dir="rtl">اطلب من الموظف رابط استرجاع آمن صالح لمدة 15 دقيقة، ثم افتح الرابط على هذا الجهاز وستعود بطاقة الولاء تلقائياً.</span>
           </p>
 
           <form id="pinLoginForm">
@@ -1483,13 +1484,13 @@
                 Restore Existing Card
               </button>
               <button class="ghost-btn" type="button" id="newMemberButton">
-                I Do Not Have a Membership
+                Create a New Membership
               </button>
             </div>
           </form>
           <button id="forgotPinButton" class="hidden" type="button">Hidden</button>
           <div class="restore-help">
-            No PIN? Ask a member of staff for a secure recovery link. Do not create another membership.
+            No password or PIN is required. Ask a member of staff for a secure 15-minute recovery link.
           </div>
         </div>
 
@@ -2507,6 +2508,7 @@
           $(id).classList.toggle("hidden", id !== stepId);
         });
         if (stepId !== "resetStep") stopPinResetPolling();
+        if (stepId === "loginStep") { notice("cardMessage", ""); notice("formMessage", ""); }
       }
 
       function resetPinAccess(message = "", type = "info") {
@@ -3388,7 +3390,7 @@
         $("loginPhone").value = phone;
         notice(
           "formMessage",
-          "Enter your mobile number and 4-digit PIN to restore your existing card. · أدخل رقم هاتفك والرقم السري لاستعادة بطاقتك الحالية.",
+          "Ask a member of staff for a secure 15-minute recovery link. No password or PIN is required. · اطلب من الموظف رابط استرجاع آمن صالح لمدة 15 دقيقة، ولا تحتاج إلى كلمة سر أو رقم سري.",
           "info",
         );
       });
