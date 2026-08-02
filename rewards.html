@@ -1412,10 +1412,10 @@
 
       <section id="registrationCard" class="app-card phone-auth-card hidden">
         <div id="loginStep" class="access-step hidden">
-          <h2 class="phone-auth-title">Restore an existing card</h2>
+          <h2 class="phone-auth-title">Restore Existing Card<br><span dir="rtl">استعادة بطاقتي الحالية</span></h2>
           <p class="phone-auth-help">
-            Ask a member of staff to restore your card securely on this phone.
-            <span class="phone-auth-help-ar" dir="rtl">اطلب من الموظف استعادة بطاقتك بأمان على هذا الهاتف.</span>
+            Enter your mobile number and 4-digit PIN to restore the same card on this device.
+            <span class="phone-auth-help-ar" dir="rtl">أدخل رقم هاتفك والرقم السري من 4 أرقام لاستعادة نفس البطاقة.</span>
           </p>
 
           <form id="pinLoginForm">
@@ -1424,20 +1424,20 @@
                 <label>Mobile number</label>
                 <input id="loginPhone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="07... or +44..." />
               </div>
-              <input id="loginPin" type="hidden" value="" />
+              <div class="field full"><label>4-digit PIN</label><input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" minlength="4" maxlength="4" pattern="[0-9]{4}" required placeholder="PIN" /></div>
             </div>
             <div class="auth-inline-actions">
               <button class="primary-btn" type="submit" id="openCardButton">
-                Ask Staff to Restore
+                Restore Existing Card
               </button>
               <button class="ghost-btn" type="button" id="newMemberButton">
-                Create New Membership
+                I Do Not Have a Membership
               </button>
             </div>
           </form>
           <button id="forgotPinButton" class="hidden" type="button">Hidden</button>
           <div class="restore-help">
-            The employee will find your membership and create a secure one-time recovery link.
+            No PIN? Ask a member of staff for a secure recovery link. Do not create another membership.
           </div>
         </div>
 
@@ -2531,7 +2531,7 @@
         customerRewardDefinitions = [];
         $("membershipArea").classList.add("hidden");
         $("registrationCard").classList.remove("hidden");
-        showAccessStep("createStep");
+        showAccessStep("loginStep");
         notice("formMessage", message, type);
       }
 
@@ -3250,14 +3250,38 @@
 
       $("pinLoginForm").addEventListener("submit", async (event) => {
         event.preventDefault();
-        const phone = $("loginPhone").value.trim();
-        notice(
-          "formMessage",
-          phone
-            ? "Please show this mobile number to a member of staff. They can restore your card securely."
-            : "Enter your mobile number, then ask a member of staff to restore your card.",
-          "info",
-        );
+        if (requestInProgress) return;
+
+        let pin;
+        try {
+          pin = validFourDigitPin($("loginPin").value);
+        } catch (error) {
+          notice("formMessage", error.message, "error");
+          return;
+        }
+
+        setLoading(true);
+        notice("formMessage", "Restoring your existing rewards card...", "info");
+
+        try {
+          const result = await callApi({
+            action: "login_with_pin",
+            phone: $("loginPhone").value.trim(),
+            pin,
+          });
+          restoredCardNoticePending = true;
+          await saveReturnedCard(result);
+        } catch (error) {
+          notice(
+            "formMessage",
+            error.code === "pin_not_set"
+              ? "This card has no PIN yet. Ask staff for a secure recovery link."
+              : error.message,
+            "error",
+          );
+        } finally {
+          setLoading(false);
+        }
       });
 
       $("newMemberButton").addEventListener("click", () => {
@@ -3275,7 +3299,7 @@
         $("loginPhone").value = phone;
         notice(
           "formMessage",
-          "Ask a member of staff to restore your existing card on this phone.",
+          "Enter your mobile number and 4-digit PIN to restore your existing card. · أدخل رقم هاتفك والرقم السري لاستعادة بطاقتك الحالية.",
           "info",
         );
       });
