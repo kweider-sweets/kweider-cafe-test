@@ -771,6 +771,50 @@
         font-size: 11px;
         line-height: 1.55;
       }
+      #disableNotifications { display: none !important; }
+      .notification-prompt {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, .86);
+        backdrop-filter: blur(6px);
+      }
+      .notification-prompt.hidden { display: none; }
+      .notification-prompt-card {
+        width: min(100%, 430px);
+        padding: 28px 22px;
+        border: 1px solid rgba(217, 182, 80, .75);
+        border-radius: 22px;
+        background: #111;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, .7);
+        text-align: center;
+      }
+      .notification-prompt-icon { font-size: 46px; }
+      .notification-prompt-card h2 {
+        margin: 12px 0 10px;
+        color: #efd695;
+        font-size: 1.7rem;
+      }
+      .notification-prompt-card p {
+        color: #eee;
+        line-height: 1.65;
+      }
+      .notification-prompt-ar {
+        color: #d8cdb8 !important;
+        font-weight: 800;
+      }
+      .notification-prompt-card button {
+        width: 100%;
+        margin-top: 10px;
+      }
+      .notification-prompt-card .ghost-btn {
+        width: auto;
+        min-width: 150px;
+      }
       .notification-panel {
         margin: 14px 0;
         padding: 14px;
@@ -1770,6 +1814,27 @@
       </div>
     </main>
 
+    <div id="notificationPrompt" class="notification-prompt hidden" role="dialog" aria-modal="true" aria-labelledby="notificationPromptTitle">
+      <div class="notification-prompt-card">
+        <div class="notification-prompt-icon" aria-hidden="true">&#128276;</div>
+        <h2 id="notificationPromptTitle">Never Miss a Reward</h2>
+        <p>
+          Enable reward notifications so you never miss points, unlocked rewards,
+          or special member offers.
+        </p>
+        <p class="notification-prompt-ar" dir="rtl">
+          &#1601;&#1593;&#1617;&#1604; &#1573;&#1588;&#1593;&#1575;&#1585;&#1575;&#1578; &#1575;&#1604;&#1605;&#1603;&#1575;&#1601;&#1570;&#1578; &#1581;&#1578;&#1609; &#1604;&#1575; &#1578;&#1601;&#1608;&#1578;&#1603; &#1575;&#1604;&#1606;&#1602;&#1575;&#1591; &#1608;&#1575;&#1604;&#1580;&#1608;&#1575;&#1574;&#1586; &#1608;&#1575;&#1604;&#1593;&#1585;&#1608;&#1590; &#1575;&#1604;&#1582;&#1575;&#1589;&#1577;&#1548; &#1608;&#1575;&#1587;&#1578;&#1605;&#1585; &#1601;&#1610; &#1575;&#1604;&#1585;&#1576;&#1581; &#1605;&#1593; &#1603;&#1604; &#1586;&#1610;&#1575;&#1585;&#1577;.
+        </p>
+        <button id="notificationPromptEnable" class="gold-btn" type="button">
+          Enable Reward Alerts
+        </button>
+        <button id="notificationPromptLater" class="ghost-btn" type="button">
+          Maybe Later
+        </button>
+      </div>
+    </div>
+
+
 
     <script src="assets/vendor/qrcode-local.js"></script>
     <script src="assets/js/app-shell.js"></script>
@@ -1791,6 +1856,20 @@
       let activePinResetToken = "";
       let pinResetPollTimer = null;
       let notificationStateRequest = 0;
+      let notificationPromptShown = false;
+
+      function openNotificationPrompt() {
+        if (notificationPromptShown || !$("notificationPrompt")) return;
+        notificationPromptShown = true;
+        $("notificationPrompt").classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeNotificationPrompt() {
+        if (!$("notificationPrompt")) return;
+        $("notificationPrompt").classList.add("hidden");
+        document.body.style.overflow = "";
+      }
 
       const REWARD_SELECTION_KEY_PREFIX =
         "kweiderRewards.checkoutSelection.v1.";
@@ -2268,13 +2347,15 @@
           $("enableNotifications").classList.add("hidden");
           $("disableNotifications").classList.remove("hidden");
         } else if (accountEnabled) {
-          renderNotificationStatus("Permission saved — enable this device", "warning");
+          renderNotificationStatus("Enable alerts on this device", "warning");
           $("enableNotifications").classList.remove("hidden");
           $("disableNotifications").classList.remove("hidden");
+          openNotificationPrompt();
         } else {
-          renderNotificationStatus("Off");
+          renderNotificationStatus("Reward alerts not enabled", "warning");
           $("enableNotifications").classList.remove("hidden");
           $("disableNotifications").classList.add("hidden");
+          openNotificationPrompt();
         }
       }
 
@@ -3406,6 +3487,11 @@
       });
 
       $("enableNotifications").addEventListener("click", enableRewardNotifications);
+      $("notificationPromptEnable").addEventListener("click", async () => {
+        closeNotificationPrompt();
+        await enableRewardNotifications();
+      });
+      $("notificationPromptLater").addEventListener("click", closeNotificationPrompt);
       $("disableNotifications").addEventListener("click", disableRewardNotifications);
 
       $("refreshCard").addEventListener("click", () => loadSavedCard(false));

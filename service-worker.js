@@ -1,4 +1,4 @@
-const CACHE = "kweider-customer-v4.5.3";
+const CACHE = "kweider-customer-v4.5.4";
 const CORE = [
   "./",
   "./index.html",
@@ -95,7 +95,7 @@ self.addEventListener("fetch", event => {
     event.respondWith(caches.match(request).then(async cached => {
       if (cached) return cached;
       const response = await fetch(request);
-      if (response && response.ok) caches.open(CACHE).then(cache => cache.put(request, response.clone()));
+      if (response && response.ok) { const cacheCopy = response.clone(); caches.open(CACHE).then(cache => cache.put(request, cacheCopy)); }
       return response;
     }));
   }
