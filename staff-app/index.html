@@ -571,11 +571,11 @@
 </details>
 </div>
 <div class="app-card pin-reset-approval hidden" id="pinResetApprovalCard">
-<h3>PIN reset requested · طلب إعادة الرقم السري</h3>
+<h3>Card restore requested · طلب استعادة البطاقة</h3>
 <p>Check the customer name, then approve once.</p>
 <p class="pin-reset-time" id="pinResetRequestTime"></p>
-<div class="pin-reset-approved hidden" id="pinResetApprovedNote">Approved ✓ The customer can create a new PIN.</div>
-<div class="form-actions"><button class="gold-btn" id="approvePinReset" type="button">Approve PIN reset · موافقة</button></div>
+<div class="pin-reset-approved hidden" id="pinResetApprovedNote">Approved ✓ The customer card will restore automatically. · تمت الموافقة، ستعود بطاقة العميل تلقائيًا.</div>
+<div class="form-actions"><button class="gold-btn" id="approvePinReset" type="button">Approve Card Restore · موافقة</button></div>
 </div>
 <div class="app-card quick-checkout-card">
 <div class="checkout-title-row"><h3>Checkout · الفاتورة</h3></div>
@@ -1905,7 +1905,7 @@
         if (!member || !pinResetRequest || pinResetRequest.status !== "pending") return;
 
         const confirmed = confirm(
-          `Approve the PIN reset for ${member.firstName}? The customer will be able to create a new PIN for this card.`,
+          `Approve restoring the card for ${member.firstName}? The card will open automatically on the customer phone.`,
         );
         if (!confirmed) return;
 
@@ -1920,13 +1920,13 @@
           renderMember(data);
           message(
             "staffMessage",
-            "PIN reset approved. The customer can now create a new PIN on their phone.",
+            "Card restore approved. The card will open automatically on the customer phone.",
             "ok",
           );
         } catch (error) {
           message(
             "staffMessage",
-            error.message || "The PIN reset could not be approved.",
+            error.message || "The card restore could not be approved.",
             "error",
           );
         } finally {
