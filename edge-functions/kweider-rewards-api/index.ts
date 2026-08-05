@@ -578,11 +578,11 @@ const latestActivePinReset = async (admin: any, memberId: string) => {
     .maybeSingle();
 
   if (error) {
-    console.error("Unable to read PIN reset request:", error);
+    console.error("Unable to read card restore request:", error);
     throw new ApiError(
       500,
       "pin_reset_check_failed",
-      "The PIN reset request could not be checked.",
+      "The card restore request could not be checked.",
     );
   }
 
@@ -603,11 +603,11 @@ const requestPinReset = async (payload: RequestPayload, admin: any) => {
     .maybeSingle();
 
   if (memberError) {
-    console.error("Unable to find member for PIN reset:", memberError);
+    console.error("Unable to find member for card restore:", memberError);
     throw new ApiError(
       500,
       "pin_reset_request_failed",
-      "The PIN reset request could not be started.",
+      "The card restore request could not be started.",
     );
   }
 
@@ -619,13 +619,6 @@ const requestPinReset = async (payload: RequestPayload, admin: any) => {
     throw new ApiError(403, "membership_unavailable", "This membership is not currently active.");
   }
 
-  if (!member.access_pin_hash || !member.access_pin_salt) {
-    throw new ApiError(
-      409,
-      "pin_not_set",
-      "This card does not have a PIN yet. Open it on the device where it is already visible and create a PIN once.",
-    );
-  }
 
   await admin
     .from("kweider_pin_reset_requests")
@@ -647,11 +640,11 @@ const requestPinReset = async (payload: RequestPayload, admin: any) => {
     .single();
 
   if (requestError || !request) {
-    console.error("Unable to create PIN reset request:", requestError);
+    console.error("Unable to create card restore request:", requestError);
     throw new ApiError(
       500,
       "pin_reset_request_failed",
-      "The PIN reset request could not be started.",
+      "The card restore request could not be started.",
     );
   }
 
@@ -667,7 +660,7 @@ const checkPinReset = async (payload: RequestPayload, admin: any) => {
   const resetToken = cleanText(payload.resetToken);
   const expiresAtMs = pinResetExpiryMs(resetToken);
   if (!expiresAtMs || resetToken.length < 45) {
-    throw new ApiError(401, "invalid_pin_reset", "This PIN reset request is not valid.");
+    throw new ApiError(401, "invalid_pin_reset", "This card restore request is not valid.");
   }
 
   const tokenHash = await sha256Hex(resetToken);
@@ -678,7 +671,7 @@ const checkPinReset = async (payload: RequestPayload, admin: any) => {
     .maybeSingle();
 
   if (error || !request) {
-    throw new ApiError(404, "pin_reset_not_found", "This PIN reset request could not be found.");
+    throw new ApiError(404, "pin_reset_not_found", "This card restore request could not be found.");
   }
 
   const expired = Date.now() >= new Date(request.expires_at).getTime();
@@ -699,11 +692,14 @@ const checkPinReset = async (payload: RequestPayload, admin: any) => {
 
 const completePinReset = async (payload: RequestPayload, admin: any) => {
   const resetToken = cleanText(payload.resetToken);
-  const pin = validatePin(payload.pin);
+  const suppliedPin = cleanText(payload.pin);
+  const pin = suppliedPin
+    ? validatePin(suppliedPin)
+    : String(crypto.getRandomValues(new Uint32Array(1))[0] % 10000).padStart(4, "0");
   const expiresAtMs = pinResetExpiryMs(resetToken);
 
   if (!expiresAtMs || resetToken.length < 45) {
-    throw new ApiError(401, "invalid_pin_reset", "This PIN reset request is not valid.");
+    throw new ApiError(401, "invalid_pin_reset", "This card restore request is not valid.");
   }
 
   const tokenHash = await sha256Hex(resetToken);
@@ -714,19 +710,19 @@ const completePinReset = async (payload: RequestPayload, admin: any) => {
     .maybeSingle();
 
   if (requestError || !request) {
-    throw new ApiError(404, "pin_reset_not_found", "This PIN reset request could not be found.");
+    throw new ApiError(404, "pin_reset_not_found", "This card restore request could not be found.");
   }
 
   if (request.used_at || request.status === "used") {
-    throw new ApiError(409, "pin_reset_used", "This PIN reset request has already been used.");
+    throw new ApiError(409, "pin_reset_used", "This card restore request has already been used.");
   }
 
   if (Date.now() >= new Date(request.expires_at).getTime()) {
-    throw new ApiError(410, "pin_reset_expired", "This PIN reset request has expired. Start again.");
+    throw new ApiError(410, "pin_reset_expired", "This card restore request has expired. Start again.");
   }
 
   if (request.status !== "approved") {
-    throw new ApiError(409, "pin_reset_not_approved", "A member of staff must approve this PIN reset first.");
+    throw new ApiError(409, "pin_reset_not_approved", "A member of staff must approve this card restore first.");
   }
 
   const pinSalt = createPinSalt();
@@ -747,13 +743,13 @@ const completePinReset = async (payload: RequestPayload, admin: any) => {
       .filter(Boolean)
       .join(" ");
     if (raw.includes("PIN_RESET_NOT_APPROVED")) {
-      throw new ApiError(409, "pin_reset_not_approved", "A member of staff must approve this PIN reset first.");
+      throw new ApiError(409, "pin_reset_not_approved", "A member of staff must approve this card restore first.");
     }
     if (raw.includes("MEMBER_NOT_FOUND")) {
       throw new ApiError(404, "member_not_found", "The membership could not be found.");
     }
-    console.error("Unable to complete PIN reset:", completeError);
-    throw new ApiError(500, "pin_reset_failed", "The new PIN could not be saved.");
+    console.error("Unable to complete card restore:", completeError);
+    throw new ApiError(500, "pin_reset_failed", "The card could not be restored.");
   }
 
   const bundle = await loadMemberBundle(admin, request.member_id);
@@ -1765,7 +1761,7 @@ const queueNearRewardMessage = async (admin: any, bundle: any): Promise<boolean>
     title_en: `Only ${remaining} point${remaining === 1 ? "" : "s"} to ${rewardTitle}`,
     title_ar: `Only ${remaining} point${remaining === 1 ? "" : "s"} to ${rewardTitle}`,
     body_en: "You are close to your next Kweider reward.",
-    body_ar: `ظ…طھط¨ظ‚ظٹ ظ„ظƒ ${remaining} ظ†ظ‚ط·ط© ظپظ‚ط· ظ„ظ„ط­طµظˆظ„ ط¹ظ„ظ‰ ظ…ظƒط§ظپط£طھظƒ ط§ظ„طھط§ظ„ظٹط©.`,
+    body_ar: `متبقي لك ${remaining} نقطة فقط للحصول على مكافأتك التالية.`,
     related_reward_id: null,
     dedupe_key: dedupeKey,
     is_read: false,
@@ -2281,7 +2277,7 @@ const approveMemberPinReset = async (
 
   const request = await latestActivePinReset(ctx.supabaseAdmin, memberId);
   if (!request || request.status !== "pending") {
-    throw new ApiError(404, "pin_reset_not_pending", "No PIN reset request is waiting for this customer.");
+    throw new ApiError(404, "pin_reset_not_pending", "No card restore request is waiting for this customer.");
   }
 
   const { data: approved, error: approveError } = await ctx.supabaseAdmin
@@ -2297,8 +2293,8 @@ const approveMemberPinReset = async (
     .single();
 
   if (approveError || !approved) {
-    console.error("Unable to approve PIN reset:", approveError);
-    throw new ApiError(409, "pin_reset_approval_failed", "The PIN reset request could not be approved.");
+    console.error("Unable to approve card restore:", approveError);
+    throw new ApiError(409, "pin_reset_approval_failed", "The card restore request could not be approved.");
   }
 
   const bundle = await loadMemberBundle(ctx.supabaseAdmin, memberId);
@@ -2736,7 +2732,7 @@ const rewardsApiFetch = withSupabase(
           }
 
           if (action === "staff_approve_pin_reset") {
-            return await approveMemberPinReset(payload, ctx, requireManager(staff));
+            return await approveMemberPinReset(payload, ctx, staff);
           }
 
           if (action === "staff_complete_checkout") {
