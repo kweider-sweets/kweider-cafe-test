@@ -34,6 +34,10 @@ interface RequestPayload {
   breakfastConfirmed?: boolean;
   welcomeCoffeeConfirmed?: boolean;
   idempotencyKey?: string;
+
+  // Manager-only broadcast
+  broadcastTitle?: string;
+  broadcastBody?: string;
 }
 
 class ApiError extends Error {
@@ -1909,6 +1913,193 @@ const requireStaff = async (req: Request, ctx: any) => {
   };
 };
 
+type StaffIdentity = {
+  userId: string;
+  displayName: string;
+  role: string;
+};
+
+const requireManager = (staff: StaffIdentity): StaffIdentity => {
+  const role = cleanText(staff?.role).toLowerCase();
+
+  if (role !== "manager" && role !== "admin") {
+    throw new ApiError(
+      403,
+      "manager_required",
+      "Manager authorisation is required for this action.",
+    );
+  }
+
+  return staff;
+};
+
+const loadAllPages = async (
+  loadPage: (from: number, to: number) => PromiseLike<any>,
+) => {
+  const rows: any[] = [];
+  const pageSize = 1000;
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await loadPage(from, from + pageSize - 1);
+
+    if (error) throw error;
+
+    const page = Array.isArray(data) ? data : [];
+    rows.push(...page);
+
+    if (page.length < pageSize) break;
+  }
+
+  return rows;
+};
+
+const loadManagerAudience = async (ctx: any) => {
+  try {
+    const [consentingMembers, activeSubscriptions] = await Promise.all([
+      loadAllPages((from, to) =>
+        ctx.supabaseAdmin
+          .from("kweider_members")
+          .select("id")
+          .eq("notification_consent", true)
+          .range(from, to)
+      ),
+      loadAllPages((from, to) =>
+        ctx.supabaseAdmin
+          .from("kweider_push_subscriptions")
+          .select(
+            "id, member_id, endpoint, p256dh_key, auth_secret, failure_count",
+          )
+          .eq("active", true)
+          .range(from, to)
+      ),
+    ]);
+
+    const consentingMemberIds = new Set(
+      consentingMembers.map((member: any) => member.id),
+    );
+
+    const targetSubscriptions = activeSubscriptions.filter(
+      (subscription: any) =>
+        consentingMemberIds.has(subscription.member_id),
+    );
+
+    const reachableMemberIds = new Set(
+      targetSubscriptions.map((subscription: any) => subscription.member_id),
+    );
+
+    return {
+      consentingMembers,
+      activeSubscriptions,
+      targetSubscriptions,
+      reachableMemberIds,
+    };
+  } catch (error) {
+    console.error("Unable to load manager notification audience:", error);
+    throw new ApiError(
+      500,
+      "manager_audience_failed",
+      "The notification audience could not be loaded.",
+    );
+  }
+};
+
+const managerStats = async (ctx: any, staff: StaffIdentity) => {
+  requireManager(staff);
+
+  const [{ count: totalMembers, error: totalError }, audience] =
+    await Promise.all([
+      ctx.supabaseAdmin
+        .from("kweider_members")
+        .select("id", { count: "exact", head: true }),
+      loadManagerAudience(ctx),
+    ]);
+
+  if (totalError) {
+    console.error("Unable to count members:", totalError);
+    throw new ApiError(
+      500,
+      "manager_stats_failed",
+      "The manager statistics could not be loaded.",
+    );
+  }
+
+  return json({
+    ok: true,
+    action: "manager_stats",
+    stats: {
+      totalMembers: Number(totalMembers ?? 0),
+      notificationConsentMembers: audience.consentingMembers.length,
+      activeSubscriptions: audience.activeSubscriptions.length,
+      reachableMembers: audience.reachableMemberIds.size,
+      targetSubscriptions: audience.targetSubscriptions.length,
+    },
+  });
+};
+
+const sendManagerBroadcast = async (
+  payload: RequestPayload,
+  ctx: any,
+  staff: StaffIdentity,
+) => {
+  requireManager(staff);
+
+  const title = cleanText(payload.broadcastTitle);
+  const body = cleanText(payload.broadcastBody);
+
+  if (!title || title.length > 80) {
+    throw new ApiError(
+      400,
+      "invalid_broadcast_title",
+      "Enter a notification title between 1 and 80 characters.",
+    );
+  }
+
+  if (!body || body.length > 300) {
+    throw new ApiError(
+      400,
+      "invalid_broadcast_body",
+      "Enter notification text between 1 and 300 characters.",
+    );
+  }
+
+  const audience = await loadManagerAudience(ctx);
+  const targetSubscriptions = audience.targetSubscriptions;
+  const tag = `kweider-manager-broadcast-${Date.now()}`;
+
+  let sent = 0;
+  let failed = 0;
+  const batchSize = 20;
+
+  for (let index = 0; index < targetSubscriptions.length; index += batchSize) {
+    const batch = targetSubscriptions.slice(index, index + batchSize);
+    const results = await Promise.all(
+      batch.map((subscription: any) =>
+        sendPushPayload(ctx.supabaseAdmin, subscription, {
+          title,
+          body,
+          tag,
+        })
+      ),
+    );
+
+    for (const delivered of results) {
+      if (delivered) sent += 1;
+      else failed += 1;
+    }
+  }
+
+  return json({
+    ok: true,
+    action: "manager_send_broadcast",
+    result: {
+      title,
+      targetMembers: audience.reachableMemberIds.size,
+      targetSubscriptions: targetSubscriptions.length,
+      sent,
+      failed,
+    },
+  });
+};
 const findMemberForStaff = async (
   payload: RequestPayload,
   ctx: any,
@@ -2510,7 +2701,9 @@ const rewardsApiFetch = withSupabase(
           action === "staff_approve_pin_reset" ||
           action === "staff_complete_checkout" ||
           action === "staff_add_purchase_points" ||
-          action === "staff_redeem_member_reward"
+          action === "staff_redeem_member_reward" ||
+          action === "manager_stats" ||
+          action === "manager_send_broadcast"
         ) {
           const staff = await requireStaff(req, ctx);
 
@@ -2518,12 +2711,24 @@ const rewardsApiFetch = withSupabase(
             return json({ ok: true, action: "staff_me", staff });
           }
 
+          if (action === "manager_stats") {
+            return await managerStats(ctx, requireManager(staff));
+          }
+
+          if (action === "manager_send_broadcast") {
+            return await sendManagerBroadcast(
+              payload,
+              ctx,
+              requireManager(staff),
+            );
+          }
+
           if (action === "staff_find_member") {
             return await findMemberForStaff(payload, ctx, staff);
           }
 
           if (action === "staff_issue_recovery_token") {
-            return await issueMemberRecoveryToken(payload, ctx, staff);
+            return await issueMemberRecoveryToken(payload, ctx, requireManager(staff));
           }
 
           if (action === "staff_approve_pin_reset") {
@@ -2535,10 +2740,10 @@ const rewardsApiFetch = withSupabase(
           }
 
           if (action === "staff_add_purchase_points") {
-            return await addPurchasePoints(payload, ctx, staff);
+            return await addPurchasePoints(payload, ctx, requireManager(staff));
           }
 
-          return await redeemMemberReward(payload, ctx, staff);
+          return await redeemMemberReward(payload, ctx, requireManager(staff));
         }
 
         throw new ApiError(
