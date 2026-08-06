@@ -489,6 +489,24 @@
   .welcome-member-badge.hidden { display:none; }
   .legacy-recovery-tool { display: block !important; }
 </style>
+<style id="kweiderManagerUiStyles">
+  .manager-lock-note{margin:0 0 12px;color:#cfcfcf;line-height:1.5}
+  .manager-stats-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+  .manager-stat{padding:12px;border:1px solid rgba(197,160,89,.38);border-radius:13px;background:rgba(197,160,89,.07)}
+  .manager-stat strong{display:block;font-size:25px;color:#edd58f}
+  .manager-stat span{display:block;margin-top:3px;font-size:12px;color:#bbb}
+  .manager-preview{padding:14px;border:1px solid #333;border-radius:14px;background:#080808;margin-top:12px}
+  .manager-preview strong{display:block;color:#fff;margin-bottom:5px}
+  .manager-preview p{margin:0;color:#ccc;white-space:pre-wrap}
+  .manager-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.82)}
+  .manager-modal.hidden{display:none}
+  .manager-modal-card{width:min(460px,100%);padding:20px;border:1px solid rgba(232,196,107,.65);border-radius:18px;background:#111;box-shadow:0 24px 80px rgba(0,0,0,.65)}
+  .manager-modal-card h2{margin:0 0 7px}
+  .manager-modal-card p{margin:0 0 14px;color:#bbb;line-height:1.5}
+  .manager-modal-actions{display:flex;gap:10px;margin-top:14px}
+  .manager-modal-actions button{flex:1}
+  @media (max-width:520px){.manager-stats-grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body class="app-page staff-installed-app">
 <main class="app-shell">
@@ -559,6 +577,49 @@
 </details>
 </div>
 <div aria-live="polite" class="staff-global-message" id="staffMessage"></div>
+<details class="nested-details staff-advanced" id="managerToolsDetails">
+<summary id="managerToolsSummary">Manager tools · أدوات المدير</summary>
+<div class="staff-advanced-content">
+<!-- KWEIDER_MANAGER_UI_V1 -->
+<section class="advanced-section" id="managerDashboard">
+<h3>Manager overview · ملخص المدير</h3>
+<p class="manager-lock-note" id="managerUnlockStatus">Unlocked for 10 minutes · مفتوح لمدة 10 دقائق</p>
+<div class="manager-stats-grid">
+<div class="manager-stat"><strong id="managerTotalMembers">—</strong><span>Total customer cards · إجمالي البطاقات</span></div>
+<div class="manager-stat"><strong id="managerConsentMembers">—</strong><span>Notification consent · الموافقون على الإشعارات</span></div>
+<div class="manager-stat"><strong id="managerReachableMembers">—</strong><span>Reachable customers · العملاء المتاح إرسالهم</span></div>
+<div class="manager-stat"><strong id="managerActiveSubscriptions">—</strong><span>Active devices · الأجهزة الفعالة</span></div>
+</div>
+<div class="form-actions"><button class="ghost-btn" id="refreshManagerStats" type="button">Refresh statistics · تحديث الأرقام</button><button class="ghost-btn" id="lockManagerTools" type="button">Lock manager tools · إغلاق</button></div>
+</section>
+<section class="advanced-section" id="managerBroadcastSection">
+<h3>Send notification to customers · إرسال إشعار للعملاء</h3>
+<div class="field"><label for="managerBroadcastTitle">Notification title · عنوان الرسالة</label><input id="managerBroadcastTitle" maxlength="80" autocomplete="off" placeholder="Kweider Rewards"/></div>
+<div class="field"><label for="managerBroadcastBody">Notification text · نص الرسالة</label><textarea id="managerBroadcastBody" maxlength="300" rows="4" placeholder="Write the customer notification here"></textarea></div>
+<div class="manager-preview" aria-live="polite"><strong id="managerPreviewTitle">Kweider Rewards</strong><p id="managerPreviewBody">Your notification preview will appear here.</p></div>
+<p class="field-hint">Recipients: <strong id="managerBroadcastRecipients">—</strong> customers · المستلمون</p>
+<div class="form-actions"><button class="gold-btn" id="sendManagerBroadcast" type="button">Review and send · مراجعة وإرسال</button></div>
+<div id="managerBroadcastMessage" aria-live="polite"></div>
+</section>
+<section class="advanced-section legacy-recovery-tool">
+<h3>Restore card on a new phone</h3>
+<p class="recovery-warning">Find the customer, create a one-time link, then send or copy it to the customer’s phone.</p>
+<div class="form-actions"><button class="ghost-btn" id="generateRecoveryLink" type="button">Create recovery link</button><button class="gold-btn hidden" id="copyRecoveryLink" type="button">Copy link</button></div>
+<div class="recovery-link-box hidden" id="recoveryLinkBox"><div class="field"><label for="recoveryLink">Customer recovery link</label><input id="recoveryLink" readonly="" type="text"/></div><p class="field-hint" id="recoveryExpiry" style="margin-bottom:0"></p></div>
+</section>
+<section class="advanced-section">
+<h3>Add points manually</h3>
+<div class="form-grid"><div class="field"><label for="purchaseAmount">Purchase amount (£)</label><input id="purchaseAmount" inputmode="decimal" min="0.01" step="0.01" type="number"/></div><div class="field"><label for="earnReceipt">Receipt number</label><input autocomplete="off" id="earnReceipt"/></div></div>
+<div class="form-actions"><button class="primary-btn" id="addPoints">Add points</button></div>
+</section>
+<section class="advanced-section">
+<h3>Redeem manually</h3>
+<div class="form-grid"><div class="field full"><label for="memberReward">Available reward</label><select id="memberReward"><option value="">No rewards available</option></select></div><div class="field"><label for="redeemPurchaseAmount">Purchase amount (£)</label><input id="redeemPurchaseAmount" inputmode="decimal" min="0.01" step="0.01" type="number"/></div><div class="field"><label for="redeemReceipt">Receipt/reference</label><input autocomplete="off" id="redeemReceipt"/></div></div>
+<div aria-live="polite" class="notice info reward-preview" id="rewardPreview">Select an available reward.</div>
+<div class="form-actions"><button class="gold-btn" disabled="" id="redeemReward">Redeem selected reward</button></div>
+</section>
+</div>
+</details>
 <div class="hidden" id="memberPanel">
 <div class="app-card customer-summary-card">
 <div class="customer-summary-main">
@@ -608,33 +669,22 @@
 <summary>Recent activity · آخر العمليات</summary>
 <div class="nested-details-content"><div class="transaction-list" id="transactionList"></div></div>
 </details>
-<details class="nested-details staff-advanced">
-<summary>Manager tools · أدوات المدير</summary>
-<div class="staff-advanced-content">
-<section class="advanced-section legacy-recovery-tool">
-<h3>Restore card on a new phone</h3>
-<p class="recovery-warning">Find the customer, create a one-time link, then send or copy it to the customer’s phone.</p>
-<div class="form-actions"><button class="ghost-btn" id="generateRecoveryLink" type="button">Create recovery link</button><button class="gold-btn hidden" id="copyRecoveryLink" type="button">Copy link</button></div>
-<div class="recovery-link-box hidden" id="recoveryLinkBox"><div class="field"><label for="recoveryLink">Customer recovery link</label><input id="recoveryLink" readonly="" type="text"/></div><p class="field-hint" id="recoveryExpiry" style="margin-bottom:0"></p></div>
-</section>
-<section class="advanced-section">
-<h3>Add points manually</h3>
-<div class="form-grid"><div class="field"><label for="purchaseAmount">Purchase amount (£)</label><input id="purchaseAmount" inputmode="decimal" min="0.01" step="0.01" type="number"/></div><div class="field"><label for="earnReceipt">Receipt number</label><input autocomplete="off" id="earnReceipt"/></div></div>
-<div class="form-actions"><button class="primary-btn" id="addPoints">Add points</button></div>
-</section>
-<section class="advanced-section">
-<h3>Redeem manually</h3>
-<div class="form-grid"><div class="field full"><label for="memberReward">Available reward</label><select id="memberReward"><option value="">No rewards available</option></select></div><div class="field"><label for="redeemPurchaseAmount">Purchase amount (£)</label><input id="redeemPurchaseAmount" inputmode="decimal" min="0.01" step="0.01" type="number"/></div><div class="field"><label for="redeemReceipt">Receipt/reference</label><input autocomplete="off" id="redeemReceipt"/></div></div>
-<div aria-live="polite" class="notice info reward-preview" id="rewardPreview">Select an available reward.</div>
-<div class="form-actions"><button class="gold-btn" disabled="" id="redeemReward">Redeem selected reward</button></div>
-</section>
-</div>
-</details>
+
 </div>
 </details>
 </div>
 </section>
 </main>
+<div class="manager-modal hidden" id="managerUnlockModal" role="dialog" aria-modal="true" aria-labelledby="managerUnlockTitle">
+<div class="manager-modal-card">
+<h2 id="managerUnlockTitle">Manager authorisation · دخول المدير</h2>
+<p>Enter the manager account. The tools will stay open for 10 minutes only.</p>
+<div class="field"><label for="managerEmail">Manager email · بريد المدير</label><input id="managerEmail" type="email" autocomplete="username"/></div>
+<div class="field"><label for="managerPassword">Manager password · كلمة مرور المدير</label><input id="managerPassword" type="password" autocomplete="current-password"/></div>
+<div id="managerUnlockMessage" aria-live="polite"></div>
+<div class="manager-modal-actions"><button class="ghost-btn" id="cancelManagerUnlock" type="button">Cancel · إلغاء</button><button class="gold-btn" id="confirmManagerUnlock" type="button">Unlock · فتح</button></div>
+</div>
+</div>
 <script crossorigin="anonymous" referrerpolicy="no-referrer" src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <script src="../assets/js/app-shell.js"></script>
 <script>
@@ -683,10 +733,24 @@
       const SESSION_KEY = "kweiderRewards.staffSession.v1";
       const STAFF_APP_LOGIN_AT_KEY = "kweiderRewards.staffAppLoginAt.v1";
       const STAFF_APP_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+      const MANAGER_UNLOCK_MS = 10 * 60 * 1000;
+      const MANAGER_EMAIL_KEY = "kweiderRewards.managerEmail.v1";
+      const MANAGER_ACTIONS = new Set([
+        "staff_issue_recovery_token",
+        "staff_approve_pin_reset",
+        "staff_add_purchase_points",
+        "staff_redeem_member_reward",
+        "manager_stats",
+        "manager_send_broadcast",
+      ]);
       const $ = (id) => document.getElementById(id);
 
       let session = null;
       let staff = null;
+      let managerSession = null;
+      let managerUnlockedUntil = 0;
+      let managerLockTimer = null;
+      let managerStatsCache = null;
       let member = null;
       let memberTransactions = [];
       let memberRewards = [];
@@ -1374,6 +1438,9 @@
       }
 
       async function apiRequest(payload, allowRefresh = true) {
+        if (MANAGER_ACTIONS.has(payload?.action)) {
+          return managerApiRequest(payload);
+        }
         await ensureFreshSession();
         const response = await fetch(FUNCTION_URL, {
           method: "POST",
@@ -1402,6 +1469,185 @@
         return data;
       }
 
+      function managerIsUnlocked() {
+        return Boolean(
+          managerSession?.access_token &&
+          managerUnlockedUntil > Date.now(),
+        );
+      }
+
+      function showManagerUnlock() {
+        const rememberedEmail =
+          localStorage.getItem(MANAGER_EMAIL_KEY) ||
+          ((staff?.role === "manager" || staff?.role === "admin")
+            ? session?.user?.email || ""
+            : "");
+        $("managerEmail").value = rememberedEmail;
+        $("managerPassword").value = "";
+        message("managerUnlockMessage", "");
+        $("managerUnlockModal").classList.remove("hidden");
+        setTimeout(() =>
+          (rememberedEmail ? $("managerPassword") : $("managerEmail"))?.focus(),
+        30);
+      }
+
+      function hideManagerUnlock() {
+        $("managerUnlockModal").classList.add("hidden");
+        $("managerPassword").value = "";
+        message("managerUnlockMessage", "");
+      }
+
+      async function managerApiRequestWithToken(payload, token) {
+        const response = await fetch(FUNCTION_URL, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await readJson(response);
+        if (!response.ok || data.ok === false) {
+          const error = new Error(data.message || "Manager request failed.");
+          error.code = data.code || "";
+          error.status = response.status;
+          throw error;
+        }
+        return data;
+      }
+
+      async function managerApiRequest(payload) {
+        if (!managerIsUnlocked()) {
+          lockManagerTools(false);
+          throw new Error("Unlock Manager Tools with the manager password first.");
+        }
+        return managerApiRequestWithToken(
+          payload,
+          managerSession.access_token,
+        );
+      }
+
+      function lockManagerTools(showNotice = true) {
+        managerSession = null;
+        managerUnlockedUntil = 0;
+        managerStatsCache = null;
+        if (managerLockTimer) clearTimeout(managerLockTimer);
+        managerLockTimer = null;
+        const details = $("managerToolsDetails");
+        if (details) details.open = false;
+        if (showNotice) {
+          message(
+            "staffMessage",
+            "Manager Tools locked · تم إغلاق أدوات المدير",
+            "info",
+          );
+        }
+      }
+
+      function updateManagerPreview() {
+        const title = $("managerBroadcastTitle").value.trim();
+        const body = $("managerBroadcastBody").value.trim();
+        $("managerPreviewTitle").textContent = title || "Kweider Rewards";
+        $("managerPreviewBody").textContent =
+          body || "Your notification preview will appear here.";
+      }
+
+      function renderManagerStats(stats) {
+        managerStatsCache = stats || {};
+        $("managerTotalMembers").textContent =
+          Number(stats?.totalMembers || 0).toLocaleString();
+        $("managerConsentMembers").textContent =
+          Number(stats?.notificationConsentMembers || 0).toLocaleString();
+        $("managerReachableMembers").textContent =
+          Number(stats?.reachableMembers || 0).toLocaleString();
+        $("managerActiveSubscriptions").textContent =
+          Number(stats?.activeSubscriptions || 0).toLocaleString();
+        $("managerBroadcastRecipients").textContent =
+          Number(stats?.reachableMembers || 0).toLocaleString();
+      }
+
+      async function loadManagerStats() {
+        const button = $("refreshManagerStats");
+        setBusy(button, true, "Loading...");
+        try {
+          const data = await managerApiRequest({ action: "manager_stats" });
+          renderManagerStats(data.stats);
+        } catch (error) {
+          message(
+            "managerBroadcastMessage",
+            error.message || "Could not load manager statistics.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Refresh statistics · تحديث الأرقام");
+        }
+      }
+
+      async function unlockManagerTools() {
+        const email = $("managerEmail").value.trim();
+        const password = $("managerPassword").value;
+        const button = $("confirmManagerUnlock");
+        message("managerUnlockMessage", "");
+
+        if (!email || !password) {
+          message(
+            "managerUnlockMessage",
+            "Enter the manager email and password.",
+            "error",
+          );
+          return;
+        }
+
+        setBusy(button, true, "Checking...");
+        try {
+          const auth = await authRequest(
+            "/auth/v1/token?grant_type=password",
+            { email, password },
+          );
+          if (!auth.access_token) {
+            throw new Error("Manager sign-in could not be completed.");
+          }
+
+          const profile = await managerApiRequestWithToken(
+            { action: "staff_me" },
+            auth.access_token,
+          );
+          const role = String(profile?.staff?.role || "").toLowerCase();
+
+          if (role !== "manager" && role !== "admin") {
+            throw new Error("This account does not have manager permission.");
+          }
+
+          managerSession = {
+            access_token: auth.access_token,
+            user: auth.user || null,
+            staff: profile.staff,
+          };
+          managerUnlockedUntil = Date.now() + MANAGER_UNLOCK_MS;
+          localStorage.setItem(MANAGER_EMAIL_KEY, email);
+          if (managerLockTimer) clearTimeout(managerLockTimer);
+          managerLockTimer = setTimeout(
+            () => lockManagerTools(true),
+            MANAGER_UNLOCK_MS,
+          );
+
+          hideManagerUnlock();
+          $("managerToolsDetails").open = true;
+          message("managerBroadcastMessage", "");
+          await loadManagerStats();
+        } catch (error) {
+          managerSession = null;
+          managerUnlockedUntil = 0;
+          message(
+            "managerUnlockMessage",
+            error.message || "Manager authorisation failed.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Unlock · فتح");
+        }
+      }
       function resetMember() {
         document.body.classList.remove("has-member");
         member = null;
@@ -1673,6 +1919,72 @@
         $("scanQr").disabled = false;
       }
 
+      $("managerToolsSummary").addEventListener("click", (event) => {
+        if (managerIsUnlocked()) return;
+        event.preventDefault();
+        showManagerUnlock();
+      });
+
+      $("cancelManagerUnlock").addEventListener("click", hideManagerUnlock);
+      $("managerUnlockModal").addEventListener("click", (event) => {
+        if (event.target === $("managerUnlockModal")) hideManagerUnlock();
+      });
+      $("confirmManagerUnlock").addEventListener("click", unlockManagerTools);
+      $("managerPassword").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") unlockManagerTools();
+      });
+      $("lockManagerTools").addEventListener("click", () =>
+        lockManagerTools(true),
+      );
+      $("refreshManagerStats").addEventListener("click", loadManagerStats);
+      $("managerBroadcastTitle").addEventListener("input", updateManagerPreview);
+      $("managerBroadcastBody").addEventListener("input", updateManagerPreview);
+
+      $("sendManagerBroadcast").addEventListener("click", async () => {
+        const title = $("managerBroadcastTitle").value.trim();
+        const body = $("managerBroadcastBody").value.trim();
+        const recipients = Number(managerStatsCache?.reachableMembers || 0);
+        const button = $("sendManagerBroadcast");
+        message("managerBroadcastMessage", "");
+
+        if (!title || !body) {
+          message(
+            "managerBroadcastMessage",
+            "Enter the notification title and text.",
+            "error",
+          );
+          return;
+        }
+
+        const confirmed = window.confirm(
+          `Send this notification to ${recipients} customer(s)?\n\n${title}\n${body}`,
+        );
+        if (!confirmed) return;
+
+        setBusy(button, true, "Sending...");
+        try {
+          const data = await managerApiRequest({
+            action: "manager_send_broadcast",
+            broadcastTitle: title,
+            broadcastBody: body,
+          });
+          const result = data.result || {};
+          message(
+            "managerBroadcastMessage",
+            `Completed. Sent: ${Number(result.sent || 0)} · Failed: ${Number(result.failed || 0)} · Customers: ${Number(result.targetMembers || 0)}`,
+            Number(result.failed || 0) ? "info" : "ok",
+          );
+          await loadManagerStats();
+        } catch (error) {
+          message(
+            "managerBroadcastMessage",
+            error.message || "The notification could not be sent.",
+            "error",
+          );
+        } finally {
+          setBusy(button, false, "Review and send · مراجعة وإرسال");
+        }
+      });
       $("staffLogin").addEventListener("click", async () => {
         const button = $("staffLogin");
         const email = $("staffEmail").value.trim();
@@ -1709,6 +2021,7 @@
       });
 
       $("staffLogout").addEventListener("click", async () => {
+        lockManagerTools(false);
         const token = session?.access_token || "";
         try {
           if (token) await authRequest("/auth/v1/logout", {}, token);
