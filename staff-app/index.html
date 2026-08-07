@@ -596,6 +596,9 @@
 <h3>Send notification to customers · إرسال إشعار للعملاء</h3>
 <div class="field"><label for="managerBroadcastTitle">Notification title · عنوان الرسالة</label><input id="managerBroadcastTitle" maxlength="80" autocomplete="off" placeholder="Kweider Rewards"/></div>
 <div class="field"><label for="managerBroadcastBody">Notification text · نص الرسالة</label><textarea id="managerBroadcastBody" maxlength="300" rows="4" placeholder="Write the customer notification here"></textarea></div>
+<div class="field"><label for="managerBroadcastStart">Start date · تاريخ البداية</label><input id="managerBroadcastStart" type="datetime-local"/></div>
+<div class="field"><label for="managerBroadcastEnd">End date · تاريخ الانتهاء</label><input id="managerBroadcastEnd" type="datetime-local"/></div>
+<div class="field"><label><input id="managerBroadcastPush" type="checkbox" checked/> Send Push too · إرسال إشعار للهاتف أيضًا</label></div>
 <div class="manager-preview" aria-live="polite"><strong id="managerPreviewTitle">Kweider Rewards</strong><p id="managerPreviewBody">Your notification preview will appear here.</p></div>
 <p class="field-hint">Recipients: <strong id="managerBroadcastRecipients">—</strong> customers · المستلمون</p>
 <div class="form-actions"><button class="gold-btn" id="sendManagerBroadcast" type="button">Review and send · مراجعة وإرسال</button></div>
@@ -1942,6 +1945,11 @@
       $("sendManagerBroadcast").addEventListener("click", async () => {
         const title = $("managerBroadcastTitle").value.trim();
         const body = $("managerBroadcastBody").value.trim();
+        const startValue = $("managerBroadcastStart").value;
+        const endValue = $("managerBroadcastEnd").value;
+        const sendPush = $("managerBroadcastPush").checked;
+        const startAt = startValue ? new Date(startValue).toISOString() : null;
+        const endAt = endValue ? new Date(endValue).toISOString() : null;
         const recipients = Number(managerStatsCache?.reachableMembers || 0);
         const button = $("sendManagerBroadcast");
         message("managerBroadcastMessage", "");
@@ -1966,6 +1974,9 @@
             action: "manager_send_broadcast",
             broadcastTitle: title,
             broadcastBody: body,
+            broadcastStartAt: startAt,
+            broadcastEndAt: endAt,
+            broadcastSendPush: sendPush,
           });
           const result = data.result || {};
           message(

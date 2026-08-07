@@ -1706,22 +1706,23 @@
 
         <div id="cardMessage"></div>
         <div id="messagesCard" class="app-card compact-messages-card">
-          <div id="messagesHeader" class="compact-section-head">
-            <h3>Messages</h3>
-            <div class="message-tools">
-              <div id="messageBadge" class="message-badge">0</div>
-              <div id="messageActions" class="compact-message-actions">
-                <button id="markMessagesRead" class="ghost-btn" type="button">
-                  Read all
-                </button>
-              </div>
-            </div>
+      <details id="messagesDetails">
+        <summary id="messagesHeader" class="compact-section-head">
+          <h3>Messages · الرسائل</h3>
+          <div class="message-tools">
+            <div id="messageBadge" class="message-badge">0</div>
           </div>
+        </summary>
 
-          <div id="memberMessages" class="compact-stack"></div>
+        <div id="messageActions" class="compact-message-actions">
+          <button id="markMessagesRead" class="ghost-btn" type="button">Read all · قراءة الكل</button>
         </div>
 
-        <div class="app-card reward-qr-card">
+        <div id="memberMessages" class="compact-stack"></div>
+      </details>
+    </div>
+
+    <div class="app-card reward-qr-card">
           <h3 class="reward-journey-title">Next Reward</h3>
           <p id="progressText" class="reward-next-inline"></p>
           <div class="reward-journey" aria-label="Reward progress">
@@ -3098,10 +3099,8 @@
           unreadMessageCount > 99 ? "99+" : String(unreadMessageCount);
         $("messageBadge").style.display =
           unreadMessageCount > 0 ? "flex" : "none";
-        $("messageActions").style.display =
-          unreadMessageCount > 0 ? "block" : "none";
-        $("messagesHeader").style.display =
-          unreadMessageCount > 0 ? "flex" : "none";
+        $("messageActions").style.display = "none";
+        $("messagesHeader").style.display = memberMessages.length > 0 ? "flex" : "none";
         $("messagesCard").classList.toggle(
           "previous-only",
           unreadMessageCount === 0 && memberMessages.length > 0,
@@ -3511,40 +3510,34 @@
       $("disableNotifications").addEventListener("click", disableRewardNotifications);
 
       $("refreshCard").addEventListener("click", () => loadSavedCard(false));
-      $("markMessagesRead").addEventListener("click", async () => {
-        if (requestInProgress) return;
+      async function markVisibleMessagesRead() {
+    if (requestInProgress) return;
 
-        const token = localStorage.getItem(MEMBER_TOKEN_KEY);
+    const badge = $("messageBadge");
+    if (!badge || badge.style.display === "none") return;
 
-        if (!token) {
-          showRegistration("No rewards card is saved on this device.", "error");
-          return;
-        }
+    const token = localStorage.getItem(MEMBER_TOKEN_KEY);
+    if (!token) return;
 
-        setLoading(true);
-        notice("cardMessage", "Updating your messages…", "info");
-
-        try {
-          const result = await callApi({
-            action: "mark_messages_read",
-            token,
-          });
-
-          render(result);
-
-          notice("cardMessage", "All messages have been marked as read.", "ok");
-        } catch (error) {
-          notice(
-            "cardMessage",
-            error.message || "The messages could not be updated.",
-            "error",
-          );
-        } finally {
-          setLoading(false);
-        }
+    try {
+      const result = await callApi({
+        action: "mark_messages_read",
+        token,
       });
 
-      $("switchMembership").addEventListener("click", () => {
+      render(result);
+    } catch (error) {
+      console.error("Unable to mark messages as read:", error);
+    }
+  }
+
+  $("messagesDetails").addEventListener("toggle", () => {
+    if ($("messagesDetails").open) {
+      void markVisibleMessagesRead();
+    }
+  });
+
+  $("switchMembership").addEventListener("click", () => {
         const confirmed = confirm(
           "Remove this rewards card from this device? A member of staff will be needed to restore it later.",
         );
