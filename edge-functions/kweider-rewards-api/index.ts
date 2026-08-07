@@ -38,6 +38,9 @@ interface RequestPayload {
   // Manager-only broadcast
   broadcastTitle?: string;
   broadcastBody?: string;
+  broadcastStartAt?: string | null;
+  broadcastEndAt?: string | null;
+  broadcastSendPush?: boolean;
 }
 
 class ApiError extends Error {
@@ -463,6 +466,7 @@ const { data: messages, error: messagesError } = await admin
   )
   .eq("member_id", memberId)
   .lte("not_before", nowIso)
+    .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
   .order("created_at", { ascending: false })
   .limit(30);
 
@@ -1824,7 +1828,9 @@ const markMessagesRead = async (
       read_at: nowIso,
     })
     .eq("member_id", accessToken.member_id)
-    .eq("is_read", false);
+    .eq("is_read", false)
+    .lte("not_before", nowIso)
+    .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
 
   if (updateError) {
     console.error(
@@ -1953,6 +1959,64 @@ const loadAllPages = async (
   return rows;
 };
 
+const loadAllMemberIds = async (ctx: any) => loadAllPages((from, to) =>
+  ctx.supabaseAdmin
+    .from("kweider_members")
+    .select("id, notification_consent")
+    .range(from, to)
+);
+
+const insertManagerBroadcastMessages = async (
+  ctx: any,
+  members: any[],
+  broadcastId: string,
+  title: string,
+  body: string,
+  notBefore: string,
+  expiresAt: string | null,
+  sendPush: boolean,
+  deliveredMemberIds: Set<string>,
+  reachableMemberIds: Set<string>,
+) => {
+  const batchSize = 500;
+
+  for (let index = 0; index < members.length; index += batchSize) {
+    const batch = members.slice(index, index + batchSize);
+    const rows = batch.map((member: any) => ({
+      member_id: member.id,
+      message_type: "manager_broadcast",
+      title_en: title,
+      title_ar: title,
+      body_en: body,
+      body_ar: "",
+      related_reward_id: null,
+      dedupe_key: `${broadcastId}:${member.id}`,
+      is_read: false,
+      read_at: null,
+      push_status: deliveredMemberIds.has(String(member.id))
+        ? "sent"
+        : sendPush && new Date(notBefore).getTime() <= Date.now() && member.notification_consent === true && reachableMemberIds.has(String(member.id))
+          ? "pending"
+          : "skipped",
+      push_sent_at: deliveredMemberIds.has(String(member.id)) ? new Date().toISOString() : null,
+      not_before: notBefore,
+      expires_at: expiresAt,
+    }));
+
+    const { error } = await ctx.supabaseAdmin
+      .from("kweider_member_messages")
+      .insert(rows);
+
+    if (error) {
+      console.error("Unable to save manager broadcast messages:", error);
+      throw new ApiError(
+        500,
+        "manager_broadcast_save_failed",
+        "The customer message could not be saved.",
+      );
+    }
+  }
+};
 const loadManagerAudience = async (ctx: any) => {
   try {
     const [consentingMembers, activeSubscriptions] = await Promise.all([
@@ -2045,6 +2109,20 @@ const sendManagerBroadcast = async (
 
   const title = cleanText(payload.broadcastTitle);
   const body = cleanText(payload.broadcastBody);
+  const nowIso = new Date().toISOString();
+  const notBefore = cleanText(payload.broadcastStartAt) || nowIso;
+  const expiresAt = cleanText(payload.broadcastEndAt) || null;
+  const sendPush = payload.broadcastSendPush !== false;
+  const notBeforeMs = Date.parse(notBefore);
+  const expiresAtMs = expiresAt ? Date.parse(expiresAt) : null;
+
+  if (!Number.isFinite(notBeforeMs) || (expiresAt && !Number.isFinite(expiresAtMs))) {
+    throw new ApiError(400, "invalid_broadcast_dates", "Enter valid message dates.");
+  }
+
+  if (expiresAtMs !== null && expiresAtMs <= notBeforeMs) {
+    throw new ApiError(400, "invalid_broadcast_dates", "The end date must be after the start date.");
+  }
 
   if (!title || title.length > 80) {
     throw new ApiError(
@@ -2062,14 +2140,20 @@ const sendManagerBroadcast = async (
     );
   }
 
-  const audience = await loadManagerAudience(ctx);
+  const [members, audience] = await Promise.all([
+    loadAllMemberIds(ctx),
+    loadManagerAudience(ctx),
+  ]);
   const targetSubscriptions = audience.targetSubscriptions;
-  const tag = `kweider-manager-broadcast-${Date.now()}`;
+  const broadcastId = crypto.randomUUID();
+  const tag = `kweider-manager-broadcast-${broadcastId}`;
 
   let sent = 0;
   let failed = 0;
+  const deliveredMemberIds = new Set<string>();
   const batchSize = 20;
 
+  if (sendPush && notBeforeMs <= Date.now()) {
   for (let index = 0; index < targetSubscriptions.length; index += batchSize) {
     const batch = targetSubscriptions.slice(index, index + batchSize);
     const results = await Promise.all(
@@ -2082,18 +2166,38 @@ const sendManagerBroadcast = async (
       ),
     );
 
-    for (const delivered of results) {
-      if (delivered) sent += 1;
-      else failed += 1;
-    }
+    results.forEach((delivered: boolean, resultIndex: number) => {
+      if (delivered) {
+        sent += 1;
+        deliveredMemberIds.add(String(batch[resultIndex]?.member_id || ""));
+      } else {
+        failed += 1;
+      }
+    });
   }
+
+  }
+
+  await insertManagerBroadcastMessages(
+    ctx,
+    members,
+    broadcastId,
+    title,
+    body,
+    notBefore,
+    expiresAt,
+    sendPush,
+    deliveredMemberIds,
+    audience.reachableMemberIds,
+  );
 
   return json({
     ok: true,
     action: "manager_send_broadcast",
     result: {
       title,
-      targetMembers: audience.reachableMemberIds.size,
+      targetMembers: members.length,
+      pushReachableMembers: audience.reachableMemberIds.size,
       targetSubscriptions: targetSubscriptions.length,
       sent,
       failed,
