@@ -1,2 +1,7 @@
 backups/
 supabase/.temp/
+
+supabase/.branches/
+supabase/config.toml
+supabase/config.toml.backup
+supabase/functions/.env.local
