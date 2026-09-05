@@ -1993,7 +1993,7 @@
           definitionCodeOf(definition) || rewardCodeOf(reward);
         const fallbackTitles = {
           discount_3: "£5 Off Your Next Bill",
-          discount_5: "£10 Off Your Next Bill",
+          discount_5: "Another £5 Off Your Next Bill",
           breakfast_for_two: "Breakfast for Two",
         };
 
@@ -2050,8 +2050,8 @@
         {
           code: "discount_5",
           threshold: 100,
-          titleEn: "£10 OFF",
-          titleAr: "خصم £10",
+          titleEn: "ANOTHER £5 OFF",
+          titleAr: "خصم £5 إضافية",
           position: 50,
         },
         {
@@ -2065,13 +2065,18 @@
 
       function rewardCycleState(totalPoints) {
         const points = Math.max(0, Math.floor(Number(totalPoints) || 0));
-        const completedCycles = Math.floor(points / REWARD_CYCLE_POINTS);
+        if (points === 0) {
+          return { cycleNumber: 1, cycleBase: 0, cyclePoints: 0 };
+        }
 
-        return {
-          cycleNumber: completedCycles + 1,
-          cycleBase: completedCycles * REWARD_CYCLE_POINTS,
-          cyclePoints: points % REWARD_CYCLE_POINTS,
-        };
+        // A 200-point boundary belongs to the cycle just completed.
+        // The next reward cycle starts on the following point (201, 401, ...),
+        // matching the database reward-cycle logic.
+        const cycleNumber = Math.floor((points - 1) / REWARD_CYCLE_POINTS) + 1;
+        const cycleBase = (cycleNumber - 1) * REWARD_CYCLE_POINTS;
+        const cyclePoints = ((points - 1) % REWARD_CYCLE_POINTS) + 1;
+
+        return { cycleNumber, cycleBase, cyclePoints };
       }
 
       function rewardForLevel(memberRewards, level, cycleNumber) {
@@ -2099,7 +2104,7 @@
 
       function renderRewardJourney(points, memberRewards, rewardDefinitions) {
         const cycle = rewardCycleState(points);
-        const isNewCycle = points > 0 && cycle.cyclePoints === 0;
+        const isNewCycle = cycle.cycleNumber > 1 && cycle.cyclePoints === 1;
         const cycleLabelEn = isNewCycle ? "New reward cycle" : "Reward cycle";
         const cycleLabelAr = isNewCycle
           ? "دورة مكافآت جديدة"
@@ -2687,7 +2692,7 @@
         const code = definitionCodeOf(definition) || rewardCodeOf(reward);
         const labels = {
           discount_3: "£5 Reward ready · مكافأة £5 جاهزة",
-          discount_5: "£10 Reward ready · مكافأة £10 جاهزة",
+          discount_5: "Another £5 reward ready · مكافأة £5 إضافية جاهزة",
           breakfast_for_two: "Breakfast for Two ready · فطور لشخصين جاهز",
         };
         return labels[code] || rewardTitle(definition, reward);
@@ -2702,8 +2707,8 @@
             titleAr: "خصم £5 على فاتورتك القادمة",
           },
           discount_5: {
-            shortTitle: "£10 OFF",
-            titleAr: "خصم £10 على فاتورتك القادمة",
+            shortTitle: "£5 OFF",
+            titleAr: "خصم £5 إضافية على فاتورتك القادمة",
           },
           breakfast_for_two: {
             shortTitle: "BREAKFAST ×2",

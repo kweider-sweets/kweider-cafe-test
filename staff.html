@@ -463,7 +463,7 @@
                 autocomplete="off"
               />
               <p id="quickAmountHint" class="quick-checkout-hint">
-                Enter the total before applying a £5 or £10 reward.
+                Enter the total before applying a £5 reward.
               </p>
             </div>
 
@@ -574,7 +574,7 @@
                     <label for="redeemPurchaseAmount">
                       Purchase amount (£)
                       <span class="field-hint">
-                        — required for £5 and £10 bill rewards
+                        — required for £5 bill rewards
                       </span>
                     </label>
                     <input
@@ -769,7 +769,7 @@
           definitionCodeOf(definition) || rewardCodeOf(reward);
         const fallbackTitles = {
           discount_3: "£5 Off Your Next Bill",
-          discount_5: "£10 Off Your Next Bill",
+          discount_5: "£5 Off Your Next Bill",
           breakfast_for_two: "Breakfast for Two",
         };
 
@@ -810,7 +810,7 @@
           return Number.isFinite(configured) && configured > 0 ? configured : 5;
         }
         if (code === "discount_5") {
-          return Number.isFinite(configured) && configured > 0 ? configured : 10;
+          return Number.isFinite(configured) && configured > 0 ? configured : 5;
         }
         return null;
       }
@@ -1064,7 +1064,7 @@
           : "Bill amount before reward (£)";
         $("quickAmountHint").textContent = breakfast
           ? "Enter the final amount payable after the eligible breakfast has been removed."
-          : "Enter the till total before applying a £5 or £10 reward.";
+          : "Enter the till total before applying a £5 reward.";
 
         const plan = checkoutPlan();
         const preview = $("quickCheckoutPreview");
