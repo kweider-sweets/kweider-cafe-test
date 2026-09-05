@@ -56,14 +56,51 @@ class ApiError extends Error {
   }
 }
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+const ALLOWED_ORIGINS = new Set([
+  "https://menu.kweidersweets.co.uk",
+  "https://kweidersweets.co.uk",
+  "https://www.kweidersweets.co.uk",
+]);
+
+const requestOrigin = (req: Request): string =>
+  (req.headers.get("Origin") || "").trim();
+
+const isDisallowedBrowserOrigin = (req: Request): boolean => {
+  const origin = requestOrigin(req);
+  return Boolean(origin && !ALLOWED_ORIGINS.has(origin));
+};
+
+const corsHeadersFor = (req: Request): Record<string, string> => {
+  const origin = requestOrigin(req);
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, x-retry-count, traceparent, tracestate, baggage",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+
+  return headers;
+};
+
+const applyCors = (req: Request, response: Response): Response => {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(corsHeadersFor(req))) {
+    headers.set(key, value);
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 };
 
 const json = (body: Record<string, unknown>, status = 200): Response =>
-  Response.json(body, { status, headers: corsHeaders });
+  Response.json(body, { status });
 
 const cleanText = (value: unknown): string =>
   typeof value === "string" ? value.trim() : "";
@@ -2779,6 +2816,9 @@ const rewardsApiFetch = withSupabase(
     // Every browser request must include the publishable key in `apikey`.
     // Staff JWTs are verified separately inside staff-only actions.
     auth: ["publishable", "secret"],
+    // CORS is enforced by the outer fetch handler so multiple exact production
+    // origins can be allowlisted without falling back to a wildcard.
+    cors: "disabled",
   },
   async (req, ctx) => {
       try {
@@ -2934,18 +2974,32 @@ const rewardsApiFetch = withSupabase(
 );
 
 export default {
-  fetch(req: Request) {
-    if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders });
-    }
-
-    if (req.method !== "POST") {
-      return json(
-        { ok: false, code: "method_not_allowed", message: "Use POST for this endpoint." },
-        405,
+  async fetch(req: Request) {
+    if (isDisallowedBrowserOrigin(req)) {
+      return Response.json(
+        {
+          ok: false,
+          code: "origin_not_allowed",
+          message: "This origin is not allowed to call the Rewards API.",
+        },
+        { status: 403, headers: { "Vary": "Origin" } },
       );
     }
 
-    return rewardsApiFetch(req);
+    if (req.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeadersFor(req) });
+    }
+
+    if (req.method !== "POST") {
+      return applyCors(
+        req,
+        json(
+          { ok: false, code: "method_not_allowed", message: "Use POST for this endpoint." },
+          405,
+        ),
+      );
+    }
+
+    return applyCors(req, await rewardsApiFetch(req));
   },
 };
