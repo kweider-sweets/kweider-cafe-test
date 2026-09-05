@@ -1,0 +1,71 @@
+name: CORS Hotfix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cors-hotfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply CORS allowlist patch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('edge-functions/kweider-rewards-api/index.ts')
+          text = path.read_text(encoding='utf-8')
+
+          old = '''const corsHeaders = {\n  "Access-Control-Allow-Origin": "*",\n  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",\n  "Access-Control-Allow-Methods": "POST, OPTIONS",\n};\n\nconst json = (body: Record<string, unknown>, status = 200): Response =>\n  Response.json(body, { status, headers: corsHeaders });'''
+          new = '''const ALLOWED_ORIGINS = new Set([\n  "https://menu.kweidersweets.co.uk",\n  "https://kweidersweets.co.uk",\n  "https://www.kweidersweets.co.uk",\n]);\n\nconst requestOrigin = (req: Request): string =>\n  (req.headers.get("Origin") || "").trim();\n\nconst isDisallowedBrowserOrigin = (req: Request): boolean => {\n  const origin = requestOrigin(req);\n  return Boolean(origin && !ALLOWED_ORIGINS.has(origin));\n};\n\nconst corsHeadersFor = (req: Request): Record<string, string> => {\n  const origin = requestOrigin(req);\n  const headers: Record<string, string> = {\n    "Access-Control-Allow-Headers":\n      "authorization, x-client-info, apikey, content-type, x-retry-count, traceparent, tracestate, baggage",\n    "Access-Control-Allow-Methods": "POST, OPTIONS",\n    "Vary": "Origin",\n  };\n\n  if (origin && ALLOWED_ORIGINS.has(origin)) {\n    headers["Access-Control-Allow-Origin"] = origin;\n  }\n\n  return headers;\n};\n\nconst applyCors = (req: Request, response: Response): Response => {\n  const headers = new Headers(response.headers);\n  for (const [key, value] of Object.entries(corsHeadersFor(req))) {\n    headers.set(key, value);\n  }\n\n  return new Response(response.body, {\n    status: response.status,\n    statusText: response.statusText,\n    headers,\n  });\n};\n\nconst json = (body: Record<string, unknown>, status = 200): Response =>\n  Response.json(body, { status });'''
+
+          if text.count(old) != 1:
+              raise SystemExit('Expected original CORS block exactly once')
+          text = text.replace(old, new)
+
+          old = '''  {\n    // Every browser request must include the publishable key in `apikey`.\n    // Staff JWTs are verified separately inside staff-only actions.\n    auth: ["publishable", "secret"],\n  },'''
+          new = '''  {\n    // Every browser request must include the publishable key in `apikey`.\n    // Staff JWTs are verified separately inside staff-only actions.\n    auth: ["publishable", "secret"],\n    // CORS is enforced by the outer fetch handler so multiple exact production\n    // origins can be allowlisted without falling back to a wildcard.\n    cors: "disabled",\n  },'''
+
+          if text.count(old) != 1:
+              raise SystemExit('Expected withSupabase config block exactly once')
+          text = text.replace(old, new)
+
+          old = '''export default {\n  fetch(req: Request) {\n    if (req.method === "OPTIONS") {\n      return new Response(null, { status: 204, headers: corsHeaders });\n    }\n\n    if (req.method !== "POST") {\n      return json(\n        { ok: false, code: "method_not_allowed", message: "Use POST for this endpoint." },\n        405,\n      );\n    }\n\n    return rewardsApiFetch(req);\n  },\n};'''
+          new = '''export default {\n  async fetch(req: Request) {\n    if (isDisallowedBrowserOrigin(req)) {\n      return Response.json(\n        {\n          ok: false,\n          code: "origin_not_allowed",\n          message: "This origin is not allowed to call the Rewards API.",\n        },\n        { status: 403, headers: { "Vary": "Origin" } },\n      );\n    }\n\n    if (req.method === "OPTIONS") {\n      return new Response(null, { status: 204, headers: corsHeadersFor(req) });\n    }\n\n    if (req.method !== "POST") {\n      return applyCors(\n        req,\n        json(\n          { ok: false, code: "method_not_allowed", message: "Use POST for this endpoint." },\n          405,\n        ),\n      );\n    }\n\n    return applyCors(req, await rewardsApiFetch(req));\n  },\n};'''
+
+          if text.count(old) != 1:
+              raise SystemExit('Expected export fetch block exactly once')
+          text = text.replace(old, new)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Verify isolated CORS change
+        shell: bash
+        run: |
+          git diff --check
+          ! grep -n 'Access-Control-Allow-Origin.*\*' edge-functions/kweider-rewards-api/index.ts
+          grep -n 'https://menu.kweidersweets.co.uk' edge-functions/kweider-rewards-api/index.ts
+          grep -n 'https://kweidersweets.co.uk' edge-functions/kweider-rewards-api/index.ts
+          grep -n 'https://www.kweidersweets.co.uk' edge-functions/kweider-rewards-api/index.ts
+          grep -n 'origin_not_allowed' edge-functions/kweider-rewards-api/index.ts
+          grep -n 'cors: "disabled"' edge-functions/kweider-rewards-api/index.ts
+
+      - name: Commit CORS hotfix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add edge-functions/kweider-rewards-api/index.ts
+          git commit -m "Restrict Rewards API CORS to Kweider origins"
+          git push origin main
