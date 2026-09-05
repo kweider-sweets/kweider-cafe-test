@@ -74,3 +74,102 @@ button,a,input,select{-webkit-tap-highlight-color:transparent}
 .bottom-nav:before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(120deg,rgba(197,160,89,.55),rgba(83,19,28,.38),rgba(197,160,89,.28));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:-1}
 .bottom-nav a{position:relative}
 @media(max-width:620px){.app-card + .app-card{margin-top:16px}.page-heading:after{margin-top:12px}.app-topbar:after{width:min(150px,46%)}}
+
+/* Kweider Rewards palette refinement — colour only, Rewards page only. */
+body.app-page:has(#membershipArea){
+  --k-bg:#0f0f10;
+  --k-card:#171516;
+  --k-gold:#c6a15b;
+  --k-gold-light:#ead69b;
+  --k-text:#faf6f0;
+  --k-muted:#c9c0b5;
+  --k-border:rgba(198,161,91,.34);
+  background:
+    radial-gradient(circle at 50% -8%,rgba(83,19,28,.54),transparent 32%),
+    radial-gradient(circle at 88% 14%,rgba(198,161,91,.08),transparent 24%),
+    linear-gradient(180deg,#0f0f10 0%,#0c0b0c 48%,#080708 100%);
+}
+body.app-page:has(#membershipArea) .app-topbar{border-bottom-color:rgba(198,161,91,.18)}
+body.app-page:has(#membershipArea) .page-heading h1{color:#f1d99d}
+body.app-page:has(#membershipArea) .reward-tagline{color:#d5cec4!important}
+body.app-page:has(#membershipArea) .reward-tagline-ar{color:#c8bcae!important}
+body.app-page:has(#membershipArea) .loyalty-card{
+  background:
+    radial-gradient(circle at 84% 12%,rgba(198,161,91,.20),transparent 30%),
+    linear-gradient(145deg,#53131c 0%,#3b0d16 34%,#171516 72%,#0f0f10 100%);
+  border-color:rgba(198,161,91,.52);
+  box-shadow:0 18px 48px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.035);
+}
+body.app-page:has(#membershipArea) .compact-loyalty-card .metric{
+  background:rgba(250,246,240,.055);
+  border-color:rgba(198,161,91,.22);
+}
+body.app-page:has(#membershipArea) .compact-loyalty-card .metric strong,
+body.app-page:has(#membershipArea) .member-name{color:#faf6f0}
+body.app-page:has(#membershipArea) .compact-loyalty-card .metric span,
+body.app-page:has(#membershipArea) .member-id{color:#d8cec2}
+body.app-page:has(#membershipArea) .compact-loyalty-card .metric .cycle-counter{color:#dfc47f}
+body.app-page:has(#membershipArea) .website-cta{
+  background:
+    radial-gradient(circle at 92% 0%,rgba(198,161,91,.18),transparent 34%),
+    linear-gradient(125deg,#53131c 0%,#3b0d16 42%,#171516 76%,#0f0f10 100%);
+  border-color:rgba(198,161,91,.66);
+}
+body.app-page:has(#membershipArea) .website-cta-kicker{color:#c6a15b}
+body.app-page:has(#membershipArea) .website-cta strong{color:#f0d89a}
+body.app-page:has(#membershipArea) .compact-messages-card,
+body.app-page:has(#membershipArea) .reward-qr-card,
+body.app-page:has(#membershipArea) .compact-activity-card,
+body.app-page:has(#membershipArea) .collapsible-card{
+  background:linear-gradient(150deg,rgba(23,21,22,.98),rgba(15,15,16,.99));
+  border-color:rgba(198,161,91,.30);
+}
+body.app-page:has(#membershipArea) .compact-message-card,
+body.app-page:has(#membershipArea) .compact-reward-card{
+  background:linear-gradient(135deg,rgba(83,19,28,.34),rgba(15,15,16,.84));
+  border-color:rgba(198,161,91,.38);
+}
+body.app-page:has(#membershipArea) .compact-message-card strong,
+body.app-page:has(#membershipArea) .compact-reward-card strong,
+body.app-page:has(#membershipArea) .compact-section-head h3,
+body.app-page:has(#membershipArea) .reward-journey-title,
+body.app-page:has(#membershipArea) .compact-activity-card h3,
+body.app-page:has(#membershipArea) .collapsible-card>summary{color:#ead69b}
+body.app-page:has(#membershipArea) .compact-message-card p,
+body.app-page:has(#membershipArea) .transaction-main span,
+body.app-page:has(#membershipArea) .collapsible-content p,
+body.app-page:has(#membershipArea) .reward-next-inline{color:#d6cec5}
+body.app-page:has(#membershipArea) .card-reward-picker,
+body.app-page:has(#membershipArea) .welcome-coffee-card{
+  background:
+    radial-gradient(circle at 90% 0%,rgba(198,161,91,.12),transparent 38%),
+    linear-gradient(145deg,rgba(83,19,28,.28),rgba(15,15,16,.94));
+  border-color:rgba(198,161,91,.48);
+}
+body.app-page:has(#membershipArea) .reward-choice-chip{
+  background:rgba(15,15,16,.78);
+  border-color:rgba(198,161,91,.34);
+  color:#f4ede3;
+}
+body.app-page:has(#membershipArea) .reward-choice-chip.selected{
+  background:linear-gradient(135deg,rgba(83,19,28,.74),rgba(198,161,91,.14));
+  border-color:#c6a15b;
+}
+body.app-page:has(#membershipArea) .notification-panel{
+  background:linear-gradient(135deg,rgba(83,19,28,.28),rgba(15,15,16,.82));
+  border-color:rgba(198,161,91,.36);
+}
+body.app-page:has(#membershipArea) .app-back,
+body.app-page:has(#membershipArea) .ghost-btn{
+  background:linear-gradient(180deg,#171516,#0f0f10);
+  border-color:rgba(198,161,91,.44);
+  color:#ead69b;
+}
+body.app-page:has(#membershipArea) .primary-btn,
+body.app-page:has(#membershipArea) .gold-btn{
+  background:linear-gradient(135deg,#9f7a35,#c6a15b 48%,#ead69b 100%);
+  color:#0f0f10;
+}
+body.app-page:has(#membershipArea) .qr-wrap{box-shadow:0 0 0 1px rgba(198,161,91,.22),0 10px 24px rgba(0,0,0,.28)}
+body.app-page:has(#membershipArea) .journey-track{background:#241d1f}
+body.app-page:has(#membershipArea) .journey-track span{background:linear-gradient(90deg,#8f6d31,#c6a15b,#ead69b)}
