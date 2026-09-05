@@ -43,13 +43,15 @@
   }
   document.addEventListener("DOMContentLoaded", () => {
     updateHomeBadge();
-    setTimeout(() => {
-      const l = document.getElementById("appLoading");
-      if (l) {
-        l.style.opacity = "0";
-        setTimeout(() => l.remove(), 380);
-      }
-    }, 250);
+    const loading = document.getElementById("appLoading");
+    if (loading) {
+      loading.style.opacity = "0";
+      loading.addEventListener(
+        "transitionend",
+        () => loading.remove(),
+        { once: true },
+      );
+    }
   });
   window.addEventListener("kweider-rewards-updated", updateHomeBadge);
   window.addEventListener("storage", updateHomeBadge);
