@@ -63,3 +63,14 @@ button,a,input,select{-webkit-tap-highlight-color:transparent}
 @media(min-width:621px){.app-shell{padding-inline:20px}.page-heading{margin-bottom:26px}}
 @media(max-width:620px){.app-shell{padding-inline:12px}.app-topbar{gap:8px}.app-brand img{max-width:74px}.page-heading h1{font-size:clamp(28px,8.5vw,34px)}.page-heading p{font-size:14px}.bottom-nav{padding:7px}.bottom-nav a{min-height:44px;padding:10px 8px}}
 @media(max-width:360px){.app-shell{padding-inline:9px}.app-back,.ghost-btn,.primary-btn,.gold-btn,.danger-btn{padding-inline:13px}.bottom-nav{width:calc(100% - 12px)}}
+
+/* Shell hierarchy polish — visual separation only. */
+.app-topbar{position:relative}
+.app-topbar:after{content:"";position:absolute;left:50%;bottom:-1px;width:min(180px,42%);height:1px;transform:translateX(-50%);background:linear-gradient(90deg,transparent,rgba(239,214,149,.72),transparent)}
+.page-heading{position:relative;padding-bottom:4px}
+.page-heading:after{content:"";display:block;width:54px;height:1px;margin:14px auto 0;background:linear-gradient(90deg,transparent,#c5a059,transparent)}
+.app-card + .app-card{margin-top:18px}
+.bottom-nav{isolation:isolate}
+.bottom-nav:before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(120deg,rgba(197,160,89,.55),rgba(83,19,28,.38),rgba(197,160,89,.28));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:-1}
+.bottom-nav a{position:relative}
+@media(max-width:620px){.app-card + .app-card{margin-top:16px}.page-heading:after{margin-top:12px}.app-topbar:after{width:min(150px,46%)}}
