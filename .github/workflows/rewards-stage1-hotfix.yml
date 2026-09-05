@@ -1,0 +1,99 @@
+name: Rewards Stage 1 Hotfix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rewards-stage1-hotfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  hotfix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply approved rewards display fixes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected exactly 1 occurrence, found {count}: {old[:80]!r}')
+              p.write_text(text.replace(old, new), encoding='utf-8')
+
+          # Customer rewards page
+          replace_once('rewards.html',
+              '          discount_5: "£10 Off Your Next Bill",',
+              '          discount_5: "Another £5 Off Your Next Bill",')
+          replace_once('rewards.html',
+              '          titleEn: "£10 OFF",\n          titleAr: "خصم £10",',
+              '          titleEn: "ANOTHER £5 OFF",\n          titleAr: "خصم £5 إضافية",')
+          replace_once('rewards.html',
+              '''        const completedCycles = Math.floor(points / REWARD_CYCLE_POINTS);\n\n        return {\n          cycleNumber: completedCycles + 1,\n          cycleBase: completedCycles * REWARD_CYCLE_POINTS,\n          cyclePoints: points % REWARD_CYCLE_POINTS,\n        };''',
+              '''        if (points === 0) {\n          return { cycleNumber: 1, cycleBase: 0, cyclePoints: 0 };\n        }\n\n        // A 200-point boundary belongs to the cycle just completed.\n        // The next reward cycle starts on the following point (201, 401, ...),\n        // matching the database reward-cycle logic.\n        const cycleNumber = Math.floor((points - 1) / REWARD_CYCLE_POINTS) + 1;\n        const cycleBase = (cycleNumber - 1) * REWARD_CYCLE_POINTS;\n        const cyclePoints = ((points - 1) % REWARD_CYCLE_POINTS) + 1;\n\n        return { cycleNumber, cycleBase, cyclePoints };''')
+          replace_once('rewards.html',
+              '        const isNewCycle = points > 0 && cycle.cyclePoints === 0;',
+              '        const isNewCycle = cycle.cycleNumber > 1 && cycle.cyclePoints === 1;')
+          replace_once('rewards.html',
+              '          discount_5: "£10 Reward ready · مكافأة £10 جاهزة",',
+              '          discount_5: "Another £5 reward ready · مكافأة £5 إضافية جاهزة",')
+          replace_once('rewards.html',
+              '            shortTitle: "£10 OFF",\n            titleAr: "خصم £10 على فاتورتك القادمة",',
+              '            shortTitle: "£5 OFF",\n            titleAr: "خصم £5 إضافية على فاتورتك القادمة",')
+
+          # Legacy/root staff page
+          replace_once('staff.html',
+              '                Enter the total before applying a £5 or £10 reward.',
+              '                Enter the total before applying a £5 reward.')
+          replace_once('staff.html',
+              '                        — required for £5 and £10 bill rewards',
+              '                        — required for £5 bill rewards')
+          replace_once('staff.html',
+              '          discount_5: "£10 Off Your Next Bill",',
+              '          discount_5: "£5 Off Your Next Bill",')
+          replace_once('staff.html',
+              '          return Number.isFinite(configured) && configured > 0 ? configured : 10;',
+              '          return Number.isFinite(configured) && configured > 0 ? configured : 5;')
+          replace_once('staff.html',
+              '          : "Enter the till total before applying a £5 or £10 reward.";',
+              '          : "Enter the till total before applying a £5 reward.";')
+
+          # Installed staff app
+          replace_once('staff-app/index.html',
+              '          discount_5: "£10 Off Your Next Bill",',
+              '          discount_5: "£5 Off Your Next Bill",')
+          replace_once('staff-app/index.html',
+              '          return Number.isFinite(configured) && configured > 0 ? configured : 10;',
+              '          return Number.isFinite(configured) && configured > 0 ? configured : 5;')
+          replace_once('staff-app/index.html',
+              '          : "Enter the till total before applying a £5 or £10 reward.";',
+              '          : "Enter the till total before applying a £5 reward.";')
+          PY
+
+      - name: Verify approved policy is present
+        shell: bash
+        run: |
+          git diff --check
+          ! grep -n '£10 Off Your Next Bill\|£10 OFF\|خصم £10\|£10 Reward ready\|£5 or £10 reward\|£5 and £10 bill rewards\|configured : 10' rewards.html staff.html staff-app/index.html
+          grep -n 'ANOTHER £5 OFF' rewards.html
+          grep -n 'خصم £5 إضافية' rewards.html
+          grep -n 'Another £5 reward ready' rewards.html
+
+      - name: Commit approved hotfix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rewards.html staff.html staff-app/index.html
+          git commit -m "Fix rewards display for 50 100 200 point policy"
+          git push origin main
