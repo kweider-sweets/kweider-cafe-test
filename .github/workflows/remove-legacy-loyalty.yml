@@ -1,0 +1,63 @@
+name: Remove Legacy Loyalty Prototype
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/remove-legacy-loyalty.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove legacy browser loyalty system
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          index = Path('index.html')
+          text = index.read_text(encoding='utf-8')
+          old = '<script src="assets/js/loyalty-service.js"></script>\n'
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected exactly one legacy script include, found {text.count(old)}')
+          index.write_text(text.replace(old, ''), encoding='utf-8')
+
+          sw = Path('service-worker.js')
+          sw_text = sw.read_text(encoding='utf-8')
+          old_cache = 'const CACHE = "kweider-customer-v4.5.6";'
+          new_cache = 'const CACHE = "kweider-customer-v4.5.7";'
+          if sw_text.count(old_cache) != 1:
+              raise SystemExit('Expected customer cache version v4.5.6 exactly once')
+          sw.write_text(sw_text.replace(old_cache, new_cache), encoding='utf-8')
+
+          legacy = Path('assets/js/loyalty-service.js')
+          if not legacy.exists():
+              raise SystemExit('Legacy loyalty-service.js was not found')
+          legacy.unlink()
+          PY
+
+      - name: Verify cleanup
+        shell: bash
+        run: |
+          git diff --check
+          test ! -e assets/js/loyalty-service.js
+          ! grep -R -n --exclude-dir=.git --exclude='remove-legacy-loyalty.yml' 'loyalty-service.js\|KweiderRewards\|kweiderRewards.v1' .
+          grep -n 'kweider-customer-v4.5.7' service-worker.js
+          grep -n 'assets/js/app-shell.js' index.html
+
+      - name: Commit cleanup
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html service-worker.js assets/js/loyalty-service.js
+          git commit -m "Remove legacy local loyalty prototype"
+          git push origin main
