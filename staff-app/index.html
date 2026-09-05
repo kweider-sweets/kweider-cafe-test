@@ -596,10 +596,13 @@
 <h3>Send notification to customers · إرسال إشعار للعملاء</h3>
 <div class="field"><label for="managerBroadcastTitle">Notification title · عنوان الرسالة</label><input id="managerBroadcastTitle" maxlength="80" autocomplete="off" placeholder="Kweider Rewards"/></div>
 <div class="field"><label for="managerBroadcastBody">Notification text · نص الرسالة</label><textarea id="managerBroadcastBody" maxlength="300" rows="4" placeholder="Write the customer notification here"></textarea></div>
+<div class="field"><label for="managerBroadcastActionLabel">Action button · نص الزر (optional)</label><input id="managerBroadcastActionLabel" maxlength="40" autocomplete="off" placeholder="View offer"/></div>
+<div class="field"><label for="managerBroadcastActionUrl">Action link · رابط الزر (optional)</label><input id="managerBroadcastActionUrl" maxlength="500" type="url" inputmode="url" autocomplete="url" placeholder="https://www.kweidersweets.co.uk/..."/></div>
+<p class="field-hint">Optional: fill both Action button and Action link to add a clickable CTA to the customer message and push notification.</p>
 <div class="field"><label for="managerBroadcastStart">Start date · تاريخ البداية</label><input id="managerBroadcastStart" type="datetime-local"/></div>
 <div class="field"><label for="managerBroadcastEnd">End date · تاريخ الانتهاء</label><input id="managerBroadcastEnd" type="datetime-local"/></div>
 <div class="field"><label><input id="managerBroadcastPush" type="checkbox" checked/> Send Push too · إرسال إشعار للهاتف أيضًا</label></div>
-<div class="manager-preview" aria-live="polite"><strong id="managerPreviewTitle">Kweider Rewards</strong><p id="managerPreviewBody">Your notification preview will appear here.</p></div>
+<div class="manager-preview" aria-live="polite"><strong id="managerPreviewTitle">Kweider Rewards</strong><p id="managerPreviewBody">Your notification preview will appear here.</p><a id="managerPreviewAction" class="hidden" href="#" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px;padding:7px 11px;border:1px solid rgba(197,160,89,.7);border-radius:999px;color:#edd58f;text-decoration:none;font-size:12px;font-weight:800"></a></div>
 <p class="field-hint">Recipients: <strong id="managerBroadcastRecipients">—</strong> customers · المستلمون</p>
 <div class="form-actions"><button class="gold-btn" id="sendManagerBroadcast" type="button">Review and send · مراجعة وإرسال</button></div>
 <div id="managerBroadcastMessage" aria-live="polite"></div>
@@ -1550,9 +1553,18 @@
       function updateManagerPreview() {
         const title = $("managerBroadcastTitle").value.trim();
         const body = $("managerBroadcastBody").value.trim();
+        const actionLabel = $("managerBroadcastActionLabel").value.trim();
+        const actionUrl = $("managerBroadcastActionUrl").value.trim();
         $("managerPreviewTitle").textContent = title || "Kweider Rewards";
         $("managerPreviewBody").textContent =
           body || "Your notification preview will appear here.";
+
+        const action = $("managerPreviewAction");
+        const validAction = actionLabel && /^https:\/\//i.test(actionUrl);
+        action.textContent = validAction ? actionLabel : "";
+        action.href = validAction ? actionUrl : "#";
+        action.classList.toggle("hidden", !validAction);
+        action.style.display = validAction ? "inline-flex" : "none";
       }
 
       function renderManagerStats(stats) {
@@ -1941,10 +1953,14 @@
       $("refreshManagerStats").addEventListener("click", loadManagerStats);
       $("managerBroadcastTitle").addEventListener("input", updateManagerPreview);
       $("managerBroadcastBody").addEventListener("input", updateManagerPreview);
+      $("managerBroadcastActionLabel").addEventListener("input", updateManagerPreview);
+      $("managerBroadcastActionUrl").addEventListener("input", updateManagerPreview);
 
       $("sendManagerBroadcast").addEventListener("click", async () => {
         const title = $("managerBroadcastTitle").value.trim();
         const body = $("managerBroadcastBody").value.trim();
+        const actionLabel = $("managerBroadcastActionLabel").value.trim();
+        const actionUrl = $("managerBroadcastActionUrl").value.trim();
         const startValue = $("managerBroadcastStart").value;
         const endValue = $("managerBroadcastEnd").value;
         const sendPush = $("managerBroadcastPush").checked;
@@ -1963,8 +1979,29 @@
           return;
         }
 
+        if (Boolean(actionLabel) !== Boolean(actionUrl)) {
+          message(
+            "managerBroadcastMessage",
+            "Enter both the Action button text and Action link, or leave both empty.",
+            "error",
+          );
+          return;
+        }
+
+        if (actionUrl && !/^https:\/\//i.test(actionUrl)) {
+          message(
+            "managerBroadcastMessage",
+            "The Action link must begin with https://",
+            "error",
+          );
+          return;
+        }
+
+        const actionConfirmation = actionLabel
+          ? `\n\nAction: ${actionLabel} → ${actionUrl}`
+          : "";
         const confirmed = window.confirm(
-          `Send this notification to ${recipients} customer(s)?\n\n${title}\n${body}`,
+          `Send this notification to ${recipients} customer(s)?\n\n${title}\n${body}${actionConfirmation}`,
         );
         if (!confirmed) return;
 
@@ -1974,6 +2011,8 @@
             action: "manager_send_broadcast",
             broadcastTitle: title,
             broadcastBody: body,
+            broadcastActionLabel: actionLabel || null,
+            broadcastActionUrl: actionUrl || null,
             broadcastStartAt: startAt,
             broadcastEndAt: endAt,
             broadcastSendPush: sendPush,
