@@ -1,0 +1,210 @@
+name: One-time message action link patch
+
+on:
+  push:
+    branches:
+      - dev/message-action-link
+    paths:
+      - .github/workflows/message-action-link-one-time.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/message-action-link
+          fetch-depth: 0
+
+      - name: Apply targeted patch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new, label):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected exactly 1 match, found {count}")
+              p.write_text(text.replace(old, new, 1))
+              print(f"patched: {label}")
+
+          api = "edge-functions/kweider-rewards-api/index.ts"
+          replace_once(
+              api,
+              '''  broadcastTitle?: string;\n  broadcastBody?: string;\n  broadcastStartAt?: string | null;''',
+              '''  broadcastTitle?: string;\n  broadcastBody?: string;\n  broadcastActionLabel?: string | null;\n  broadcastActionUrl?: string | null;\n  broadcastStartAt?: string | null;''',
+              "API request action fields",
+          )
+          replace_once(
+              api,
+              '''    "id, message_type, title_en, title_ar, body_en, body_ar, is_read, read_at, related_reward_id, created_at, expires_at",''',
+              '''    "id, message_type, title_en, title_ar, body_en, body_ar, action_label, action_url, is_read, read_at, related_reward_id, created_at, expires_at",''',
+              "API member message select",
+          )
+          replace_once(
+              api,
+              '''  bodyAr: message.body_ar,\n  isRead: message.is_read,''',
+              '''  bodyAr: message.body_ar,\n  actionLabel: message.action_label,\n  actionUrl: message.action_url,\n  isRead: message.is_read,''',
+              "API formatted message action fields",
+          )
+          replace_once(
+              api,
+              '''      "id, title_en, body_en, dedupe_key, message_type, created_at",''',
+              '''      "id, title_en, body_en, action_url, dedupe_key, message_type, created_at",''',
+              "API pending push select action URL",
+          )
+          replace_once(
+              api,
+              '''        tag: message.dedupe_key || `kweider-${message.message_type}`,\n        messageId: message.id,''',
+              '''        tag: message.dedupe_key || `kweider-${message.message_type}`,\n        messageId: message.id,\n        url: cleanOptionalText(message.action_url) || undefined,''',
+              "API pending push action URL",
+          )
+          replace_once(
+              api,
+              '''  title: string,\n  body: string,\n  notBefore: string,''',
+              '''  title: string,\n  body: string,\n  actionLabel: string | null,\n  actionUrl: string | null,\n  notBefore: string,''',
+              "API broadcast insert signature",
+          )
+          replace_once(
+              api,
+              '''      body_en: body,\n      body_ar: "",\n      related_reward_id: null,''',
+              '''      body_en: body,\n      body_ar: "",\n      action_label: actionLabel,\n      action_url: actionUrl,\n      related_reward_id: null,''',
+              "API broadcast rows action fields",
+          )
+          replace_once(
+              api,
+              '''  const title = cleanText(payload.broadcastTitle);\n  const body = cleanText(payload.broadcastBody);\n  const nowIso = new Date().toISOString();''',
+              '''  const title = cleanText(payload.broadcastTitle);\n  const body = cleanText(payload.broadcastBody);\n  const actionLabel = cleanText(payload.broadcastActionLabel);\n  const actionUrl = cleanText(payload.broadcastActionUrl);\n  const nowIso = new Date().toISOString();''',
+              "API broadcast action values",
+          )
+          replace_once(
+              api,
+              '''  if (!body || body.length > 300) {\n    throw new ApiError(\n      400,\n      "invalid_broadcast_body",\n      "Enter notification text between 1 and 300 characters.",\n    );\n  }\n\n  const [members, audience] = await Promise.all([''',
+              '''  if (!body || body.length > 300) {\n    throw new ApiError(\n      400,\n      "invalid_broadcast_body",\n      "Enter notification text between 1 and 300 characters.",\n    );\n  }\n\n  if (Boolean(actionLabel) !== Boolean(actionUrl)) {\n    throw new ApiError(\n      400,\n      "invalid_broadcast_action",\n      "Enter both the action button label and its link, or leave both empty.",\n    );\n  }\n\n  if (actionLabel.length > 40) {\n    throw new ApiError(\n      400,\n      "invalid_broadcast_action_label",\n      "The action button label must be 40 characters or fewer.",\n    );\n  }\n\n  let normalizedActionUrl: string | null = null;\n  if (actionUrl) {\n    if (actionUrl.length > 500) {\n      throw new ApiError(\n        400,\n        "invalid_broadcast_action_url",\n        "The action link is too long.",\n      );\n    }\n\n    try {\n      const parsedActionUrl = new URL(actionUrl);\n      if (parsedActionUrl.protocol !== "https:") {\n        throw new Error("https_required");\n      }\n      normalizedActionUrl = parsedActionUrl.toString();\n    } catch {\n      throw new ApiError(\n        400,\n        "invalid_broadcast_action_url",\n        "Enter a valid https:// action link.",\n      );\n    }\n  }\n\n  const [members, audience] = await Promise.all([''',
+              "API broadcast action validation",
+          )
+          replace_once(
+              api,
+              '''          title,\n          body,\n          tag,\n        })''',
+              '''          title,\n          body,\n          tag,\n          url: normalizedActionUrl || undefined,\n        })''',
+              "API immediate push action URL",
+          )
+          replace_once(
+              api,
+              '''    title,\n    body,\n    notBefore,\n    expiresAt,''',
+              '''    title,\n    body,\n    actionLabel || null,\n    normalizedActionUrl,\n    notBefore,\n    expiresAt,''',
+              "API broadcast insert action args",
+          )
+          replace_once(
+              api,
+              '''      title,\n      targetMembers: members.length,''',
+              '''      title,\n      actionLabel: actionLabel || null,\n      actionUrl: normalizedActionUrl,\n      targetMembers: members.length,''',
+              "API broadcast result action fields",
+          )
+          replace_once(
+              api,
+              '''console.info("Kweider Rewards API v4.4.0 started");''',
+              '''console.info("Kweider Rewards API v4.5.0 started");''',
+              "API startup version",
+          )
+          replace_once(
+              api,
+              '''            version: "4.4.0",''',
+              '''            version: "4.5.0",''',
+              "API health version",
+          )
+
+          staff = "staff-app/index.html"
+          replace_once(
+              staff,
+              '''<div class="field"><label for="managerBroadcastBody">Notification text · نص الرسالة</label><textarea id="managerBroadcastBody" maxlength="300" rows="4" placeholder="Write the customer notification here"></textarea></div>\n<div class="field"><label for="managerBroadcastStart">Start date · تاريخ البداية</label>''',
+              '''<div class="field"><label for="managerBroadcastBody">Notification text · نص الرسالة</label><textarea id="managerBroadcastBody" maxlength="300" rows="4" placeholder="Write the customer notification here"></textarea></div>\n<div class="field"><label for="managerBroadcastActionLabel">Action button · نص الزر (optional)</label><input id="managerBroadcastActionLabel" maxlength="40" autocomplete="off" placeholder="View offer"/></div>\n<div class="field"><label for="managerBroadcastActionUrl">Action link · رابط الزر (optional)</label><input id="managerBroadcastActionUrl" maxlength="500" type="url" inputmode="url" autocomplete="url" placeholder="https://www.kweidersweets.co.uk/..."/></div>\n<p class="field-hint">Optional: fill both Action button and Action link to add a clickable CTA to the customer message and push notification.</p>\n<div class="field"><label for="managerBroadcastStart">Start date · تاريخ البداية</label>''',
+              "Staff broadcast action fields",
+          )
+          replace_once(
+              staff,
+              '''<div class="manager-preview" aria-live="polite"><strong id="managerPreviewTitle">Kweider Rewards</strong><p id="managerPreviewBody">Your notification preview will appear here.</p></div>''',
+              '''<div class="manager-preview" aria-live="polite"><strong id="managerPreviewTitle">Kweider Rewards</strong><p id="managerPreviewBody">Your notification preview will appear here.</p><a id="managerPreviewAction" class="hidden" href="#" target="_blank" rel="noopener noreferrer" style="display:inline-flex;margin-top:9px;padding:7px 11px;border:1px solid rgba(197,160,89,.7);border-radius:999px;color:#edd58f;text-decoration:none;font-size:12px;font-weight:800"></a></div>''',
+              "Staff broadcast action preview",
+          )
+          replace_once(
+              staff,
+              '''      function updateManagerPreview() {\n        const title = $("managerBroadcastTitle").value.trim();\n        const body = $("managerBroadcastBody").value.trim();\n        $("managerPreviewTitle").textContent = title || "Kweider Rewards";\n        $("managerPreviewBody").textContent =\n          body || "Your notification preview will appear here.";\n      }''',
+              '''      function updateManagerPreview() {\n        const title = $("managerBroadcastTitle").value.trim();\n        const body = $("managerBroadcastBody").value.trim();\n        const actionLabel = $("managerBroadcastActionLabel").value.trim();\n        const actionUrl = $("managerBroadcastActionUrl").value.trim();\n        $("managerPreviewTitle").textContent = title || "Kweider Rewards";\n        $("managerPreviewBody").textContent =\n          body || "Your notification preview will appear here.";\n\n        const action = $("managerPreviewAction");\n        const validAction = actionLabel && /^https:\\/\\//i.test(actionUrl);\n        action.textContent = validAction ? actionLabel : "";\n        action.href = validAction ? actionUrl : "#";\n        action.classList.toggle("hidden", !validAction);\n        action.style.display = validAction ? "inline-flex" : "none";\n      }''',
+              "Staff broadcast preview logic",
+          )
+          replace_once(
+              staff,
+              '''      $("managerBroadcastTitle").addEventListener("input", updateManagerPreview);\n      $("managerBroadcastBody").addEventListener("input", updateManagerPreview);''',
+              '''      $("managerBroadcastTitle").addEventListener("input", updateManagerPreview);\n      $("managerBroadcastBody").addEventListener("input", updateManagerPreview);\n      $("managerBroadcastActionLabel").addEventListener("input", updateManagerPreview);\n      $("managerBroadcastActionUrl").addEventListener("input", updateManagerPreview);''',
+              "Staff broadcast action listeners",
+          )
+          replace_once(
+              staff,
+              '''        const title = $("managerBroadcastTitle").value.trim();\n        const body = $("managerBroadcastBody").value.trim();\n        const startValue = $("managerBroadcastStart").value;''',
+              '''        const title = $("managerBroadcastTitle").value.trim();\n        const body = $("managerBroadcastBody").value.trim();\n        const actionLabel = $("managerBroadcastActionLabel").value.trim();\n        const actionUrl = $("managerBroadcastActionUrl").value.trim();\n        const startValue = $("managerBroadcastStart").value;''',
+              "Staff broadcast action values",
+          )
+          replace_once(
+              staff,
+              '''        if (!title || !body) {\n          message(\n            "managerBroadcastMessage",\n            "Enter the notification title and text.",\n            "error",\n          );\n          return;\n        }\n\n        const confirmed = window.confirm(\n          `Send this notification to ${recipients} customer(s)?\\n\\n${title}\\n${body}`,\n        );''',
+              '''        if (!title || !body) {\n          message(\n            "managerBroadcastMessage",\n            "Enter the notification title and text.",\n            "error",\n          );\n          return;\n        }\n\n        if (Boolean(actionLabel) !== Boolean(actionUrl)) {\n          message(\n            "managerBroadcastMessage",\n            "Enter both the Action button text and Action link, or leave both empty.",\n            "error",\n          );\n          return;\n        }\n\n        if (actionUrl && !/^https:\\/\\//i.test(actionUrl)) {\n          message(\n            "managerBroadcastMessage",\n            "The Action link must begin with https://",\n            "error",\n          );\n          return;\n        }\n\n        const actionConfirmation = actionLabel\n          ? `\\n\\nAction: ${actionLabel} → ${actionUrl}`\n          : "";\n        const confirmed = window.confirm(\n          `Send this notification to ${recipients} customer(s)?\\n\\n${title}\\n${body}${actionConfirmation}`,\n        );''',
+              "Staff broadcast action validation",
+          )
+          replace_once(
+              staff,
+              '''            broadcastTitle: title,\n            broadcastBody: body,\n            broadcastStartAt: startAt,''',
+              '''            broadcastTitle: title,\n            broadcastBody: body,\n            broadcastActionLabel: actionLabel || null,\n            broadcastActionUrl: actionUrl || null,\n            broadcastStartAt: startAt,''',
+              "Staff broadcast action payload",
+          )
+
+          rewards = "rewards.html"
+          replace_once(
+              rewards,
+              '''      .compact-date {\n        margin-top: 5px;\n        color: #8f8f8f;\n        font-size: 11px;\n      }''',
+              '''      .compact-date {\n        margin-top: 5px;\n        color: #8f8f8f;\n        font-size: 11px;\n      }\n      .compact-message-action {\n        display: inline-flex;\n        min-height: 36px;\n        margin-top: 9px;\n        padding: 7px 12px;\n        align-items: center;\n        justify-content: center;\n        border: 1px solid rgba(239, 214, 149, 0.72);\n        border-radius: 999px;\n        background: rgba(197, 160, 89, 0.12);\n        color: #efd695;\n        font-size: 12px;\n        font-weight: 900;\n        line-height: 1.2;\n        text-decoration: none;\n      }\n      .compact-message-action:focus-visible {\n        outline: 2px solid #efd695;\n        outline-offset: 2px;\n      }''',
+              "Customer message action CSS",
+          )
+          replace_once(
+              rewards,
+              '''        let titleEn = String(\n          readField(message, "titleEn", "title_en") || "Kweider Rewards",\n        );\n        let bodyEn = String(readField(message, "bodyEn", "body_en") || "");\n        let bodyAr = String(readField(message, "bodyAr", "body_ar") || "");''',
+              '''        let titleEn = String(\n          readField(message, "titleEn", "title_en") || "Kweider Rewards",\n        );\n        let bodyEn = String(readField(message, "bodyEn", "body_en") || "");\n        let bodyAr = String(readField(message, "bodyAr", "body_ar") || "");\n        const actionLabel = String(\n          readField(message, "actionLabel", "action_label") || "",\n        ).trim();\n        const rawActionUrl = String(\n          readField(message, "actionUrl", "action_url") || "",\n        ).trim();\n        let actionUrl = "";\n        if (rawActionUrl) {\n          try {\n            const parsedActionUrl = new URL(rawActionUrl);\n            if (parsedActionUrl.protocol === "https:") {\n              actionUrl = parsedActionUrl.toString();\n            }\n          } catch {}\n        }''',
+              "Customer message action values",
+          )
+          replace_once(
+              rewards,
+              '''            ${(messageDate || expiryDate) ? `<div class="compact-date">${esc(messageDate)}${expiryDate ? ` · Valid until ${esc(expiryDate)}` : ""}</div>` : ""}\n          </article>`;''',
+              '''            ${(messageDate || expiryDate) ? `<div class="compact-date">${esc(messageDate)}${expiryDate ? ` · Valid until ${esc(expiryDate)}` : ""}</div>` : ""}\n            ${actionLabel && actionUrl ? `<a class="compact-message-action" href="${esc(actionUrl)}" target="_blank" rel="noopener noreferrer">${esc(actionLabel)} →</a>` : ""}\n          </article>`;''',
+              "Customer message action markup",
+          )
+
+          PY
+
+      - name: Static checks
+        shell: bash
+        run: |
+          git diff --check
+          grep -q 'broadcastActionLabel' edge-functions/kweider-rewards-api/index.ts
+          grep -q 'action_label, action_url' edge-functions/kweider-rewards-api/index.ts
+          grep -q 'compact-message-action' rewards.html
+          grep -q 'managerBroadcastActionUrl' staff-app/index.html
+          grep -q 'Kweider Rewards API v4.5.0 started' edge-functions/kweider-rewards-api/index.ts
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add edge-functions/kweider-rewards-api/index.ts staff-app/index.html rewards.html
+          git commit -m "Add message action links"
+          git push origin HEAD:dev/message-action-link
