@@ -176,3 +176,17 @@ body.app-page:has(#membershipArea) .qr-wrap{box-shadow:0 0 0 1px rgba(198,161,91
 body.app-page:has(#membershipArea) .journey-track{background:#241d1f}
 body.app-page:has(#membershipArea) .journey-track span{background:linear-gradient(90deg,#8f6d31,#c6a15b,#ead69b)}
 @media(max-width:620px){body.app-page:has(#membershipArea){background-attachment:scroll}}
+
+/* Kweider menu floor — background only, preserve dark cards/header/footer. */
+body:has(#main-menu){
+  background:#f4ede3!important;
+}
+body:has(#main-menu) .hero-banner-container{
+  background:#f4ede3!important;
+}
+body:has(#main-menu) .allergy-notice-top{
+  color:#3b302d!important;
+}
+body:has(#main-menu) .allergy-notice-top .ar-text{
+  color:#53131c!important;
+}
