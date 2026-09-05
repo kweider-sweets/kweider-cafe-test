@@ -38,3 +38,11 @@ body.app-page{background:
 .loading-layer{background:radial-gradient(circle at 50% 20%,rgba(83,19,28,.42),#050505 55%)}
 @media(max-width:620px){body.app-page{background-attachment:scroll}.app-shell{padding-top:14px}.app-topbar{padding-bottom:14px;margin-bottom:12px}.page-heading{margin-bottom:18px}.page-heading p{font-size:14px;line-height:1.55}.app-back,.ghost-btn,.primary-btn,.gold-btn,.danger-btn{min-height:42px}.form-actions>.primary-btn,.form-actions>.gold-btn{flex:1 1 100%}.bottom-nav{bottom:8px;width:calc(100% - 16px);border-radius:18px}.bottom-nav a{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.app-back,.ghost-btn,.primary-btn,.gold-btn,.danger-btn,.bottom-nav a{transition:none}.loyalty-card:before,.loading-layer img{animation:none}}
+
+/* Rewards mobile readability — CSS only. */
+.compact-message-line{-webkit-line-clamp:2!important}
+@media(max-width:480px){
+  .reward-tagline{white-space:normal!important;font-size:13px!important;line-height:1.5!important;max-width:330px!important}
+  .reward-milestone strong{font-size:10.5px!important;line-height:1.25!important}
+  .reward-milestone small{font-size:9px!important;line-height:1.25!important}
+}
