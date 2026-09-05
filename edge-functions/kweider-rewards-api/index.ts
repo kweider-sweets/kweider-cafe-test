@@ -38,6 +38,8 @@ interface RequestPayload {
   // Manager-only broadcast
   broadcastTitle?: string;
   broadcastBody?: string;
+  broadcastActionLabel?: string | null;
+  broadcastActionUrl?: string | null;
   broadcastStartAt?: string | null;
   broadcastEndAt?: string | null;
   broadcastSendPush?: boolean;
@@ -462,7 +464,7 @@ if (rewardsError) {
 const { data: messages, error: messagesError } = await admin
   .from("kweider_member_messages")
   .select(
-    "id, message_type, title_en, title_ar, body_en, body_ar, is_read, read_at, related_reward_id, created_at, expires_at",
+    "id, message_type, title_en, title_ar, body_en, body_ar, action_label, action_url, is_read, read_at, related_reward_id, created_at, expires_at",
   )
   .eq("member_id", memberId)
   .lte("not_before", nowIso)
@@ -504,6 +506,8 @@ const formattedMessages = (messages ?? []).map((message: any) => ({
   titleAr: message.title_ar,
   bodyEn: message.body_en,
   bodyAr: message.body_ar,
+  actionLabel: message.action_label,
+  actionUrl: message.action_url,
   isRead: message.is_read,
   readAt: message.read_at,
   relatedRewardId: message.related_reward_id,
@@ -1393,7 +1397,7 @@ const sendPendingMessagesForMember = async (
   const { data: messages, error: messageError } = await admin
     .from("kweider_member_messages")
     .select(
-      "id, title_en, body_en, dedupe_key, message_type, created_at",
+      "id, title_en, body_en, action_url, dedupe_key, message_type, created_at",
     )
     .eq("member_id", memberId)
     .eq("push_status", "pending")
@@ -1428,6 +1432,7 @@ const sendPendingMessagesForMember = async (
           "You have a new Kweider reward update.",
         tag: message.dedupe_key || `kweider-${message.message_type}`,
         messageId: message.id,
+        url: cleanOptionalText(message.action_url) || undefined,
       });
       messageDelivered = messageDelivered || delivered;
     }
@@ -1972,6 +1977,8 @@ const insertManagerBroadcastMessages = async (
   broadcastId: string,
   title: string,
   body: string,
+  actionLabel: string | null,
+  actionUrl: string | null,
   notBefore: string,
   expiresAt: string | null,
   sendPush: boolean,
@@ -1989,6 +1996,8 @@ const insertManagerBroadcastMessages = async (
       title_ar: title,
       body_en: body,
       body_ar: "",
+      action_label: actionLabel,
+      action_url: actionUrl,
       related_reward_id: null,
       dedupe_key: `${broadcastId}:${member.id}`,
       is_read: false,
@@ -2109,6 +2118,8 @@ const sendManagerBroadcast = async (
 
   const title = cleanText(payload.broadcastTitle);
   const body = cleanText(payload.broadcastBody);
+  const actionLabel = cleanText(payload.broadcastActionLabel);
+  const actionUrl = cleanText(payload.broadcastActionUrl);
   const nowIso = new Date().toISOString();
   const notBefore = cleanText(payload.broadcastStartAt) || nowIso;
   const expiresAt = cleanText(payload.broadcastEndAt) || null;
@@ -2140,6 +2151,47 @@ const sendManagerBroadcast = async (
     );
   }
 
+  if (Boolean(actionLabel) !== Boolean(actionUrl)) {
+    throw new ApiError(
+      400,
+      "invalid_broadcast_action",
+      "Enter both the action button label and its link, or leave both empty.",
+    );
+  }
+
+  if (actionLabel.length > 40) {
+    throw new ApiError(
+      400,
+      "invalid_broadcast_action_label",
+      "The action button label must be 40 characters or fewer.",
+    );
+  }
+
+  let normalizedActionUrl: string | null = null;
+  if (actionUrl) {
+    if (actionUrl.length > 500) {
+      throw new ApiError(
+        400,
+        "invalid_broadcast_action_url",
+        "The action link is too long.",
+      );
+    }
+
+    try {
+      const parsedActionUrl = new URL(actionUrl);
+      if (parsedActionUrl.protocol !== "https:") {
+        throw new Error("https_required");
+      }
+      normalizedActionUrl = parsedActionUrl.toString();
+    } catch {
+      throw new ApiError(
+        400,
+        "invalid_broadcast_action_url",
+        "Enter a valid https:// action link.",
+      );
+    }
+  }
+
   const [members, audience] = await Promise.all([
     loadAllMemberIds(ctx),
     loadManagerAudience(ctx),
@@ -2162,6 +2214,7 @@ const sendManagerBroadcast = async (
           title,
           body,
           tag,
+          url: normalizedActionUrl || undefined,
         })
       ),
     );
@@ -2184,6 +2237,8 @@ const sendManagerBroadcast = async (
     broadcastId,
     title,
     body,
+    actionLabel || null,
+    normalizedActionUrl,
     notBefore,
     expiresAt,
     sendPush,
@@ -2196,6 +2251,8 @@ const sendManagerBroadcast = async (
     action: "manager_send_broadcast",
     result: {
       title,
+      actionLabel: actionLabel || null,
+      actionUrl: normalizedActionUrl,
       targetMembers: members.length,
       pushReachableMembers: audience.reachableMemberIds.size,
       targetSubscriptions: targetSubscriptions.length,
@@ -2715,7 +2772,7 @@ const completeCheckout = async (
   });
 };
 
-console.info("Kweider Rewards API v4.4.0 started");
+console.info("Kweider Rewards API v4.5.0 started");
 
 const rewardsApiFetch = withSupabase(
   {
@@ -2739,7 +2796,7 @@ const rewardsApiFetch = withSupabase(
           return json({
             ok: true,
             service: "kweider-rewards-api",
-            version: "4.4.0",
+            version: "4.5.0",
             action: "health",
             authMode: ctx.authMode,
             timestamp: new Date().toISOString(),

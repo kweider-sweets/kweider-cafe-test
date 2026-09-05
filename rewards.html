@@ -156,6 +156,26 @@
         color: #8f8f8f;
         font-size: 11px;
       }
+      .compact-message-action {
+        display: inline-flex;
+        min-height: 36px;
+        margin-top: 9px;
+        padding: 7px 12px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(239, 214, 149, 0.72);
+        border-radius: 999px;
+        background: rgba(197, 160, 89, 0.12);
+        color: #efd695;
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.2;
+        text-decoration: none;
+      }
+      .compact-message-action:focus-visible {
+        outline: 2px solid #efd695;
+        outline-offset: 2px;
+      }
       .compact-inline-details {
         margin-top: 8px;
         border-top: 1px solid rgba(255, 255, 255, 0.07);
@@ -2936,6 +2956,21 @@
         );
         let bodyEn = String(readField(message, "bodyEn", "body_en") || "");
         let bodyAr = String(readField(message, "bodyAr", "body_ar") || "");
+        const actionLabel = String(
+          readField(message, "actionLabel", "action_label") || "",
+        ).trim();
+        const rawActionUrl = String(
+          readField(message, "actionUrl", "action_url") || "",
+        ).trim();
+        let actionUrl = "";
+        if (rawActionUrl) {
+          try {
+            const parsedActionUrl = new URL(rawActionUrl);
+            if (parsedActionUrl.protocol === "https:") {
+              actionUrl = parsedActionUrl.toString();
+            }
+          } catch {}
+        }
         const breakfastRewardMessage = /breakfast\s*(for\s*)?two|breakfast\s*[×x]2/i.test(
           `${titleEn} ${bodyEn}`,
         ) || /فطور\s*(مجاني\s*)?لشخصين/.test(bodyAr);
@@ -2954,6 +2989,7 @@
             ${bodyEn ? `<p class="compact-message-line">${esc(bodyEn)}</p>` : ""}
             ${bodyAr ? `<p class="compact-message-line" dir="rtl" style="text-align:right;color:#c8c0b0">${esc(bodyAr)}</p>` : ""}
             ${(messageDate || expiryDate) ? `<div class="compact-date">${esc(messageDate)}${expiryDate ? ` · Valid until ${esc(expiryDate)}` : ""}</div>` : ""}
+            ${actionLabel && actionUrl ? `<a class="compact-message-action" href="${esc(actionUrl)}" target="_blank" rel="noopener noreferrer">${esc(actionLabel)} →</a>` : ""}
           </article>`;
       }
 
