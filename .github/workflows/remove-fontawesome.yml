@@ -17,7 +17,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply FontAwesome removal patch
+      - name: Apply complete FontAwesome removal patch
         run: python3 scripts/remove-fontawesome.py
 
       - name: Validate menu and service worker
