@@ -24,9 +24,17 @@ jobs:
         shell: bash
         run: |
           git diff --check
-          ! grep -R -n -Ei 'font-awesome|fontawesome|cdnjs.cloudflare.com/ajax/libs/font-awesome' index.html
-          ! grep -R -n -E '<i[[:space:]]+class=["'"'][^"'"']*\bfa' index.html
-          grep -q 'class="menu-icon"' index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('index.html').read_text(encoding='utf-8')
+          if re.search(r'font-awesome|fontawesome|cdnjs\.cloudflare\.com/ajax/libs/font-awesome', html, re.I):
+              raise SystemExit('FontAwesome reference remains')
+          if re.search(r'<i\s+class=["\'][^"\']*\bfa', html, re.I):
+              raise SystemExit('FontAwesome icon markup remains')
+          if 'class="menu-icon"' not in html:
+              raise SystemExit('Local SVG icons missing')
+          PY
           grep -q 'kweider-customer-v4.5.10' service-worker.js
           node --check service-worker.js
 
