@@ -300,6 +300,73 @@ const constantTimeEqual = (left: string, right: string): boolean => {
   return difference === 0;
 };
 
+const registrationRatePepper = (): string => {
+  const pepper = Deno.env.get("KWEIDER_RATE_LIMIT_PEPPER") ||
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  if (!pepper) {
+    throw new ApiError(
+      503,
+      "registration_rate_limit_unavailable",
+      "Registration protection is temporarily unavailable. Please try again.",
+    );
+  }
+  return pepper;
+};
+
+const registrationClientIp = (req: Request): string => {
+  const cloudflareIp = cleanText(req.headers.get("cf-connecting-ip"));
+  if (cloudflareIp) return cloudflareIp;
+
+  const forwardedFor = cleanText(req.headers.get("x-forwarded-for"));
+  if (forwardedFor) return forwardedFor.split(",")[0].trim();
+
+  return cleanText(req.headers.get("x-real-ip"));
+};
+
+const enforceRegistrationRateLimit = async (
+  req: Request,
+  admin: any,
+  normalisedPhone: string,
+): Promise<void> => {
+  const pepper = registrationRatePepper();
+  const phoneHash = await hmacSha256Hex(
+    pepper,
+    `registration:phone:${normalisedPhone}`,
+  );
+  const clientIp = registrationClientIp(req);
+  const ipHash = clientIp
+    ? await hmacSha256Hex(pepper, `registration:ip:${clientIp}`)
+    : null;
+
+  const { data, error } = await admin.rpc(
+    "kweider_check_registration_rate_limit",
+    {
+      p_phone_hash: phoneHash,
+      p_ip_hash: ipHash,
+      p_now: new Date().toISOString(),
+    },
+  );
+
+  if (error || !data || typeof data !== "object") {
+    console.error("Registration rate limit check failed:", error);
+    throw new ApiError(
+      503,
+      "registration_rate_limit_unavailable",
+      "Registration protection is temporarily unavailable. Please try again.",
+    );
+  }
+
+  if (data.allowed !== true) {
+    const retryAfterSeconds = Math.max(1, Number(data.retry_after_seconds || 60));
+    const retryAfterMinutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
+    throw new ApiError(
+      429,
+      "registration_rate_limited",
+      `Too many registration attempts. Try again in ${retryAfterMinutes} minute${retryAfterMinutes === 1 ? "" : "s"}.`,
+    );
+  }
+};
+
 const normaliseMemberPhone = async (admin: any, phone: string): Promise<string> => {
   const { data, error } = await admin.rpc("kweider_normalize_phone", {
     p_phone: phone,
@@ -873,7 +940,7 @@ const completePinReset = async (payload: RequestPayload, admin: any) => {
   });
 };
 
-const createMembership = async (payload: RequestPayload, admin: any) => {
+const createMembership = async (payload: RequestPayload, admin: any, req: Request) => {
   const firstName = cleanText(payload.firstName);
   const phone = cleanText(payload.phone);
   const email = cleanOptionalText(payload.email);
@@ -935,6 +1002,8 @@ const createMembership = async (payload: RequestPayload, admin: any) => {
       "A membership already exists for this phone number.",
     );
   }
+
+  await enforceRegistrationRateLimit(req, admin, String(normalisedPhone));
 
   const rawToken = createRawToken();
   const tokenHash = await sha256Hex(rawToken);
@@ -2913,7 +2982,7 @@ const rewardsApiFetch = withSupabase(
         }
 
         if (action === "create_member") {
-          return await createMembership(payload, ctx.supabaseAdmin);
+          return await createMembership(payload, ctx.supabaseAdmin, req);
         }
 
         if (action === "login_with_pin") {
