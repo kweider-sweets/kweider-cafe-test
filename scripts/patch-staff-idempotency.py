@@ -1,6 +1,7 @@
 from pathlib import Path
 import re
 
+# One-time runner trigger; this file is removed by the workflow after success.
 files = [Path('staff.html'), Path('staff-app/index.html')]
 
 old_key_fn = '''      function createIdempotencyKey() {
