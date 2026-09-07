@@ -3536,6 +3536,7 @@
             $("newPinAfterResetForm").classList.add("hidden");
             $("pinResetStatus").innerHTML = "";
             renderPinResetWaiting("This number is already registered. Ask a member of staff to approve restoring your card.");
+            notice("formMessage", "", "info");
             setTimeout(() => $("resetPhone").focus(), 50);
           } else {
             notice("formMessage", error.message, "error");
