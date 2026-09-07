@@ -1,4 +1,4 @@
-const CACHE = "kweider-staff-v4.4.0";
+const CACHE = "kweider-staff-v4.4.1";
 const CORE = [
   "./",
   "./index.html",
@@ -9,7 +9,10 @@ const CORE = [
   "./icons/apple-touch-icon.png",
   "../logo.webp",
   "../assets/css/app-shell.css",
-  "../assets/js/app-shell.js"
+  "../assets/js/app-shell.js",
+  "../assets/js/staff-app-install.js",
+  "../assets/js/staff-app-page.js",
+  "../assets/vendor/html5-qrcode.min.js"
 ];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting()));
