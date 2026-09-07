@@ -1,0 +1,41 @@
+name: Remove FontAwesome from menu
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/remove-fontawesome.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply FontAwesome removal patch
+        run: python3 scripts/remove-fontawesome.py
+
+      - name: Validate menu and service worker
+        shell: bash
+        run: |
+          git diff --check
+          ! grep -R -n -Ei 'font-awesome|fontawesome|cdnjs.cloudflare.com/ajax/libs/font-awesome' index.html
+          ! grep -R -n -E '<i[[:space:]]+class=["'"'][^"'"']*\bfa' index.html
+          grep -q 'class="menu-icon"' index.html
+          grep -q 'kweider-customer-v4.5.10' service-worker.js
+          node --check service-worker.js
+
+      - name: Commit interface-only release
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/remove-fontawesome.yml scripts/remove-fontawesome.py
+          git add index.html service-worker.js
+          git commit -m "Remove render-blocking FontAwesome dependency"
+          git push origin main
