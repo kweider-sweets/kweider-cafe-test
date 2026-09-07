@@ -1,0 +1,59 @@
+name: Turnstile UI Message Fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/turnstile-ui-message-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clear stale registration status after member exists
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('rewards.html')
+          text = path.read_text(encoding='utf-8')
+          old = '''            renderPinResetWaiting("This number is already registered. Ask a member of staff to approve restoring your card.");
+            setTimeout(() => $("resetPhone").focus(), 50);'''
+          new = '''            renderPinResetWaiting("This number is already registered. Ask a member of staff to approve restoring your card.");
+            notice("formMessage", "", "info");
+            setTimeout(() => $("resetPhone").focus(), 50);'''
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'Expected member_exists UI block once, found {count}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Validate isolated UI change
+        shell: bash
+        run: |
+          git diff --check
+          grep -n 'notice("formMessage", "", "info");' rewards.html
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path('rewards.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', html, flags=re.S | re.I)
+          Path('/tmp/rewards-inline.js').write_text(scripts[-1], encoding='utf-8')
+          PY
+          node --check /tmp/rewards-inline.js
+
+      - name: Commit UI fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rewards.html
+          git commit -m "Clear stale registration message for existing members"
+          git push origin main
