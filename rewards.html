@@ -1568,6 +1568,19 @@
                 </span>
               </label>
             </div>
+            <div
+              id="turnstileWidget"
+              class="cf-turnstile"
+              data-sitekey="0x4AAAAAAEr2vHuiXic1UKjI"
+              data-execution="execute"
+              data-appearance="interaction-only"
+              data-action="create_member"
+              data-theme="dark"
+              data-size="flexible"
+              data-callback="onTurnstileSuccess"
+              data-error-callback="onTurnstileError"
+              aria-live="polite"
+            ></div>
             <div class="auth-inline-actions">
               <button class="primary-btn" type="submit" id="createCardButton">
                 Create Card & Claim Free Coffee
@@ -1856,6 +1869,7 @@
 
 
 
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
     <script src="assets/vendor/qrcode-local.js"></script>
     <script src="assets/js/app-shell.js"></script>
     <script>
@@ -1877,6 +1891,49 @@
       let pinResetPollTimer = null;
       let notificationStateRequest = 0;
       let notificationPromptShown = false;
+      let turnstileResolve = null;
+      let turnstileReject = null;
+
+      function clearTurnstilePending() {
+        turnstileResolve = null;
+        turnstileReject = null;
+      }
+
+      window.onTurnstileSuccess = (token) => {
+        const resolve = turnstileResolve;
+        clearTurnstilePending();
+        if (resolve) resolve(String(token || ""));
+      };
+
+      window.onTurnstileError = () => {
+        const reject = turnstileReject;
+        clearTurnstilePending();
+        if (reject) reject(new Error("Security verification failed. Please try again."));
+      };
+
+      function resetTurnstile() {
+        try {
+          if (window.turnstile?.reset) window.turnstile.reset("#turnstileWidget");
+        } catch (error) {
+          console.warn("Unable to reset the security check:", error);
+        }
+      }
+
+      function requestTurnstileToken() {
+        if (!window.turnstile?.execute) {
+          return Promise.reject(new Error("The security check is still loading. Please try again."));
+        }
+        return new Promise((resolve, reject) => {
+          turnstileResolve = resolve;
+          turnstileReject = reject;
+          try {
+            window.turnstile.execute("#turnstileWidget");
+          } catch (error) {
+            clearTurnstilePending();
+            reject(new Error("Security verification could not start. Please try again."));
+          }
+        });
+      }
 
       function openNotificationPrompt() {
         if (notificationPromptShown || !$("notificationPrompt")) return;
@@ -3454,8 +3511,12 @@
         if (requestInProgress) return;
 
         setLoading(true);
-        notice("formMessage", "Creating your rewards card…", "info");
+        notice("formMessage", "Checking security…", "info");
         try {
+          const turnstileToken = await requestTurnstileToken();
+          if (!turnstileToken) throw new Error("Security verification failed. Please try again.");
+
+          notice("formMessage", "Creating your rewards card…", "info");
           const result = await callApi({
             action: "create_member",
             firstName: $("firstName").value.trim(),
@@ -3463,6 +3524,7 @@
             email: null,
             birthday: null,
             notificationConsent: $("notificationConsent").checked,
+            turnstileToken,
           });
           await saveReturnedCard(result);
         } catch (error) {
@@ -3479,6 +3541,7 @@
             notice("formMessage", error.message, "error");
           }
         } finally {
+          resetTurnstile();
           setLoading(false);
         }
       });

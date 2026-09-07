@@ -12,6 +12,7 @@ interface RequestPayload {
   birthday?: string | null;
   marketingConsent?: boolean;
   notificationConsent?: boolean;
+  turnstileToken?: string;
   token?: string;
 
   // App notification subscription for the current device
@@ -108,6 +109,72 @@ const cleanText = (value: unknown): string =>
 const cleanOptionalText = (value: unknown): string | null => {
   const cleaned = cleanText(value);
   return cleaned || null;
+};
+
+interface TurnstileVerificationResult {
+  success?: boolean;
+  hostname?: string;
+  action?: string;
+  "error-codes"?: string[];
+}
+
+const TURNSTILE_SITEVERIFY_URL =
+  "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+const TURNSTILE_REGISTRATION_HOSTNAME = "menu.kweidersweets.co.uk";
+const TURNSTILE_REGISTRATION_ACTION = "create_member";
+
+const verifyRegistrationTurnstile = async (
+  payload: RequestPayload,
+): Promise<void> => {
+  const token = cleanText(payload.turnstileToken);
+  if (!token || token.length > 2048) {
+    throw new ApiError(403, "turnstile_required", "Complete the security check and try again.");
+  }
+
+  const secret = cleanText(Deno.env.get("TURNSTILE_SECRET"));
+  if (!secret) {
+    console.error("TURNSTILE_SECRET is not configured.");
+    throw new ApiError(503, "security_check_unavailable", "Security verification is temporarily unavailable. Please try again.");
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(TURNSTILE_SITEVERIFY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ secret, response: token }),
+    });
+  } catch (error) {
+    console.error("Unable to reach Turnstile Siteverify:", error);
+    throw new ApiError(503, "security_check_unavailable", "Security verification is temporarily unavailable. Please try again.");
+  }
+
+  if (!response.ok) {
+    console.error("Turnstile Siteverify returned HTTP", response.status);
+    throw new ApiError(503, "security_check_unavailable", "Security verification is temporarily unavailable. Please try again.");
+  }
+
+  let result: TurnstileVerificationResult;
+  try {
+    result = await response.json();
+  } catch (error) {
+    console.error("Turnstile Siteverify returned invalid JSON:", error);
+    throw new ApiError(503, "security_check_unavailable", "Security verification is temporarily unavailable. Please try again.");
+  }
+
+  if (
+    result.success !== true ||
+    result.hostname !== TURNSTILE_REGISTRATION_HOSTNAME ||
+    result.action !== TURNSTILE_REGISTRATION_ACTION
+  ) {
+    console.warn("Turnstile registration verification rejected", {
+      success: result.success === true,
+      hostname: result.hostname || "",
+      action: result.action || "",
+      errorCodes: Array.isArray(result["error-codes"]) ? result["error-codes"] : [],
+    });
+    throw new ApiError(403, "turnstile_failed", "Security verification failed. Please try again.");
+  }
 };
 
 const isUuid = (value: string): boolean =>
@@ -837,6 +904,8 @@ const createMembership = async (payload: RequestPayload, admin: any) => {
       "Enter the birthday in YYYY-MM-DD format.",
     );
   }
+
+  await verifyRegistrationTurnstile(payload);
 
   const settings = await getSettings(admin);
 
