@@ -21,6 +21,7 @@ expected = {
     'fab fa-facebook-f',
     'fab fa-tiktok',
     'fas fa-shield-alt',
+    'fas fa-times',
 }
 unknown = sorted(set(classes) - expected)
 if unknown:
@@ -37,6 +38,7 @@ icons = {
 'fab fa-facebook-f': '''<svg class="menu-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M13.8 22v-8h2.7l.4-3.1h-3.1V8.9c0-.9.3-1.5 1.6-1.5H17V4.6c-.3 0-1.2-.1-2.4-.1-2.4 0-4.1 1.5-4.1 4.2v2.2H7.8V14h2.7v8h3.3Z"/></svg>''',
 'fab fa-tiktok': '''<svg class="menu-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M14 3h2.8c.3 1.8 1.4 3.1 3.2 3.6v2.8a8 8 0 0 1-4-1.5v6.5a5.4 5.4 0 1 1-5.4-5.4c.4 0 .8 0 1.2.1V12a2.7 2.7 0 1 0 1.2 2.3V3h1Z"/></svg>''',
 'fas fa-shield-alt': '''<svg class="menu-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Zm0 2.2L18 6.5V11c0 3.9-2.4 7.5-6 8.9-3.6-1.4-6-5-6-8.9V6.5l6-2.3Z"/></svg>''',
+'fas fa-times': '''<svg class="menu-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4 6.4 5Z"/></svg>''',
 }
 
 for cls, svg in icons.items():
@@ -52,8 +54,6 @@ if text.count(style_marker) != 1:
     raise SystemExit('Could not find the main style marker')
 svg_css = "        .menu-icon { width: 1em; height: 1em; display: inline-block; flex: 0 0 auto; vertical-align: -0.125em; fill: currentColor; }\n        .copyright-notice .menu-icon { color: #e74c3c; margin-right: 5px; }\n\n"
 text = text.replace(style_marker, svg_css + style_marker, 1)
-
-# Remove the now-obsolete selector that only styled FontAwesome <i> elements.
 text = text.replace('        .copyright-notice i { color: #e74c3c; margin-right: 5px; }\n', '')
 
 index.write_text(text, encoding='utf-8')
