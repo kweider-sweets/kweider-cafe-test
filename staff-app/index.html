@@ -530,7 +530,7 @@
 <div class="form-grid">
 <div class="field">
 <label for="staffEmail">Email</label>
-<input autocomplete="username" id="staffEmail" type="email" value="qw.co.uk@gmail.com"/>
+<input autocomplete="username" id="staffEmail" type="email"/>
 </div>
 <div class="field">
 <label for="staffPassword">Password</label>
@@ -774,6 +774,7 @@
       let pendingQrRewardId = "";
       let quickSelectedRewardId = "";
       let quickSelectionFromCustomer = false;
+      let pendingCheckoutRequest = null;
 
       function hasConfiguration() {
         return SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_");
@@ -806,7 +807,39 @@
       function createIdempotencyKey() {
         if (globalThis.crypto?.randomUUID)
           return globalThis.crypto.randomUUID();
-        return `web-${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+
+        if (globalThis.crypto?.getRandomValues) {
+          const bytes = new Uint8Array(16);
+          globalThis.crypto.getRandomValues(bytes);
+          bytes[6] = (bytes[6] & 0x0f) | 0x40;
+          bytes[8] = (bytes[8] & 0x3f) | 0x80;
+          const hex = Array.from(bytes, (byte) =>
+            byte.toString(16).padStart(2, "0"),
+          ).join("");
+          return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+        }
+
+        throw new Error("Secure random generation is unavailable.");
+      }
+
+      function checkoutRequestFingerprint(plan) {
+        const welcomeCoffeeToggle = $("quickWelcomeCoffeeConfirmed");
+        return JSON.stringify({
+          memberId: String(member?.id || ""),
+          billAmount: Number(plan.billAmount),
+          selectedRewardId: String(plan.selectedRewardId || ""),
+          breakfastConfirmed: $("quickBreakfastConfirmed").checked === true,
+          welcomeCoffeeConfirmed: Boolean(welcomeCoffeeToggle?.checked),
+          receiptReference: $("quickReceipt").value.trim(),
+        });
+      }
+
+      function checkoutRequestKey(plan) {
+        const fingerprint = checkoutRequestFingerprint(plan);
+        if (!pendingCheckoutRequest || pendingCheckoutRequest.fingerprint !== fingerprint) {
+          pendingCheckoutRequest = { fingerprint, key: createIdempotencyKey() };
+        }
+        return pendingCheckoutRequest.key;
       }
 
       function isRewardAvailable(reward) {
@@ -1663,6 +1696,7 @@
         }
       }
       function resetMember() {
+        pendingCheckoutRequest = null;
         document.body.classList.remove("has-member");
         member = null;
         memberTransactions = [];
@@ -2152,7 +2186,7 @@
                 $("quickWelcomeCoffeeConfirmed").checked,
               receiptReference:
                 $("quickReceipt").value.trim() || null,
-              idempotencyKey: createIdempotencyKey(),
+              idempotencyKey: checkoutRequestKey(plan),
             });
 
             const operation = data.operation || {};
@@ -2233,6 +2267,7 @@
               </div>`;
 
             message("staffMessage", "");
+            pendingCheckoutRequest = null;
           } catch (error) {
             message(
               "staffMessage",
