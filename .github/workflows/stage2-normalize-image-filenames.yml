@@ -39,24 +39,17 @@ jobs:
           git diff --check
           python3 - <<'PY'
           import subprocess
-          out = subprocess.check_output(['git','status','--porcelain'], text=True)
-          changed=[]
-          for line in out.splitlines():
-              path=line[3:]
-              if ' -> ' in path:
-                  old,new=path.split(' -> ',1)
-                  changed.extend([old,new])
-              else:
-                  changed.append(path)
-          allowed_non_images={'index.html'}
-          bad=[]
-          for p in changed:
-              if p in allowed_non_images or p.lower().endswith('.webp'):
-                  continue
-              bad.append(p)
+          raw = subprocess.check_output(['git','diff','--name-only','--no-renames','-z','HEAD'])
+          changed=[p.decode('utf-8') for p in raw.split(b'\0') if p]
+          bad=[p for p in changed if p != 'index.html' and not p.lower().endswith('.webp')]
           if bad:
               raise SystemExit(f'Unexpected changed files: {bad}')
-          print('Exact scope validation passed.')
+          if 'index.html' not in changed:
+              raise SystemExit('index.html was not changed')
+          webps=[p for p in changed if p.lower().endswith('.webp')]
+          if len(webps) < 51:
+              raise SystemExit(f'Unexpectedly few WEBP path changes: {len(webps)}')
+          print(f'Exact scope validation passed: {len(webps)} WEBP path entries + index.html')
           PY
       - name: Commit stage 2 result
         run: |
