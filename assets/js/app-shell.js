@@ -25,14 +25,43 @@
     const t = document.getElementById("installToast");
     if (t) t.classList.add("hidden");
   });
+
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () =>
+    const isMainMenuPage = () => {
+      const path = window.location.pathname.replace(/\/+$/, "");
+      return path === "" || path === "/index.html";
+    };
+
+    let registration = null;
+    let controllerReloaded = false;
+
+    const requestUpdate = () => {
+      if (!registration) return;
+      registration.update().catch(() => {});
+    };
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!isMainMenuPage() || controllerReloaded) return;
+      controllerReloaded = true;
+      window.location.reload();
+    });
+
+    window.addEventListener("load", () => {
       navigator.serviceWorker
         .register("./service-worker.js", { updateViaCache: "none" })
-        .then((reg) => reg.update())
-        .catch(console.error),
-    );
+        .then((reg) => {
+          registration = reg;
+          requestUpdate();
+        })
+        .catch(console.error);
+    });
+
+    window.addEventListener("focus", requestUpdate);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") requestUpdate();
+    });
   }
+
   function updateHomeBadge() {
     const el = document.querySelector("[data-rewards-chip]");
     if (!el) return;
