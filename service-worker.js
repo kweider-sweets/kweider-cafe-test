@@ -1,4 +1,4 @@
-const CACHE = "kweider-customer-v4.5.11";
+const CACHE = "kweider-customer-v4.5.12";
 const CORE = [
   "./",
   "./index.html",
@@ -80,12 +80,43 @@ async function incrementBadgeCount() {
 async function clearBadgeCount() {
   return writeBadgeCount(0);
 }
+
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting()));
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(cache => cache.addAll(CORE))
+      .then(() => self.skipWaiting())
+  );
 });
+
 self.addEventListener("activate", event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => (key.startsWith("kweider-pwa-") || key.startsWith("kweider-customer-")) && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys
+        .filter(key => (key.startsWith("kweider-pwa-") || key.startsWith("kweider-customer-")) && key !== CACHE)
+        .map(key => caches.delete(key))
+    );
+
+    await self.clients.claim();
+
+    const scopeUrl = new URL(self.registration.scope);
+    const rootPath = scopeUrl.pathname.replace(/\/+$/, "");
+    const indexPath = `${rootPath}/index.html`.replace(/\/+/g, "/");
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+
+    await Promise.all(windows.map(client => {
+      try {
+        const url = new URL(client.url);
+        const path = url.pathname.replace(/\/+$/, "");
+        const isMainMenu = url.origin === scopeUrl.origin && (path === rootPath || path === indexPath);
+        if (isMainMenu && "navigate" in client) return client.navigate(client.url);
+      } catch {}
+      return undefined;
+    }));
+  })());
 });
+
 self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
@@ -172,4 +203,3 @@ self.addEventListener("message", event => {
   if (event.data?.type !== "CLEAR_APP_BADGE") return;
   event.waitUntil(clearBadgeCount());
 });
-
