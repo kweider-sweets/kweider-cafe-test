@@ -1,0 +1,49 @@
+name: Stage 2 normalize image filenames
+on:
+  push:
+    paths:
+      - '.github/workflows/stage2-normalize-image-filenames.yml'
+permissions:
+  contents: write
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: stage2-image-rename-work
+          fetch-depth: 0
+      - name: Run guarded image rename
+        run: python3 scripts/stage2-normalize-image-filenames.py
+      - name: Validate exact scope
+        run: |
+          set -euo pipefail
+          git diff --check
+          python3 - <<'PY'
+          import subprocess
+          out = subprocess.check_output(['git','status','--porcelain'], text=True)
+          changed=[]
+          for line in out.splitlines():
+              path=line[3:]
+              if ' -> ' in path:
+                  old,new=path.split(' -> ',1)
+                  changed.extend([old,new])
+              else:
+                  changed.append(path)
+          allowed_non_images={'index.html'}
+          bad=[]
+          for p in changed:
+              if p in allowed_non_images or p.lower().endswith('.webp'):
+                  continue
+              bad.append(p)
+          if bad:
+              raise SystemExit(f'Unexpected changed files: {bad}')
+          print('Exact scope validation passed.')
+          PY
+      - name: Commit stage 2 result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html '*.webp'
+          git commit -m "Normalize menu image filenames"
+          git push origin stage2-image-rename-work
