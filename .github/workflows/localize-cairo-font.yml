@@ -132,7 +132,7 @@ jobs:
               'assets/fonts/cairo-variable.woff2',
               'assets/fonts/OFL-Cairo.txt',
           }
-          out = subprocess.check_output(['git', 'status', '--porcelain'], text=True)
+          out = subprocess.check_output(['git', 'status', '--porcelain', '-uall'], text=True)
           changed = set()
           for line in out.splitlines():
               path = line[3:]
