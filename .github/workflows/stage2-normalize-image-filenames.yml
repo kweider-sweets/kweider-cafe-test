@@ -13,8 +13,26 @@ jobs:
         with:
           ref: stage2-image-rename-work
           fetch-depth: 0
+      - name: Prepare current Coming image safely
+        run: |
+          set -euo pipefail
+          test -f 'COMING.webp'
+          test ! -e 'coming soon.webp'
+          test "$(git hash-object -- 'COMING.webp')" = "69257e270815cb0f9103a6742f5e89a75cfa2b91"
+          git mv -- 'COMING.webp' 'coming soon.webp'
+          cp scripts/stage2-normalize-image-filenames.py /tmp/stage2.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('/tmp/stage2.py')
+          s=p.read_text(encoding='utf-8')
+          old='"coming soon.webp": "fdb1603cea87a17fc646adeafc3f0d4c09218348"'
+          new='"coming soon.webp": "69257e270815cb0f9103a6742f5e89a75cfa2b91"'
+          if s.count(old) != 1:
+              raise SystemExit('Expected Coming blob mapping was not found exactly once')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
       - name: Run guarded image rename
-        run: python3 scripts/stage2-normalize-image-filenames.py
+        run: python3 /tmp/stage2.py
       - name: Validate exact scope
         run: |
           set -euo pipefail
@@ -44,6 +62,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html '*.webp'
+          git add -A -- index.html '*.webp'
           git commit -m "Normalize menu image filenames"
           git push origin stage2-image-rename-work
