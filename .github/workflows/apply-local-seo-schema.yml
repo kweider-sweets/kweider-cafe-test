@@ -1,0 +1,49 @@
+name: Apply local SEO schema
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-local-seo-schema.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: local-seo-schema-work
+          fetch-depth: 0
+      - name: Apply guarded JSON-LD patch
+        run: python3 scripts/apply-local-seo-schema.py
+      - name: Validate exact scope
+        run: |
+          set -euo pipefail
+          git diff --check
+          changed="$(git diff --name-only)"
+          test "$changed" = "index.html"
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, re
+          text = Path('index.html').read_text(encoding='utf-8')
+          m = re.search(r'<script type="application/ld\+json">\s*(\{.*?\})\s*</script>', text, re.S)
+          if not m:
+              raise SystemExit('JSON-LD block missing')
+          data = json.loads(m.group(1))
+          assert data['name'] == 'Kweider Sweets'
+          assert 'قويدر للحلويات الشرقية' in data['alternateName']
+          assert set(data['@type']) == {'Restaurant','Bakery','CafeOrCoffeeShop'}
+          assert data['@id'] == 'https://kweidersweets.co.uk/#kweider-acton'
+          assert data['menu'] == 'https://menu.kweidersweets.co.uk/'
+          assert data['hasMenu'] == 'https://menu.kweidersweets.co.uk/'
+          assert data['telephone'] == '+447440444500'
+          assert data['address']['postalCode'] == 'W3 9NH'
+          assert all(x in data['servesCuisine'] for x in ['Syrian','Levantine','Damascene','Middle Eastern'])
+          print('JSON-LD semantic validation passed')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Strengthen Kweider local SEO entity schema"
+          git push origin local-seo-schema-work
