@@ -1,0 +1,45 @@
+name: Apply luxury menu UI
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-luxury-menu-ui.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: luxury-menu-ui-work
+          fetch-depth: 0
+      - name: Apply guarded presentation patch
+        run: python3 scripts/apply-luxury-menu-ui.py
+      - name: Validate exact scope
+        run: |
+          set -euo pipefail
+          git diff --check
+          python3 - <<'PY'
+          import subprocess
+          out = subprocess.check_output(['git','status','--porcelain'], text=True)
+          changed = []
+          for line in out.splitlines():
+              path = line[3:].strip('"')
+              if ' -> ' in path:
+                  a,b = path.split(' -> ',1)
+                  changed.extend([a.strip('"'),b.strip('"')])
+              else:
+                  changed.append(path)
+          allowed = {'index.html'}
+          bad = [p for p in changed if p not in allowed]
+          if bad:
+              raise SystemExit(f'Unexpected changed files: {bad}')
+          print('Exact-scope validation passed.')
+          PY
+      - name: Commit presentation change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Refresh menu with Kweider luxury palette"
+          git push origin luxury-menu-ui-work
