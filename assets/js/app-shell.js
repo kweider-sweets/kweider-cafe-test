@@ -2,6 +2,14 @@
   "use strict";
   let deferredPrompt = null;
   const installButtons = () => document.querySelectorAll("[data-install-app]");
+
+  if (window.location.pathname.endsWith("/rewards.html") || window.location.pathname.endsWith("rewards.html")) {
+    const hotfix = document.createElement("script");
+    hotfix.src = "assets/js/rewards-turnstile-hotfix.js?v=20260909";
+    hotfix.defer = true;
+    document.head.appendChild(hotfix);
+  }
+
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;

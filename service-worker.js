@@ -1,4 +1,4 @@
-const CACHE = "kweider-customer-v4.5.13";
+const CACHE = "kweider-customer-v4.5.14";
 const CORE = [
   "./",
   "./index.html",
@@ -12,6 +12,7 @@ const CORE = [
   "./assets/css/app-shell.css",
   "./assets/js/app-shell.js",
   "./assets/js/rewards-page.js",
+  "./assets/js/rewards-turnstile-hotfix.js",
   "./assets/js/staff-page.js",
   "./assets/js/staff-app-install.js",
   "./assets/js/staff-app-page.js",
@@ -103,14 +104,15 @@ self.addEventListener("activate", event => {
     const scopeUrl = new URL(self.registration.scope);
     const rootPath = scopeUrl.pathname.replace(/\/+$/, "");
     const indexPath = `${rootPath}/index.html`.replace(/\/+/g, "/");
+    const rewardsPath = `${rootPath}/rewards.html`.replace(/\/+/g, "/");
     const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
 
     await Promise.all(windows.map(client => {
       try {
         const url = new URL(client.url);
         const path = url.pathname.replace(/\/+$/, "");
-        const isMainMenu = url.origin === scopeUrl.origin && (path === rootPath || path === indexPath);
-        if (isMainMenu && "navigate" in client) return client.navigate(client.url);
+        const shouldRefresh = url.origin === scopeUrl.origin && (path === rootPath || path === indexPath || path === rewardsPath);
+        if (shouldRefresh && "navigate" in client) return client.navigate(client.url);
       } catch {}
       return undefined;
     }));
