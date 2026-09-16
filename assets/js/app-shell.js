@@ -6,7 +6,7 @@
   if (document.getElementById("main-menu")) {
     const menuContrastFix = document.createElement("link");
     menuContrastFix.rel = "stylesheet";
-    menuContrastFix.href = "assets/css/menu-text-contrast-fix.css?v=20260916";
+    menuContrastFix.href = "assets/css/menu-text-contrast-fix.css?v=20260916-rewards";
     document.head.appendChild(menuContrastFix);
   }
 
@@ -77,15 +77,44 @@
     });
   }
 
+  function updateRewardsBannerCopy() {
+    const copy = document.querySelector(".rewards-home-banner small");
+    if (!copy) return;
+
+    const en = document.createElement("span");
+    en.className = "reward-copy-en";
+    en.textContent = "Earn points on every visit";
+
+    const ar = document.createElement("span");
+    ar.className = "reward-copy-ar";
+    ar.lang = "ar";
+    ar.dir = "rtl";
+    ar.textContent = "اجمع النقاط مع كل زيارة";
+
+    copy.replaceChildren(en, ar);
+  }
+
   function updateHomeBadge() {
     const el = document.querySelector("[data-rewards-chip]");
     if (!el) return;
     const hasSavedCard = Boolean(
       localStorage.getItem("kweiderRewards.memberToken.v1"),
     );
-    el.textContent = hasSavedCard ? "My rewards" : "Join now";
+
+    const en = document.createElement("span");
+    en.className = "reward-chip-en";
+    en.textContent = hasSavedCard ? "My rewards" : "Join now";
+
+    const ar = document.createElement("span");
+    ar.className = "reward-chip-ar";
+    ar.lang = "ar";
+    ar.dir = "rtl";
+    ar.textContent = hasSavedCard ? "مكافآتي" : "سجّل الآن";
+
+    el.replaceChildren(en, ar);
   }
   document.addEventListener("DOMContentLoaded", () => {
+    updateRewardsBannerCopy();
     updateHomeBadge();
     const loading = document.getElementById("appLoading");
     if (loading) {
