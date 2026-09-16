@@ -3,6 +3,13 @@
   let deferredPrompt = null;
   const installButtons = () => document.querySelectorAll("[data-install-app]");
 
+  if (document.getElementById("main-menu")) {
+    const menuContrastFix = document.createElement("link");
+    menuContrastFix.rel = "stylesheet";
+    menuContrastFix.href = "assets/css/menu-text-contrast-fix.css?v=20260916";
+    document.head.appendChild(menuContrastFix);
+  }
+
   if (window.location.pathname.endsWith("/rewards.html") || window.location.pathname.endsWith("rewards.html")) {
     const hotfix = document.createElement("script");
     hotfix.src = "assets/js/rewards-turnstile-hotfix.js?v=20260909";
