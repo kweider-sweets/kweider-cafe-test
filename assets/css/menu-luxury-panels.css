@@ -1,0 +1,123 @@
+/* Kweider luxury panels — approved visual refinement (2026-09-16)
+   Presentation only. No rewards, customer, pricing, auth or database logic. */
+
+:root {
+  --kweider-burgundy: #53131C;
+  --kweider-deep-burgundy: #3B0D16;
+  --kweider-rich-black: #0F0F10;
+  --kweider-gold: #C6A15B;
+  --kweider-gold-light: #F2DDA2;
+  --kweider-cream: #FAF6F0;
+}
+
+/* One consistent luxury gradient: burgundy dominates, then deep burgundy, then black. */
+.rewards-home-banner,
+.home-cat-text,
+.item-card .mini-info {
+  background-color: var(--kweider-deep-burgundy) !important;
+  background-image: linear-gradient(
+    135deg,
+    var(--kweider-burgundy) 0%,
+    var(--kweider-burgundy) 52%,
+    var(--kweider-deep-burgundy) 78%,
+    var(--kweider-rich-black) 100%
+  ) !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+}
+
+/* Rewards banner: remove any pale/white wash and use a clean gold frame. */
+.rewards-home-banner {
+  border: 1px solid rgba(198, 161, 91, 0.92) !important;
+  box-shadow:
+    0 10px 24px rgba(59, 13, 22, 0.18),
+    inset 0 0 0 1px rgba(242, 221, 162, 0.10) !important;
+}
+
+.rewards-home-banner::before,
+.rewards-home-banner::after {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* CTA stays burgundy/black only — no white glow. */
+.rewards-home-banner .reward-chip {
+  background-color: var(--kweider-burgundy) !important;
+  background-image: linear-gradient(
+    135deg,
+    #651824 0%,
+    var(--kweider-burgundy) 60%,
+    var(--kweider-deep-burgundy) 82%,
+    var(--kweider-rich-black) 100%
+  ) !important;
+  border: 1px solid var(--kweider-gold) !important;
+  box-shadow: inset 0 0 0 1px rgba(242, 221, 162, 0.08) !important;
+}
+
+/* Keep the existing subtle gold sweep on the CTA, but never introduce white. */
+.rewards-home-banner .reward-chip::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(198, 161, 91, 0.06) 28%,
+    rgba(242, 221, 162, 0.34) 50%,
+    rgba(198, 161, 91, 0.06) 72%,
+    transparent 100%
+  ) !important;
+}
+
+/* Category cards: refined gold outline around the card and title panel. */
+.home-cat-card {
+  border: 1px solid rgba(198, 161, 91, 0.62) !important;
+  box-shadow: 0 9px 24px rgba(59, 13, 22, 0.16) !important;
+}
+
+.home-cat-text {
+  border-top: 1px solid rgba(198, 161, 91, 0.82) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(198, 161, 91, 0.18),
+    inset 0 1px 0 rgba(242, 221, 162, 0.10) !important;
+}
+
+/* Product cards: same visual language as categories. */
+.item-card {
+  border: 1px solid rgba(198, 161, 91, 0.52) !important;
+  box-shadow: 0 8px 22px rgba(59, 13, 22, 0.15) !important;
+}
+
+.item-card .mini-info {
+  border-top: 1px solid rgba(198, 161, 91, 0.82) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(198, 161, 91, 0.16),
+    inset 0 1px 0 rgba(242, 221, 162, 0.08) !important;
+}
+
+/* British-English copy remains primary; text contrast is locked for the darker panels. */
+.reward-copy-en,
+.home-cat-en,
+.item-card .mini-name-en {
+  color: var(--kweider-gold-light) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.46) !important;
+}
+
+.reward-copy-ar,
+.home-cat-ar,
+.item-card .mini-name-ar,
+.reward-chip-en,
+.reward-chip-ar {
+  color: var(--kweider-cream) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.46) !important;
+}
+
+.home-cat-card:hover,
+.item-card:hover {
+  border-color: rgba(242, 221, 162, 0.88) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rewards-home-banner,
+  .home-cat-card,
+  .item-card {
+    transition-duration: 0.01ms !important;
+  }
+}
