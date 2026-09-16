@@ -1,0 +1,146 @@
+/* Kweider live menu — text contrast and placement fix (2026-09-16)
+   Presentation only: no menu data, rewards logic, pricing or images are changed. */
+
+/* Weekly offer: keep Arabic copy clearly readable on the dark banner. */
+.hero-banner,
+.hero-banner .ar-text,
+.hero-banner span {
+  color: #F2DDA2 !important;
+}
+
+.hero-banner .ar-text {
+  display: block;
+  font-weight: 800 !important;
+  line-height: 1.45;
+  text-align: center;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.72);
+}
+
+/* Rewards banner: lock contrast instead of relying on inherited page colours. */
+.rewards-home-banner strong {
+  color: #EAD69B !important;
+}
+
+.rewards-home-banner small {
+  color: #FAF6F0 !important;
+}
+
+.rewards-home-banner .reward-chip {
+  color: #0F0F10 !important;
+}
+
+/* Category labels: guarantee readable copy over the burgundy panel. */
+.home-cat-en,
+.home-cat-ar,
+.click-hand {
+  position: relative;
+  z-index: 2;
+}
+
+.home-cat-en {
+  color: #FAF6F0 !important;
+}
+
+.home-cat-ar {
+  color: #FAF6F0 !important;
+}
+
+.click-hand {
+  color: #C6A15B !important;
+}
+
+/* Install prompt: explicit copy colours and lower placement so it covers less menu content. */
+.install-toast {
+  bottom: 16px !important;
+  color: #FAF6F0 !important;
+  background: linear-gradient(135deg, rgba(59, 13, 22, 0.98), rgba(15, 15, 16, 0.98)) !important;
+  border-color: rgba(198, 161, 91, 0.72) !important;
+}
+
+.install-toast > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #FAF6F0 !important;
+}
+
+.install-toast > span strong {
+  color: #EAD69B !important;
+}
+
+.install-toast .gold-btn {
+  flex: 0 0 auto;
+  color: #0F0F10 !important;
+}
+
+/* Footer text also gets explicit colours so beige/dark page inheritance cannot hide it. */
+footer,
+footer .footer-text,
+footer .management-contact p {
+  color: #FAF6F0 !important;
+}
+
+footer .footer-title,
+footer .management-contact .en-text:first-child {
+  color: #EAD69B !important;
+}
+
+footer .copyright-notice {
+  color: #B9AFA5 !important;
+}
+
+/* Mobile: allow long category titles to wrap cleanly instead of clipping. */
+@media (max-width: 600px) {
+  .home-cat-text {
+    min-height: 74px;
+    padding-inline: 8px !important;
+  }
+
+  .home-cat-en,
+  .home-cat-ar {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  .home-cat-en {
+    font-size: clamp(11.5px, 3.55vw, 13.5px) !important;
+    line-height: 1.28;
+  }
+
+  .home-cat-ar {
+    font-size: clamp(10.5px, 3.15vw, 12.5px) !important;
+    line-height: 1.38;
+  }
+
+  .click-hand {
+    flex: 0 0 auto;
+    margin-left: 5px !important;
+  }
+
+  .install-toast {
+    width: calc(100% - 20px) !important;
+    bottom: 10px !important;
+    gap: 10px !important;
+    padding: 12px 13px !important;
+  }
+
+  .install-toast > span {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+  }
+
+  .install-toast .gold-btn {
+    min-height: 42px;
+    padding-inline: 15px;
+  }
+}
+
+@media (max-width: 380px) {
+  .install-toast {
+    align-items: center;
+  }
+
+  .install-toast > span {
+    font-size: 11.5px !important;
+  }
+}
