@@ -1,4 +1,4 @@
-const CACHE = "kweider-customer-v4.5.14";
+const CACHE = "kweider-customer-v4.5.15";
 const CORE = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const CORE = [
   "./logo.webp",
   "./assets/fonts/cairo-variable.woff2",
   "./assets/css/app-shell.css",
+  "./assets/css/menu-text-contrast-fix.css",
   "./assets/js/app-shell.js",
   "./assets/js/rewards-page.js",
   "./assets/js/rewards-turnstile-hotfix.js",
