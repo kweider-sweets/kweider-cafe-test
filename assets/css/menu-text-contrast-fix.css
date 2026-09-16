@@ -144,3 +144,54 @@ footer .copyright-notice {
     font-size: 11.5px !important;
   }
 }
+
+/* Kweider menu identity — beige canvas + burgundy product title panel.
+   Presentation only. Keep dark header, banners, modals and footer unchanged. */
+body,
+.hero-banner-container,
+.container {
+  background-color: #F4EDE3 !important;
+}
+
+/* Text that sits directly on the beige page must use dark Kweider colours. */
+.allergy-notice-top {
+  color: #5F554D !important;
+}
+
+.allergy-notice-top .ar-text {
+  color: #766D65 !important;
+}
+
+.section-title {
+  color: #53131C !important;
+  border-left-color: #C6A15B !important;
+}
+
+/* Product name area: Kweider burgundy flowing into rich black. */
+.item-card .mini-info {
+  background: linear-gradient(135deg, #53131C 0%, #3B0D16 44%, #0F0F10 100%) !important;
+  border-top: 1px solid rgba(198, 161, 91, 0.42) !important;
+}
+
+.item-card .mini-name-en {
+  color: #FAF6F0 !important;
+  font-weight: 800 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.38);
+}
+
+.item-card .mini-name-ar {
+  color: #F4EDE3 !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.38);
+}
+
+/* Keep product card boundaries clear against the beige canvas. */
+.item-card {
+  border-color: rgba(83, 19, 28, 0.20) !important;
+  box-shadow: 0 7px 20px rgba(59, 13, 22, 0.14) !important;
+}
+
+.item-card:hover {
+  border-color: rgba(198, 161, 91, 0.62) !important;
+  box-shadow: 0 10px 26px rgba(59, 13, 22, 0.20) !important;
+}
