@@ -8,6 +8,11 @@
     menuContrastFix.rel = "stylesheet";
     menuContrastFix.href = "assets/css/menu-text-contrast-fix.css?v=20260916-rewards";
     document.head.appendChild(menuContrastFix);
+
+    const menuLuxuryPanels = document.createElement("link");
+    menuLuxuryPanels.rel = "stylesheet";
+    menuLuxuryPanels.href = "assets/css/menu-luxury-panels.css?v=20260916-1";
+    document.head.appendChild(menuLuxuryPanels);
   }
 
   if (window.location.pathname.endsWith("/rewards.html") || window.location.pathname.endsWith("rewards.html")) {
