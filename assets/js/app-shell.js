@@ -6,12 +6,12 @@
   if (document.getElementById("main-menu")) {
     const menuContrastFix = document.createElement("link");
     menuContrastFix.rel = "stylesheet";
-    menuContrastFix.href = "assets/css/menu-text-contrast-fix.css?v=20260916-rewards";
+    menuContrastFix.href = "assets/css/menu-text-contrast-fix.css?v=20260928-burgundy";
     document.head.appendChild(menuContrastFix);
 
     const menuLuxuryPanels = document.createElement("link");
     menuLuxuryPanels.rel = "stylesheet";
-    menuLuxuryPanels.href = "assets/css/menu-luxury-panels.css?v=20260916-1";
+    menuLuxuryPanels.href = "assets/css/menu-luxury-panels.css?v=20260928-burgundy";
     document.head.appendChild(menuLuxuryPanels);
   }
 
