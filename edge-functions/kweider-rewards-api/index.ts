@@ -400,6 +400,11 @@ const issueMemberCardToken = async (admin: any, memberId: string): Promise<strin
 
 const requireMemberAccess = async (admin: any, tokenValue: unknown) => {
   const token = cleanText(tokenValue);
+  // Recovery credentials are only valid in their dedicated exchange routes.
+  // Preserve existing permanent-card formats; do not expire or rotate cards here.
+  if (token.startsWith("rec_") || token.startsWith("pinreset_")) {
+    throw new ApiError(401, "recovery_token_required", "Complete the card recovery flow before using your membership card.");
+  }
   if (token.length < 30) {
     throw new ApiError(401, "invalid_card_token", "The saved membership card is not valid.");
   }
@@ -413,6 +418,19 @@ const requireMemberAccess = async (admin: any, tokenValue: unknown) => {
 
   if (error || !accessToken || accessToken.revoked_at) {
     throw new ApiError(401, "invalid_card_token", "The saved membership card is no longer valid.");
+  }
+
+  const { data: member, error: memberError } = await admin
+    .from("kweider_members")
+    .select("id, status")
+    .eq("id", accessToken.member_id)
+    .maybeSingle();
+
+  if (memberError) {
+    throw new ApiError(503, "membership_check_failed", "The membership could not be checked. Please try again.");
+  }
+  if (!member || member.status !== "active") {
+    throw new ApiError(403, "membership_unavailable", "This membership is not currently active.");
   }
 
   return { token, accessToken, memberId: String(accessToken.member_id) };
@@ -1204,22 +1222,8 @@ const loginWithPin = async (payload: RequestPayload, admin: any) => {
 };
 
 const setMemberPin = async (payload: RequestPayload, admin: any) => {
-  const token = cleanText(payload.token);
   const pin = validatePin(payload.pin);
-  if (token.length < 30) {
-    throw new ApiError(401, "invalid_card_token", "The saved membership card is not valid.");
-  }
-
-  const tokenHash = await sha256Hex(token);
-  const { data: accessToken, error: accessError } = await admin
-    .from("kweider_member_access_tokens")
-    .select("id, member_id, revoked_at")
-    .eq("token_hash", tokenHash)
-    .maybeSingle();
-
-  if (accessError || !accessToken || accessToken.revoked_at) {
-    throw new ApiError(401, "invalid_card_token", "The saved membership card is no longer valid.");
-  }
+  const { accessToken } = await requireMemberAccess(admin, payload.token);
 
   const pinSalt = createPinSalt();
   const pinHash = await hashPin(pin, pinSalt);
@@ -1244,39 +1248,7 @@ const setMemberPin = async (payload: RequestPayload, admin: any) => {
 };
 
 const openSavedCard = async (payload: RequestPayload, admin: any) => {
-  const token = cleanText(payload.token);
-
-  if (token.startsWith("rec_")) {
-    throw new ApiError(
-      401,
-      "recovery_token_required",
-      "Open the complete recovery link supplied by a member of staff.",
-    );
-  }
-
-  if (token.length < 30) {
-    throw new ApiError(
-      401,
-      "invalid_card_token",
-      "The saved membership card is not valid.",
-    );
-  }
-
-  const tokenHash = await sha256Hex(token);
-
-  const { data: accessToken, error: accessError } = await admin
-    .from("kweider_member_access_tokens")
-    .select("id, member_id, revoked_at")
-    .eq("token_hash", tokenHash)
-    .maybeSingle();
-
-  if (accessError || !accessToken || accessToken.revoked_at) {
-    throw new ApiError(
-      401,
-      "invalid_card_token",
-      "The saved membership card is no longer valid.",
-    );
-  }
+  const { accessToken } = await requireMemberAccess(admin, payload.token);
 
   const bundle = await loadMemberBundle(admin, accessToken.member_id);
 
@@ -1969,35 +1941,7 @@ const markMessagesRead = async (
   payload: RequestPayload,
   admin: any,
 ) => {
-  const token = cleanText(payload.token);
-
-  if (token.length < 30) {
-    throw new ApiError(
-      401,
-      "invalid_card_token",
-      "The saved membership card is not valid.",
-    );
-  }
-
-  const tokenHash = await sha256Hex(token);
-
-  const { data: accessToken, error: accessError } = await admin
-    .from("kweider_member_access_tokens")
-    .select("id, member_id, revoked_at")
-    .eq("token_hash", tokenHash)
-    .maybeSingle();
-
-  if (
-    accessError ||
-    !accessToken ||
-    accessToken.revoked_at
-  ) {
-    throw new ApiError(
-      401,
-      "invalid_card_token",
-      "The saved membership card is no longer valid.",
-    );
-  }
+  const { accessToken } = await requireMemberAccess(admin, payload.token);
 
   const nowIso = new Date().toISOString();
 
