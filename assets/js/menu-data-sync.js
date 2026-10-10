@@ -90,6 +90,15 @@
     card.setAttribute("data-price", money(row.price));
     card.setAttribute("data-allergy", row.allergy_information || "Not specified in source");
 
+    if (row.image_path) {
+      card.setAttribute("data-img", row.image_path);
+      const image = card.querySelector(".item-image");
+      if (image && image.getAttribute("src") !== row.image_path) {
+        image.src = row.image_path;
+        image.alt = row.name_en || image.alt || "KWEIDER menu item";
+      }
+    }
+
     const nameEn = card.querySelector(".mini-name-en");
     const nameAr = card.querySelector(".mini-name-ar");
     const price = card.querySelector(".item-price");
@@ -130,10 +139,6 @@
     img.loading = "lazy";
     img.decoding = "async";
     img.alt = row.name_en || "KWEIDER Special Offer";
-    if (row.image_path) {
-      img.src = row.image_path;
-      card.setAttribute("data-img", row.image_path);
-    }
     card.appendChild(img);
 
     const info = document.createElement("div");
