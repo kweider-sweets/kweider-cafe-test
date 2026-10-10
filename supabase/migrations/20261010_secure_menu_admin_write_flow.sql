@@ -48,6 +48,10 @@ create policy "menu admins can insert change log"
   on public.kweider_menu_change_log for insert to authenticated
   with check (public.is_kweider_menu_admin());
 
+grant select, insert, update, delete on public.kweider_menu_drafts to authenticated;
+grant select, insert on public.kweider_menu_change_log to authenticated;
+grant select on public.kweider_menu_items to anon, authenticated;
+
 create or replace function public.publish_kweider_menu_item(p_product_id text)
 returns public.kweider_menu_items
 language plpgsql
