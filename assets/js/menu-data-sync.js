@@ -15,6 +15,7 @@
     "description_en",
     "description_ar",
     "allergy_information",
+    "image_path",
     "availability_status",
     "is_new",
     "sort_order"
@@ -116,6 +117,80 @@
     }
   }
 
+  function createOfferCard(row) {
+    const card = document.createElement("div");
+    card.className = "item-card";
+
+    const price = document.createElement("span");
+    price.className = "item-price";
+    card.appendChild(price);
+
+    const img = document.createElement("img");
+    img.className = "item-image";
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.alt = row.name_en || "KWEIDER Special Offer";
+    if (row.image_path) {
+      img.src = row.image_path;
+      card.setAttribute("data-img", row.image_path);
+    }
+    card.appendChild(img);
+
+    const info = document.createElement("div");
+    info.className = "mini-info";
+    const nameEn = document.createElement("div");
+    nameEn.className = "mini-name-en";
+    const nameAr = document.createElement("div");
+    nameAr.className = "mini-name-ar";
+    info.append(nameEn, nameAr);
+    card.appendChild(info);
+
+    card.addEventListener("click", function () {
+      if (typeof window.openDetails === "function") window.openDetails(card);
+    });
+
+    applyRowToCard(card, row);
+    return card;
+  }
+
+  function ensureSpecialOffersSection(rows) {
+    if (!rows.length || document.getElementById("special-offers")) return;
+
+    const mainMenu = document.getElementById("main-menu");
+    if (!mainMenu) return;
+
+    const section = document.createElement("div");
+    section.id = "special-offers";
+    section.className = "menu-section";
+
+    const back = document.createElement("button");
+    back.className = "sticky-back-btn";
+    back.type = "button";
+    back.textContent = "← Back to Categories | العودة للتصنيفات";
+    back.addEventListener("click", function () {
+      if (typeof window.goHome === "function") window.goHome();
+    });
+
+    const title = document.createElement("div");
+    title.className = "section-title";
+    const titleEn = document.createElement("span");
+    titleEn.textContent = "Kweider Special Offers";
+    const titleAr = document.createElement("span");
+    titleAr.className = "ar-text";
+    titleAr.textContent = "عروض قويدر الخاصة";
+    title.append(titleEn, titleAr);
+
+    const grid = document.createElement("div");
+    grid.className = "item-grid";
+    rows.forEach(row => grid.appendChild(createOfferCard(row)));
+
+    section.append(back, title, grid);
+
+    const firstSection = mainMenu.querySelector(".menu-section");
+    if (firstSection) mainMenu.insertBefore(section, firstSection);
+    else mainMenu.appendChild(section);
+  }
+
   function syncSection(section, rows) {
     const code = SECTION_CODES[section.id];
     if (!code) return;
@@ -171,6 +246,8 @@
         if (!grouped.has(row.category_code)) grouped.set(row.category_code, []);
         grouped.get(row.category_code).push(row);
       }
+
+      ensureSpecialOffersSection(grouped.get("SO") || []);
 
       document.querySelectorAll(".menu-section").forEach(section => {
         const code = SECTION_CODES[section.id];
