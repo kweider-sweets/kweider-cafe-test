@@ -17,12 +17,32 @@
         <h1>Menu Control</h1>
       </div>
     </div>
-    <div class="test-badge">TEST MODE — NO LIVE WRITES</div>
+    <div class="test-badge">TEST BRANCH — LIVE MENU NOT CONNECTED</div>
   </header>
 
   <main class="page">
     <section class="notice">
-      <strong>Safe test mode:</strong> products are read from the new menu database, but all edits stay in this browser only. The live menu, Rewards, customers, points, prices, images and visual identity are not changed.
+      <strong>Protected menu workspace:</strong> published menu data is readable here. Draft and Publish actions require an authorised Menu Admin account. Rewards, customers, points, checkout, QR, images and visual identity are outside this control panel.
+    </section>
+
+    <section class="card" id="authCard">
+      <div id="signedOutBlock">
+        <h2>Menu Admin sign in</h2>
+        <form id="loginForm" class="form-grid">
+          <label>Email<input id="loginEmail" type="email" autocomplete="username" required></label>
+          <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label>
+          <div class="wide editor-actions">
+            <button class="primary-btn" type="submit">Sign in</button>
+          </div>
+        </form>
+        <p id="loginMessage" class="editor-note"></p>
+      </div>
+      <div id="signedInBlock" hidden>
+        <div class="editor-actions" style="justify-content:space-between;align-items:center">
+          <div><strong>Signed in:</strong> <span id="signedInEmail"></span><br><span id="adminState" class="editor-note"></span></div>
+          <button id="logoutBtn" class="ghost-btn" type="button">Sign out</button>
+        </div>
+      </div>
     </section>
 
     <section class="toolbar card">
@@ -39,7 +59,6 @@
           <option value="hidden">Hidden</option>
         </select>
       </div>
-      <button id="resetLocal" class="ghost-btn" type="button">Reset test changes</button>
     </section>
 
     <section class="stats" aria-label="Menu statistics">
@@ -47,7 +66,7 @@
       <div class="stat card"><span>Available</span><strong id="availableCount">—</strong></div>
       <div class="stat card"><span>Sold Out</span><strong id="soldOutCount">—</strong></div>
       <div class="stat card"><span>Hidden</span><strong id="hiddenCount">—</strong></div>
-      <div class="stat card"><span>Test changes</span><strong id="changeCount">0</strong></div>
+      <div class="stat card"><span>Draft changes</span><strong id="changeCount">0</strong></div>
     </section>
 
     <div id="loading" class="state-card">Loading menu data…</div>
@@ -60,7 +79,7 @@
       <div class="editor-head">
         <div>
           <div id="editorId" class="product-id"></div>
-          <h2>Edit product — Test only</h2>
+          <h2>Edit product</h2>
         </div>
         <button value="cancel" class="icon-btn" aria-label="Close">×</button>
       </div>
@@ -83,12 +102,14 @@
 
       <div class="editor-actions">
         <button value="cancel" class="ghost-btn">Cancel</button>
-        <button id="saveLocal" value="default" class="primary-btn">Save test change</button>
+        <button id="saveDraft" type="button" class="ghost-btn">Save Draft</button>
+        <button id="publishItem" type="button" class="primary-btn">Publish</button>
       </div>
-      <p class="editor-note">This button saves only to this browser. It does not publish to Supabase or the customer menu.</p>
+      <p id="editorMessage" class="editor-note">Save Draft changes only the draft table. Publish copies that draft into the new published menu table. The customer-facing menu is not connected to this table yet.</p>
     </form>
   </dialog>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="menu-control.js" defer></script>
 </body>
 </html>
