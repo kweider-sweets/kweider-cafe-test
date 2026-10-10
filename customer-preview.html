@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0A0A0A">
+  <title>KWEIDER Customer Menu Preview</title>
+  <link rel="stylesheet" href="customer-preview.css">
+</head>
+<body>
+  <header class="preview-header">
+    <img src="logo.webp" alt="Kweider" class="logo">
+    <div>
+      <div class="brand">KWEIDER</div>
+      <h1>Customer Menu Preview</h1>
+    </div>
+    <div class="badge">TEST PREVIEW — LIVE MENU NOT CONNECTED</div>
+  </header>
+
+  <main class="page">
+    <section class="notice">
+      This page reads only from the new published menu table. It does not replace or modify the live customer menu.
+    </section>
+
+    <section class="toolbar">
+      <input id="search" type="search" placeholder="Search menu / ابحث في القائمة">
+      <select id="categoryFilter"><option value="all">All categories</option></select>
+    </section>
+
+    <div id="loading" class="state">Loading menu…</div>
+    <div id="error" class="state error" hidden></div>
+    <section id="menu" hidden></section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="customer-preview.js" defer></script>
+</body>
+</html>
