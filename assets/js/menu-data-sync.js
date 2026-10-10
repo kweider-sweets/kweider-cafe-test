@@ -15,13 +15,12 @@
     "description_en",
     "description_ar",
     "allergy_information",
-    "image_path",
     "availability_status",
     "is_new",
-    "sort_order",
+    "sort_order"
   ].join(",");
 
-  const FALLBACK_SECTION_CODES = {
+  const SECTION_CODES = {
     "special-offers": "SO",
     breakfast: "BF",
     dinner: "DN",
@@ -32,20 +31,16 @@
     "fruits-dubai": "FD",
     "ice-cream": "IC",
     "cold-drinks": "CD",
-    "hot-drinks": "HD",
+    "hot-drinks": "HD"
   };
-
-  function normalize(value) {
-    return String(value || "")
-      .toLowerCase()
-      .replace(/&amp;/g, "&")
-      .replace(/[^a-z0-9\u0600-\u06ff]+/g, " ")
-      .trim();
-  }
 
   function money(value) {
     const number = Number(value);
     return Number.isFinite(number) ? `£${number.toFixed(2)}` : "";
+  }
+
+  function productId(code, index) {
+    return `KWD-${code}-${String(index + 1).padStart(3, "0")}`;
   }
 
   function ensureStyles() {
@@ -84,37 +79,6 @@
     document.head.appendChild(style);
   }
 
-  function groupRows(rows) {
-    const byCode = new Map();
-    const byName = new Map();
-    for (const row of rows) {
-      if (!byCode.has(row.category_code)) byCode.set(row.category_code, []);
-      byCode.get(row.category_code).push(row);
-      byName.set(normalize(row.category_name), row.category_code);
-    }
-    for (const group of byCode.values()) {
-      group.sort((a, b) => {
-        const orderA = Number(a.sort_order || 0);
-        const orderB = Number(b.sort_order || 0);
-        return orderA - orderB || String(a.product_id).localeCompare(String(b.product_id));
-      });
-    }
-    return { byCode, byName };
-  }
-
-  function resolveSectionCode(section, grouped) {
-    const fallback = FALLBACK_SECTION_CODES[section.id];
-    if (fallback && grouped.byCode.has(fallback)) return fallback;
-
-    const heading = normalize(section.querySelector(".section-title")?.textContent || "");
-    if (!heading) return null;
-
-    for (const [categoryName, code] of grouped.byName.entries()) {
-      if (heading.includes(categoryName) || categoryName.includes(heading)) return code;
-    }
-    return null;
-  }
-
   function applyRowToCard(card, row) {
     card.dataset.productId = row.product_id;
     card.dataset.menuStatus = row.availability_status || "available";
@@ -124,12 +88,6 @@
     card.setAttribute("data-desc-ar", row.description_ar || "");
     card.setAttribute("data-price", money(row.price));
     card.setAttribute("data-allergy", row.allergy_information || "Not specified in source");
-
-    if (row.image_path) {
-      card.setAttribute("data-img", row.image_path);
-      const img = card.querySelector(".item-image");
-      if (img && img.getAttribute("src") !== row.image_path) img.setAttribute("src", row.image_path);
-    }
 
     const nameEn = card.querySelector(".mini-name-en");
     const nameAr = card.querySelector(".mini-name-ar");
@@ -159,35 +117,28 @@
   }
 
   function syncSection(section, rows) {
+    const code = SECTION_CODES[section.id];
+    if (!code) return;
+
     const cards = Array.from(section.querySelectorAll(".item-card"));
-    if (!cards.length || !rows.length) return;
+    if (!cards.length) return;
 
-    const unused = new Set(rows.map((_, index) => index));
-    const byCurrentName = new Map();
-    rows.forEach((row, index) => {
-      const key = normalize(row.name_en);
-      if (!byCurrentName.has(key)) byCurrentName.set(key, []);
-      byCurrentName.get(key).push(index);
-    });
+    const byId = new Map(rows.map(row => [row.product_id, row]));
 
-    cards.forEach((card, cardIndex) => {
-      const currentName = normalize(card.getAttribute("data-name-en"));
-      let rowIndex = null;
-      const candidates = byCurrentName.get(currentName) || [];
-      rowIndex = candidates.find((index) => unused.has(index));
-
-      if (rowIndex == null) {
-        rowIndex = Array.from(unused).sort((a, b) => a - b)[0];
+    cards.forEach((card, index) => {
+      const expectedId = productId(code, index);
+      card.dataset.productId = expectedId;
+      const row = byId.get(expectedId);
+      if (!row) {
+        console.warn(`KWEIDER menu sync missing database row for ${expectedId}`);
+        return;
       }
-      if (rowIndex == null) return;
-
-      unused.delete(rowIndex);
-      applyRowToCard(card, rows[rowIndex]);
+      applyRowToCard(card, row);
     });
 
     if (cards.length !== rows.length) {
       console.warn(
-        `KWEIDER menu sync count mismatch for ${section.id}: static=${cards.length}, database=${rows.length}`,
+        `KWEIDER menu sync count mismatch for ${section.id}: static=${cards.length}, database=${rows.length}`
       );
     }
   }
@@ -195,15 +146,15 @@
   async function loadPublishedMenu() {
     const query = new URLSearchParams({
       select: SELECT_FIELDS,
-      order: "category_code.asc,sort_order.asc,product_id.asc",
+      order: "category_code.asc,sort_order.asc,product_id.asc"
     });
     const response = await fetch(`${SUPABASE_URL}/rest/v1/kweider_menu_items?${query.toString()}`, {
       headers: {
         apikey: SUPABASE_PUBLISHABLE_KEY,
         Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-        Accept: "application/json",
+        Accept: "application/json"
       },
-      cache: "no-store",
+      cache: "no-store"
     });
     if (!response.ok) throw new Error(`Menu data request failed (${response.status})`);
     return response.json();
@@ -215,12 +166,16 @@
       const rows = await loadPublishedMenu();
       if (!Array.isArray(rows) || !rows.length) throw new Error("Published menu table returned no items.");
 
-      const grouped = groupRows(rows);
-      document.querySelectorAll(".menu-section").forEach((section) => {
-        const code = resolveSectionCode(section, grouped);
+      const grouped = new Map();
+      for (const row of rows) {
+        if (!grouped.has(row.category_code)) grouped.set(row.category_code, []);
+        grouped.get(row.category_code).push(row);
+      }
+
+      document.querySelectorAll(".menu-section").forEach(section => {
+        const code = SECTION_CODES[section.id];
         if (!code) return;
-        const group = grouped.byCode.get(code) || [];
-        syncSection(section, group);
+        syncSection(section, grouped.get(code) || []);
       });
 
       document.documentElement.dataset.menuDataSource = "supabase-published";
