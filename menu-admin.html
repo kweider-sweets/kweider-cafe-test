@@ -10,106 +10,36 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand-wrap">
-      <img src="logo.webp" alt="Kweider" class="brand-logo">
-      <div>
-        <div class="eyebrow">KWEIDER</div>
-        <h1>Menu Control</h1>
-      </div>
-    </div>
+    <div class="brand-wrap"><img src="logo.webp" alt="Kweider" class="brand-logo"><div><div class="eyebrow">KWEIDER</div><h1>Menu Control</h1></div></div>
     <div class="test-badge">TEST BRANCH — LIVE MENU NOT CONNECTED</div>
   </header>
 
   <main class="page">
-    <section class="notice">
-      <strong>Protected menu workspace:</strong> published menu data is readable here. Draft and Publish actions require an authorised Menu Admin account. Rewards, customers, points, checkout, QR, images and visual identity are outside this control panel.
-    </section>
+    <section class="notice"><strong>Protected menu workspace:</strong> changes here currently affect the Preview only. Menu Admin access is required for editing, publishing, adding products and managing categories.</section>
 
     <section class="card" id="authCard">
-      <div id="signedOutBlock">
-        <h2>Menu Admin sign in</h2>
-        <form id="loginForm" class="form-grid">
-          <label>Email<input id="loginEmail" type="email" autocomplete="username" required></label>
-          <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label>
-          <div class="wide editor-actions">
-            <button class="primary-btn" type="submit">Sign in</button>
-          </div>
-        </form>
-        <p id="loginMessage" class="editor-note"></p>
-      </div>
-      <div id="signedInBlock" hidden>
-        <div class="editor-actions" style="justify-content:space-between;align-items:center">
-          <div><strong>Signed in:</strong> <span id="signedInEmail"></span><br><span id="adminState" class="editor-note"></span></div>
-          <button id="logoutBtn" class="ghost-btn" type="button">Sign out</button>
-        </div>
-      </div>
+      <div id="signedOutBlock"><h2>Menu Admin sign in</h2><form id="loginForm" class="form-grid"><label>Email<input id="loginEmail" type="email" autocomplete="username" required></label><label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label><div class="wide editor-actions"><button class="primary-btn" type="submit">Sign in</button></div></form><p id="loginMessage" class="editor-note"></p></div>
+      <div id="signedInBlock" hidden><div class="editor-actions auth-actions"><div><strong>Signed in:</strong> <span id="signedInEmail"></span><br><span id="adminState" class="editor-note"></span></div><button id="logoutBtn" class="ghost-btn" type="button">Sign out</button></div></div>
     </section>
 
     <section class="toolbar card">
-      <div class="search-wrap">
-        <label for="search">Search products</label>
-        <input id="search" type="search" placeholder="Name, Arabic name or Product ID">
-      </div>
-      <div class="filter-wrap">
-        <label for="statusFilter">Status</label>
-        <select id="statusFilter">
-          <option value="all">All</option>
-          <option value="available">Available</option>
-          <option value="sold_out">Sold Out</option>
-          <option value="hidden">Hidden</option>
-        </select>
-      </div>
+      <div class="search-wrap"><label for="search">Search products</label><input id="search" type="search" placeholder="Name, Arabic name or Product ID"></div>
+      <div class="filter-wrap"><label for="statusFilter">Status</label><select id="statusFilter"><option value="all">All</option><option value="available">Available</option><option value="sold_out">Sold Out</option><option value="hidden">Hidden</option></select></div>
+      <div class="toolbar-actions"><button id="addProductBtn" class="primary-btn" type="button" hidden>+ Add Product</button><button id="addCategoryBtn" class="ghost-btn" type="button" hidden>+ Add Category</button></div>
     </section>
 
-    <section class="stats" aria-label="Menu statistics">
-      <div class="stat card"><span>Total</span><strong id="totalCount">—</strong></div>
-      <div class="stat card"><span>Available</span><strong id="availableCount">—</strong></div>
-      <div class="stat card"><span>Sold Out</span><strong id="soldOutCount">—</strong></div>
-      <div class="stat card"><span>Hidden</span><strong id="hiddenCount">—</strong></div>
-      <div class="stat card"><span>Draft changes</span><strong id="changeCount">0</strong></div>
-    </section>
+    <section class="stats" aria-label="Menu statistics"><div class="stat card"><span>Total</span><strong id="totalCount">—</strong></div><div class="stat card"><span>Available</span><strong id="availableCount">—</strong></div><div class="stat card"><span>Sold Out</span><strong id="soldOutCount">—</strong></div><div class="stat card"><span>Hidden</span><strong id="hiddenCount">—</strong></div><div class="stat card"><span>Draft changes</span><strong id="changeCount">0</strong></div></section>
 
-    <div id="loading" class="state-card">Loading menu data…</div>
-    <div id="error" class="state-card error" hidden></div>
-    <section id="categories" class="categories" hidden></section>
+    <section class="card category-manager"><div class="section-head"><div><h2>Category Control</h2><p>Hide or show a complete category. Hidden categories remain editable here.</p></div></div><div id="categoryControls" class="category-controls">Sign in as Menu Admin to manage categories.</div></section>
+
+    <div id="loading" class="state-card">Loading menu data…</div><div id="error" class="state-card error" hidden></div><section id="categories" class="categories" hidden></section>
   </main>
 
-  <dialog id="editor" class="editor-dialog">
-    <form method="dialog" id="editorForm" class="editor-card">
-      <div class="editor-head">
-        <div>
-          <div id="editorId" class="product-id"></div>
-          <h2>Edit product</h2>
-        </div>
-        <button value="cancel" class="icon-btn" aria-label="Close">×</button>
-      </div>
+  <dialog id="editor" class="editor-dialog"><form method="dialog" id="editorForm" class="editor-card"><div class="editor-head"><div><div id="editorId" class="product-id"></div><h2>Edit product</h2></div><button value="cancel" class="icon-btn" aria-label="Close">×</button></div><div class="form-grid"><label>Name (English)<input id="nameEn" type="text" required></label><label class="rtl-label">الاسم بالعربية<input id="nameAr" type="text" dir="rtl"></label><label>Price (£)<input id="price" type="number" min="0" step="0.01" required></label><label>Status<select id="status"><option value="available">Available</option><option value="sold_out">Sold Out</option><option value="hidden">Hidden</option></select></label><label class="wide">Description (English)<textarea id="descEn" rows="3"></textarea></label><label class="wide rtl-label">الوصف بالعربية<textarea id="descAr" rows="3" dir="rtl"></textarea></label><label class="wide">Allergy information<textarea id="allergy" rows="2"></textarea></label></div><div class="editor-actions"><button value="cancel" class="ghost-btn">Cancel</button><button id="saveDraft" type="button" class="ghost-btn">Save Draft</button><button id="publishItem" type="button" class="primary-btn">Publish</button></div><p id="editorMessage" class="editor-note"></p></form></dialog>
 
-      <div class="form-grid">
-        <label>Name (English)<input id="nameEn" type="text" required></label>
-        <label class="rtl-label">الاسم بالعربية<input id="nameAr" type="text" dir="rtl"></label>
-        <label>Price (£)<input id="price" type="number" min="0" step="0.01" required></label>
-        <label>Status
-          <select id="status">
-            <option value="available">Available</option>
-            <option value="sold_out">Sold Out</option>
-            <option value="hidden">Hidden</option>
-          </select>
-        </label>
-        <label class="wide">Description (English)<textarea id="descEn" rows="3"></textarea></label>
-        <label class="wide rtl-label">الوصف بالعربية<textarea id="descAr" rows="3" dir="rtl"></textarea></label>
-        <label class="wide">Allergy information<textarea id="allergy" rows="2"></textarea></label>
-      </div>
+  <dialog id="newProductDialog" class="editor-dialog"><form method="dialog" class="editor-card" id="newProductForm"><div class="editor-head"><div><h2>Add Product</h2><div class="editor-note">New products default to Hidden for safety.</div></div><button value="cancel" class="icon-btn">×</button></div><div class="form-grid"><label>Category<select id="newProductCategory" required></select></label><label>Price (£)<input id="newProductPrice" type="number" min="0" step="0.01" required></label><label>Name (English)<input id="newProductNameEn" required></label><label class="rtl-label">الاسم بالعربية<input id="newProductNameAr" dir="rtl"></label><label>Image path / URL<input id="newProductImage" placeholder="example.webp"></label><label>Status<select id="newProductStatus"><option value="hidden" selected>Hidden</option><option value="available">Available</option><option value="sold_out">Sold Out</option></select></label><label class="wide">Description (English)<textarea id="newProductDescEn" rows="3"></textarea></label><label class="wide rtl-label">الوصف بالعربية<textarea id="newProductDescAr" rows="3" dir="rtl"></textarea></label><label class="wide">Allergy information<textarea id="newProductAllergy" rows="2"></textarea></label><label class="checkbox-label"><input id="newProductIsNew" type="checkbox"> Show NEW ribbon</label></div><div class="editor-actions"><button value="cancel" class="ghost-btn">Cancel</button><button id="createProductBtn" type="button" class="primary-btn">Add Product</button></div><p id="newProductMessage" class="editor-note"></p></form></dialog>
 
-      <div class="editor-actions">
-        <button value="cancel" class="ghost-btn">Cancel</button>
-        <button id="saveDraft" type="button" class="ghost-btn">Save Draft</button>
-        <button id="publishItem" type="button" class="primary-btn">Publish</button>
-      </div>
-      <p id="editorMessage" class="editor-note">Save Draft changes only the draft table. Publish copies that draft into the new published menu table. The customer-facing menu is not connected to this table yet.</p>
-    </form>
-  </dialog>
+  <dialog id="newCategoryDialog" class="editor-dialog"><form method="dialog" class="editor-card" id="newCategoryForm"><div class="editor-head"><div><h2>Add Category</h2><div class="editor-note">New categories are created Hidden until you choose Show.</div></div><button value="cancel" class="icon-btn">×</button></div><div class="form-grid"><label>Category code<input id="newCategoryCode" maxlength="6" placeholder="EX" required></label><label>Order<input id="newCategoryOrder" type="number" step="10" min="0"></label><label>Name (English)<input id="newCategoryNameEn" required></label><label class="rtl-label">الاسم بالعربية<input id="newCategoryNameAr" dir="rtl"></label><label>Image path / URL<input id="newCategoryImage" placeholder="category-image.webp"></label><label>Section ID<input id="newCategorySection" placeholder="auto-generated"></label></div><div class="editor-actions"><button value="cancel" class="ghost-btn">Cancel</button><button id="createCategoryBtn" type="button" class="primary-btn">Add Category</button></div><p id="newCategoryMessage" class="editor-note"></p></form></dialog>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="menu-control.js" defer></script>
-</body>
-</html>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script><script src="menu-control.js" defer></script>
+</body></html>
