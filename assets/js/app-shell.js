@@ -13,6 +13,11 @@
     menuLuxuryPanels.rel = "stylesheet";
     menuLuxuryPanels.href = "assets/css/menu-luxury-panels.css?v=20260928-burgundy";
     document.head.appendChild(menuLuxuryPanels);
+
+    const menuDataSync = document.createElement("script");
+    menuDataSync.src = "assets/js/menu-data-sync.js?v=20261014-image-order-sync";
+    menuDataSync.defer = true;
+    document.head.appendChild(menuDataSync);
   }
 
   if (window.location.pathname.endsWith("/rewards.html") || window.location.pathname.endsWith("rewards.html")) {
