@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#53131C">
+  <title>Kweider Home Hub V2</title>
+  <style>
+    @font-face{font-family:Cairo;src:url('assets/fonts/cairo-variable.woff2') format('woff2');font-display:swap;font-weight:200 1000}
+    :root{--beige:#F4EDE3;--ivory:#FAF6F0;--burgundy:#53131C;--burgundy-deep:#3B0D16;--gold:#C6A15B;--gold-light:#E8D090;--ink:#171516;--muted:#766D65;--line:#D9CCBE}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Cairo,Arial,sans-serif;background:linear-gradient(180deg,#FAF6F0 0%,#F4EDE3 100%);color:var(--ink);min-height:100vh}
+    .shell{width:min(100%,620px);margin:0 auto;padding:18px 16px 30px}
+    .brand{text-align:center;padding:4px 0 16px}
+    .brand img{width:118px;max-width:40vw;height:auto;display:block;margin:0 auto}
+    .brand-rule{width:72px;height:2px;margin:12px auto 0;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+    .offer{display:block;position:relative;overflow:hidden;border-radius:22px;min-height:200px;text-decoration:none;color:white;border:1px solid rgba(198,161,91,.7);box-shadow:0 16px 36px rgba(83,19,28,.18);background:linear-gradient(145deg,#6A1A25 0%,#53131C 55%,#3B0D16 100%)}
+    .offer img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .offer::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,7,10,.08),rgba(38,7,13,.78))}
+    .offer-copy{position:absolute;z-index:2;left:20px;right:20px;bottom:18px}
+    .offer-kicker{display:inline-block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-light);font-weight:800;margin-bottom:5px}
+    .offer-title{font-size:24px;line-height:1.12;font-weight:900;margin:0}
+    .offer-ar{font-family:Arial,sans-serif;font-size:15px;margin-top:5px;color:#FFF6E5}
+    .offer-cta{margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:8px 13px;border-radius:999px;background:rgba(250,246,240,.96);color:var(--burgundy);font-size:12px;font-weight:900}
+    .section-label{margin:24px 4px 10px;color:var(--burgundy);font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:900}
+    .actions{display:grid;gap:12px}
+    .action{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:14px;text-decoration:none;background:rgba(255,255,255,.7);border:1px solid rgba(83,19,28,.13);border-radius:18px;padding:15px 16px;box-shadow:0 7px 22px rgba(72,48,40,.08);color:var(--ink);transition:.2s ease}
+    .action:active{transform:scale(.985)}
+    .action.primary{background:linear-gradient(145deg,#651924,#53131C 58%,#3B0D16);color:#fff;border-color:rgba(198,161,91,.65);box-shadow:0 12px 28px rgba(83,19,28,.22)}
+    .icon{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;font-size:22px;background:#F3E8D9;border:1px solid rgba(198,161,91,.45)}
+    .primary .icon{background:rgba(255,255,255,.09);border-color:rgba(232,208,144,.42)}
+    .copy strong{display:block;font-size:16px;line-height:1.1;font-weight:900}
+    .copy span{display:block;font-size:12px;line-height:1.35;margin-top:4px;color:var(--muted)}
+    .primary .copy span{color:#EADFD9}
+    .copy .ar{font-family:Arial,sans-serif;font-size:12px;margin-top:2px;color:var(--burgundy)}
+    .primary .copy .ar{color:#FFEFD0}
+    .chev{font-size:22px;color:var(--gold)}
+    .social{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:10px}
+    .social a{display:grid;place-items:center;min-height:48px;border-radius:14px;text-decoration:none;background:#fff;border:1px solid var(--line);color:var(--burgundy);font-size:12px;font-weight:800}
+    .note{text-align:center;color:#8A7E75;font-size:11px;line-height:1.5;margin:20px 10px 0}
+    @media(min-width:560px){.offer{min-height:250px}.offer-title{font-size:29px}.action{padding:17px 18px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="brand">
+      <img src="logo.webp" alt="Kweider Sweets">
+      <div class="brand-rule"></div>
+    </header>
+
+    <a class="offer" href="index.html" aria-label="View Kweider offers">
+      <img src="home-offer-banner.webp" alt="Kweider current offer" onerror="this.style.display='none'">
+      <div class="offer-copy">
+        <span class="offer-kicker">Kweider Offers</span>
+        <h1 class="offer-title">Discover This Week’s Selection</h1>
+        <div class="offer-ar">اكتشف عروض وتشكيلة قويدر لهذا الأسبوع</div>
+        <span class="offer-cta">View offers <span aria-hidden="true">→</span></span>
+      </div>
+    </a>
+
+    <div class="section-label">Quick access</div>
+    <section class="actions" aria-label="Kweider quick access">
+      <a class="action primary" href="https://kweidersweets.co.uk/">
+        <span class="icon" aria-hidden="true">🛍️</span>
+        <span class="copy">
+          <strong>Local Pickup</strong>
+          <span>Order online and collect from Kweider Acton</span>
+          <span class="ar">الطلب أونلاين والاستلام من قويدر أكتون</span>
+        </span>
+        <span class="chev" aria-hidden="true">›</span>
+      </a>
+
+      <a class="action" href="https://kweidersweets.co.uk/">
+        <span class="icon" aria-hidden="true">🌐</span>
+        <span class="copy">
+          <strong>Website</strong>
+          <span>Shop Kweider online</span>
+          <span class="ar">تسوّق من موقع قويدر</span>
+        </span>
+        <span class="chev" aria-hidden="true">›</span>
+      </a>
+
+      <a class="action" href="rewards.html">
+        <span class="icon" aria-hidden="true">✦</span>
+        <span class="copy">
+          <strong>Kweider Rewards</strong>
+          <span>Open your points and rewards card</span>
+          <span class="ar">افتح نقاطك ومكافآتك</span>
+        </span>
+        <span class="chev" aria-hidden="true">›</span>
+      </a>
+
+      <a class="action" href="index.html">
+        <span class="icon" aria-hidden="true">☰</span>
+        <span class="copy">
+          <strong>Menu</strong>
+          <span>Browse breakfast, sweets, drinks and more</span>
+          <span class="ar">استعرض الفطور والحلويات والمشروبات</span>
+        </span>
+        <span class="chev" aria-hidden="true">›</span>
+      </a>
+    </section>
+
+    <div class="section-label">Follow & visit</div>
+    <nav class="social" aria-label="Kweider social links">
+      <a href="https://www.google.com/maps/search/?api=1&query=Kweider+Sweets+184-186+High+Street+London+W3+9NH">Maps</a>
+      <a href="https://www.instagram.com/kweideruk">Instagram</a>
+      <a href="https://www.facebook.com/KweiderUK">Facebook</a>
+      <a href="https://www.tiktok.com/@kweideruk">TikTok</a>
+    </nav>
+
+    <p class="note">Draft interface only. Menu, Rewards, customer data, prices, images and live QR routing are unchanged.</p>
+  </main>
+</body>
+</html>
