@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#F4EDE3">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Kweider">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="assets/css/app-shell.css?v=20261102-home-v6">
+  <title>Kweider Sweets</title>
+  <style>
+    @font-face{font-family:Cairo;src:url('assets/fonts/cairo-variable.woff2') format('woff2');font-style:normal;font-weight:200 1000;font-display:swap}
+    :root{--beige:#F4EDE3;--ivory:#FAF6F0;--burgundy:#53131C;--burgundy-deep:#3B0D16;--gold:#C6A15B;--gold-light:#E8D090;--ink:#171516;--muted:#766D65;--line:#D9CCBE}
+    *{box-sizing:border-box}
+    html,body{background:#F4EDE3}
+    body{margin:0;min-height:100vh;font-family:Cairo,Arial,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+    .page{width:min(100%,560px);margin:0 auto;padding:12px 14px 26px;background:#F4EDE3}
+    .top{text-align:center;padding:4px 0 9px}
+    .top .logo{width:116px;height:auto;display:block;margin:0 auto 4px;filter:drop-shadow(0 5px 14px rgba(83,19,28,.10))}
+    .install-menu-btn{margin:6px auto 0!important;background:linear-gradient(135deg,#B58C43,#E8D090)!important;color:#26110F!important;border:0!important;box-shadow:0 5px 14px rgba(83,19,28,.12)!important}
+    .venue{text-align:center;margin:0 0 12px}
+    .venue h1{font-size:18px;line-height:1.1;margin:0 0 3px;color:var(--burgundy);font-weight:900}
+    .venue p{margin:0;color:#5F554E;font-size:11.7px;line-height:1.45}
+
+    .hero{position:relative;display:block;overflow:hidden;min-height:146px;border-radius:18px;border:1px solid rgba(198,161,91,.82);text-decoration:none;color:#fff;background:linear-gradient(145deg,#681A26 0%,#53131C 58%,#3B0D16 100%);box-shadow:0 12px 28px rgba(83,19,28,.16)}
+    .hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(59,13,22,.96) 0%,rgba(83,19,28,.78) 55%,rgba(83,19,28,.38) 100%)}
+    .hero-copy{position:relative;z-index:2;width:78%;padding:17px 17px 15px}
+    .eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:900;color:var(--gold-light)}
+    .hero h2{margin:6px 0 3px;font-size:23px;line-height:1.05;letter-spacing:-.015em;font-weight:900}
+    .hero .ar{font-family:Arial,sans-serif;color:#F6E7C5;font-size:12.2px;line-height:1.4;margin-top:5px}
+    .hero-cta{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:7px 11px;border-radius:999px;background:var(--ivory);color:var(--burgundy);font-size:11px;font-weight:900}
+
+    .section-title{display:flex;align-items:center;gap:9px;margin:17px 2px 8px;color:var(--burgundy);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:900}
+    .section-title:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,rgba(83,19,28,.28),transparent)}
+    .actions{display:grid;gap:9px}
+    .action{display:grid;grid-template-columns:43px minmax(0,1fr) 18px;align-items:center;gap:12px;min-height:80px;padding:11px 12px;text-decoration:none;border-radius:16px;border:1px solid rgba(198,161,91,.78);color:#fff;background:linear-gradient(145deg,#681A26 0%,#53131C 58%,#3B0D16 100%);box-shadow:0 7px 18px rgba(83,19,28,.13);transition:transform .16s ease,box-shadow .16s ease}
+    .action:active{transform:scale(.988)}
+    .action.disabled{cursor:default;grid-template-columns:43px minmax(0,1fr);margin-top:10px}
+    .icon{width:43px;height:43px;border-radius:13px;display:grid;place-items:center;border:1px solid rgba(232,208,144,.62);background:rgba(250,246,240,.08);color:var(--gold-light)}
+    .icon svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .copy{min-width:0;display:flex;flex-direction:column;justify-content:center}
+    .copy strong{display:block;font-size:17px;line-height:1.05;color:#FFF;font-weight:900;letter-spacing:-.01em}
+    .copy .en{display:block;margin-top:4px;color:#F4EDE3;font-size:12.3px;line-height:1.25}
+    .copy .ar{display:block;margin-top:6px;padding-top:5px;border-top:1px solid rgba(232,208,144,.18);font-family:Arial,sans-serif;color:#E8D090;font-size:10.6px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .arrow{font-size:22px;line-height:1;color:var(--gold-light);text-align:right}
+
+    .legacy-footer{margin-top:20px;background:linear-gradient(180deg,#120A0C 0%,#0B0809 100%);border:1px solid rgba(198,161,91,.38);border-radius:20px;padding:18px 16px 16px;text-align:center;box-shadow:0 12px 28px rgba(83,19,28,.14)}
+    .footer-logo{width:92px;height:auto;margin:0 auto 8px;display:block}
+    .footer-title{font-size:16px;font-weight:900;color:var(--gold-light);margin-bottom:5px}
+    .footer-text{font-size:11.5px;line-height:1.45;color:#F2EAE2;margin:3px 0}
+    .footer-links{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px auto 0}
+    .footer-links a{min-height:42px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;border-radius:12px;background:linear-gradient(135deg,#B58C43,#E8D090,#B58C43);color:#17100B;font-size:11.5px;font-weight:900;box-shadow:0 5px 14px rgba(0,0,0,.18)}
+    .management-contact{margin-top:12px;padding:14px 12px;border-radius:15px;border:1px solid rgba(198,161,91,.28);background:linear-gradient(145deg,rgba(83,19,28,.18),rgba(15,11,12,.88))}
+    .management-contact strong{display:block;color:var(--gold-light);font-size:13px;margin-bottom:5px}
+    .management-contact p{margin:0 0 8px;color:#D8D0C9;font-size:11.5px;line-height:1.45}
+    .management-contact a{color:#25D366;text-decoration:underline;font-size:12px;font-weight:800}
+    .copyright-notice{margin-top:12px;padding-top:10px;border-top:1px dashed rgba(198,161,91,.22);color:#8E8580;font-size:9.5px;line-height:1.45}
+
+    @media(min-width:520px){.page{padding:16px 18px 32px}.top .logo{width:126px}.hero{min-height:160px}.hero-copy{padding:19px}.hero h2{font-size:26px}.action{min-height:84px;padding:12px 14px}.copy strong{font-size:18px}.copy .en{font-size:12.8px}.copy .ar{font-size:11px}.legacy-footer{padding:20px 18px 18px}}
+    @media(max-width:380px){.page{padding-left:10px;padding-right:10px}.top .logo{width:104px}.venue h1{font-size:17px}.venue p{font-size:10.8px}.hero{min-height:136px;border-radius:16px}.hero-copy{width:84%;padding:14px}.hero h2{font-size:20px}.hero .ar{font-size:11.5px}.action{grid-template-columns:40px minmax(0,1fr) 16px;gap:10px;min-height:74px;padding:10px;border-radius:14px}.action.disabled{grid-template-columns:40px minmax(0,1fr)}.icon{width:40px;height:40px;border-radius:12px}.copy strong{font-size:16px}.copy .en{font-size:11.5px}.copy .ar{font-size:10px}.footer-links a{min-height:40px;font-size:11px}.legacy-footer{padding:16px 12px 14px}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="top">
+      <img src="logo.webp" alt="Kweider Sweets" class="logo">
+      <button class="install-menu-btn" type="button" data-install-app>Install App | تثبيت التطبيق</button>
+    </header>
+
+    <section class="venue" aria-label="Kweider Acton">
+      <h1>Kweider Sweets</h1>
+      <p>184–186 High Street, Acton, London W3 9NH</p>
+    </section>
+
+    <a class="hero" href="https://menu.kweidersweets.co.uk/?v=20261102-v6" aria-label="View current Kweider menu and offers">
+      <img src="home-offer-banner.webp" alt="Kweider current offer" onerror="this.remove()">
+      <div class="hero-copy">
+        <div class="eyebrow">Kweider Offers</div>
+        <h2>This Week at Kweider</h2>
+        <div class="ar">اكتشف عروض قويدر لهذا الأسبوع</div>
+        <span class="hero-cta">View offers <span aria-hidden="true">→</span></span>
+      </div>
+    </a>
+
+    <div class="action disabled" aria-disabled="true">
+      <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h11v10H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>
+      <span class="copy"><strong>Local Delivery</strong><span class="en">Direct local delivery</span><span class="ar">التوصيل المحلي</span></span>
+    </div>
+
+    <div class="section-title">Quick access</div>
+    <section class="actions" aria-label="Quick access">
+      <a class="action" href="https://kweidersweets.co.uk/collections/fresh-local-pickup-only">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 9h16l-1 11H5L4 9Z"/><path d="M8 9V7a4 4 0 0 1 8 0v2"/></svg></span>
+        <span class="copy"><strong>Local Pickup</strong><span class="en">Order online and collect from Kweider Acton</span><span class="ar">اطلب أونلاين واستلم من قويدر أكتون</span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+
+      <a class="action" href="https://kweidersweets.co.uk/">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg></span>
+        <span class="copy"><strong>Website</strong><span class="en">Shop the full Kweider range online</span><span class="ar">تسوّق من موقع قويدر الرسمي</span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+
+      <a class="action" href="https://menu.kweidersweets.co.uk/rewards.html?v=20261102-v6">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 8.2l5-.7L12 3Z"/></svg></span>
+        <span class="copy"><strong>Kweider Rewards</strong><span class="en">Open your points and rewards card</span><span class="ar">افتح نقاطك ومكافآتك</span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+
+      <a class="action" href="https://menu.kweidersweets.co.uk/?v=20261102-v6">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/></svg></span>
+        <span class="copy"><strong>Menu</strong><span class="en">Breakfast, sweets, cakes, drinks and more</span><span class="ar">الفطور والحلويات والمشروبات والمزيد</span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+    </section>
+
+    <footer class="legacy-footer">
+      <img src="logo.webp" alt="Kweider Sweets Logo" class="footer-logo">
+      <div class="footer-title">Kweider Sweets</div>
+      <div class="footer-text">📍 London, 184–186 High Street, Acton, W3 9NH</div>
+      <div class="footer-text">🕒 Opening Hours: 11:00 AM – 10:00 PM</div>
+
+      <div class="footer-links">
+        <a href="https://g.page/r/CflK53yJZHCoEBM/review" target="_blank" rel="noopener">Google Maps</a>
+        <a href="https://www.instagram.com/kweideruk" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.facebook.com/KweiderUK" target="_blank" rel="noopener">Facebook</a>
+        <a href="https://www.tiktok.com/@kweideruk" target="_blank" rel="noopener">TikTok</a>
+      </div>
+
+      <div class="management-contact">
+        <strong>🌟 Your feedback matters!</strong>
+        <p>Do you have any notes or suggestions? Contact management directly.</p>
+        <a href="https://wa.me/447440444500" target="_blank" rel="noopener">💬 Contact Management</a>
+      </div>
+
+      <div class="copyright-notice">© 2026 Kweider Sweets. All rights reserved.</div>
+    </footer>
+  </main>
+  <script src="assets/js/app-shell.js?v=20261102-home-v6" defer></script>
+</body>
+</html>
