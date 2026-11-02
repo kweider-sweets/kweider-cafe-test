@@ -2,8 +2,9 @@
   "use strict";
   let deferredPrompt = null;
   const installButtons = () => document.querySelectorAll("[data-install-app]");
+  const hasMainMenu = Boolean(document.getElementById("main-menu"));
 
-  if (document.getElementById("main-menu")) {
+  if (hasMainMenu) {
     const menuContrastFix = document.createElement("link");
     menuContrastFix.rel = "stylesheet";
     menuContrastFix.href = "assets/css/menu-text-contrast-fix.css?v=20260928-burgundy";
@@ -18,6 +19,23 @@
     menuDataSync.src = "assets/js/menu-data-sync.js?v=20261014-image-order-sync";
     menuDataSync.defer = true;
     document.head.appendChild(menuDataSync);
+
+    if (window.location.pathname.endsWith("/menu.html") || window.location.pathname.endsWith("menu.html")) {
+      const menuUrl = new URL("menu.html", window.location.href).href.split("?")[0].split("#")[0];
+      const canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.href = menuUrl;
+
+      document.querySelectorAll('script[type="application/ld+json"]').forEach((script) => {
+        try {
+          const data = JSON.parse(script.textContent);
+          if (data && typeof data === "object") {
+            if ("menu" in data) data.menu = menuUrl;
+            if ("hasMenu" in data) data.hasMenu = menuUrl;
+            script.textContent = JSON.stringify(data);
+          }
+        } catch {}
+      });
+    }
   }
 
   if (window.location.pathname.endsWith("/rewards.html") || window.location.pathname.endsWith("rewards.html")) {
@@ -54,7 +72,7 @@
   if ("serviceWorker" in navigator) {
     const isMainMenuPage = () => {
       const path = window.location.pathname.replace(/\/+$/, "");
-      return path === "" || path === "/index.html";
+      return path === "" || path === "/index.html" || path === "/menu.html";
     };
 
     let registration = null;
@@ -123,9 +141,18 @@
 
     el.replaceChildren(en, ar);
   }
+
+  function openRequestedMenuSection() {
+    if (!hasMainMenu || typeof window.openCategory !== "function") return;
+    const requested = new URLSearchParams(window.location.search).get("section");
+    if (!requested || !document.getElementById(requested)) return;
+    window.openCategory(requested);
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     updateRewardsBannerCopy();
     updateHomeBadge();
+    openRequestedMenuSection();
     const loading = document.getElementById("appLoading");
     if (loading) {
       loading.style.opacity = "0";

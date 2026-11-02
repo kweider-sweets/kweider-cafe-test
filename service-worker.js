@@ -1,7 +1,8 @@
-const CACHE = "kweider-customer-v4.5.19";
+const CACHE = "kweider-customer-v4.6.0";
 const CORE = [
   "./",
   "./index.html",
+  "./menu.html",
   "./rewards.html",
   "./staff.html",
   "./privacy.html",
@@ -47,73 +48,46 @@ async function readBadgeCount() {
 
 async function writeBadgeCount(count) {
   const safeCount = Math.max(0, Math.floor(Number(count) || 0));
-
   try {
     const cache = await caches.open(BADGE_STATE_CACHE);
     if (safeCount > 0) {
-      await cache.put(
-        BADGE_STATE_URL,
-        new Response(String(safeCount), {
-          headers: { "Content-Type": "text/plain" },
-        }),
-      );
+      await cache.put(BADGE_STATE_URL, new Response(String(safeCount), { headers: { "Content-Type": "text/plain" } }));
     } else {
       await cache.delete(BADGE_STATE_URL);
     }
   } catch {}
-
   try {
-    if (safeCount > 0 && "setAppBadge" in self.navigator) {
-      await self.navigator.setAppBadge(safeCount);
-    } else if (safeCount === 0 && "clearAppBadge" in self.navigator) {
-      await self.navigator.clearAppBadge();
-    }
+    if (safeCount > 0 && "setAppBadge" in self.navigator) await self.navigator.setAppBadge(safeCount);
+    else if (safeCount === 0 && "clearAppBadge" in self.navigator) await self.navigator.clearAppBadge();
   } catch (error) {
     console.warn("Unable to update Kweider app badge:", error);
   }
-
   return safeCount;
 }
 
-async function incrementBadgeCount() {
-  const currentCount = await readBadgeCount();
-  return writeBadgeCount(currentCount + 1);
-}
-
-async function clearBadgeCount() {
-  return writeBadgeCount(0);
-}
+async function incrementBadgeCount() { return writeBadgeCount((await readBadgeCount()) + 1); }
+async function clearBadgeCount() { return writeBadgeCount(0); }
 
 self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE)
-      .then(cache => cache.addAll(CORE))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(
-      keys
-        .filter(key => (key.startsWith("kweider-pwa-") || key.startsWith("kweider-customer-")) && key !== CACHE)
-        .map(key => caches.delete(key))
-    );
-
+    await Promise.all(keys.filter(key => (key.startsWith("kweider-pwa-") || key.startsWith("kweider-customer-")) && key !== CACHE).map(key => caches.delete(key)));
     await self.clients.claim();
-
     const scopeUrl = new URL(self.registration.scope);
     const rootPath = scopeUrl.pathname.replace(/\/+$/, "");
     const indexPath = `${rootPath}/index.html`.replace(/\/+/g, "/");
+    const menuPath = `${rootPath}/menu.html`.replace(/\/+/g, "/");
     const rewardsPath = `${rootPath}/rewards.html`.replace(/\/+/g, "/");
     const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-
     await Promise.all(windows.map(client => {
       try {
         const url = new URL(client.url);
         const path = url.pathname.replace(/\/+$/, "");
-        const shouldRefresh = url.origin === scopeUrl.origin && (path === rootPath || path === indexPath || path === rewardsPath);
+        const shouldRefresh = url.origin === scopeUrl.origin && (path === rootPath || path === indexPath || path === menuPath || path === rewardsPath);
         if (shouldRefresh && "navigate" in client) return client.navigate(client.url);
       } catch {}
       return undefined;
@@ -144,49 +118,30 @@ self.addEventListener("fetch", event => {
 
 self.addEventListener("push", event => {
   let payload = {};
-
   if (event.data) {
-    try {
-      payload = event.data.json();
-    } catch {
-      payload = { body: event.data.text() };
-    }
+    try { payload = event.data.json(); } catch { payload = { body: event.data.text() }; }
   }
-
   const title = payload.title || "Kweider Rewards";
   const rewardsUrl = new URL("./rewards.html", self.location.href).href;
   const iconUrl = new URL("./assets/icons/icon-192.png", self.location.href).href;
   const badgeUrl = new URL("./assets/icons/icon-192.png", self.location.href).href;
-
   const options = {
     body: payload.body || "You have a new Kweider reward update.",
     icon: payload.icon || iconUrl,
     badge: payload.badge || badgeUrl,
     tag: payload.tag || "kweider-rewards-update",
     renotify: false,
-    data: {
-      url: payload.url || rewardsUrl,
-      messageId: payload.messageId || null,
-    },
+    data: { url: payload.url || rewardsUrl, messageId: payload.messageId || null },
   };
-
-  event.waitUntil(
-    Promise.all([
-      self.registration.showNotification(title, options),
-      incrementBadgeCount(),
-    ]),
-  );
+  event.waitUntil(Promise.all([self.registration.showNotification(title, options), incrementBadgeCount()]));
 });
 
 self.addEventListener("notificationclick", event => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url ||
-    new URL("./rewards.html", self.location.href).href;
-
-  event.waitUntil(
-    Promise.all([
-      clearBadgeCount(),
-      clients.matchAll({ type: "window", includeUncontrolled: true }).then(windowClients => {
+  const targetUrl = event.notification.data?.url || new URL("./rewards.html", self.location.href).href;
+  event.waitUntil(Promise.all([
+    clearBadgeCount(),
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(windowClients => {
       for (const client of windowClients) {
         try {
           const clientUrl = new URL(client.url);
@@ -197,10 +152,9 @@ self.addEventListener("notificationclick", event => {
           }
         } catch {}
       }
-        return clients.openWindow ? clients.openWindow(targetUrl) : undefined;
-      }),
-    ]),
-  );
+      return clients.openWindow ? clients.openWindow(targetUrl) : undefined;
+    }),
+  ]));
 });
 
 self.addEventListener("message", event => {
