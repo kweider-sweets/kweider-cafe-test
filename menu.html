@@ -122,6 +122,27 @@
         }
         .logo { max-width: 125px; height: auto; margin-bottom: 0; }
         .install-menu-btn { margin-top: 8px; }
+        .menu-home-back {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 38px;
+            margin-top: 8px;
+            padding: 7px 14px;
+            border: 1px solid rgba(198, 161, 91, 0.72);
+            border-radius: 999px;
+            background: linear-gradient(180deg, #5E1721 0%, #53131C 55%, #3B0D16 100%);
+            color: #E8D090;
+            font-size: 12.5px;
+            font-weight: 900;
+            line-height: 1.2;
+            text-decoration: none;
+            box-shadow: 0 5px 14px rgba(0,0,0,.20);
+        }
+        .menu-home-back:focus-visible {
+            outline: 2px solid #E8D090;
+            outline-offset: 2px;
+        }
 
         .hero-banner-container {
             padding: 10px 15px;
@@ -732,6 +753,8 @@
     <img src="logo.webp" alt="Kweider Logo" class="logo" loading="lazy" onerror="this.src='https://via.placeholder.com/100/000000/C5A059?text=KWEIDER'">
     <br>
     <button class="install-menu-btn" type="button" data-install-app>Install App | تثبيت التطبيق</button>
+    <br>
+    <a href="index.html" class="menu-home-back" aria-label="Back to Kweider Home">← Home | الرئيسية</a>
 </header>
 
 <div class="hero-banner-container" id="hero-banner-main">
@@ -1302,7 +1325,12 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        goHome();
+        const requestedSection = new URLSearchParams(window.location.search).get("section");
+        if (requestedSection && document.getElementById(requestedSection)) {
+            openCategory(requestedSection);
+        } else {
+            goHome();
+        }
         void clearCustomerAppBadge();
         
         let topButton = document.getElementById("backToTop");
@@ -1402,7 +1430,7 @@
     <button class="gold-btn" type="button" data-install-app>Install</button>
 </div>
 
-<script src="assets/js/app-shell.js?v=20260928-burgundy"></script>
+<script src="assets/js/app-shell.js?v=20261104-offers-fix-1"></script>
 
 </body>
 </html>
