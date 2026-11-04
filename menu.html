@@ -122,6 +122,27 @@
         }
         .logo { max-width: 125px; height: auto; margin-bottom: 0; }
         .install-menu-btn { margin-top: 8px; }
+        .menu-home-back {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 38px;
+            margin-top: 8px;
+            padding: 7px 14px;
+            border: 1px solid rgba(197, 160, 89, 0.62);
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(83,19,28,.92), rgba(20,10,12,.96));
+            color: #E8D090;
+            font-size: 12.5px;
+            font-weight: 800;
+            line-height: 1.2;
+            text-decoration: none;
+            box-shadow: 0 5px 14px rgba(0,0,0,.18);
+        }
+        .menu-home-back:focus-visible {
+            outline: 2px solid #E8D090;
+            outline-offset: 2px;
+        }
 
         .hero-banner-container {
             padding: 10px 15px;
@@ -732,6 +753,8 @@
     <img src="logo.webp" alt="Kweider Logo" class="logo" loading="lazy" onerror="this.src='https://via.placeholder.com/100/000000/C5A059?text=KWEIDER'">
     <br>
     <button class="install-menu-btn" type="button" data-install-app>Install App | تثبيت التطبيق</button>
+    <br>
+    <a href="index.html" class="menu-home-back" aria-label="Back to Kweider Home">← Home | الرئيسية</a>
 </header>
 
 <div class="hero-banner-container" id="hero-banner-main">
