@@ -16,7 +16,7 @@
     document.head.appendChild(menuLuxuryPanels);
 
     const menuDataSync = document.createElement("script");
-    menuDataSync.src = "assets/js/menu-data-sync.js?v=20261014-image-order-sync";
+    menuDataSync.src = "assets/js/menu-data-sync.js?v=20261104-offers-fix-1";
     menuDataSync.defer = true;
     document.head.appendChild(menuDataSync);
 
