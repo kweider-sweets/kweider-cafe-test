@@ -126,17 +126,34 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
  .capacity-table th,.capacity-table td{font-size:11px}
 }
 
+
+/* Single-scroll operational layout: avoid nested scrolling for all 22 times. */
+.capacity-tablewrap{max-height:none;overflow-y:visible;overflow-x:visible;overscroll-behavior:auto}
+.capacity-table thead th{position:static}
+.quick-links{display:flex;gap:8px;margin-top:10px}
+.quick-links .btn{padding:7px 11px;font-size:12px;background:var(--soft)}
+.capacity-summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:12px;color:var(--muted)}
+#toggleTimes{font-size:11px;padding:6px 10px;min-height:32px}
+#capacitySection,#bookingsPanel{scroll-margin-top:12px}
+@media(max-width:760px){
+ .capacity-tablewrap{max-height:none;overflow-y:visible;margin:10px 0 12px}
+ .quick-links{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 0}
+ .quick-links .btn{min-width:0;width:100%;white-space:normal;padding:9px 5px;min-height:40px;font-size:12px}
+ .capacity-summary{gap:5px}
+ #toggleTimes{font-size:10px}
+ .capacity-table th,.capacity-table td{padding:8px 3px}
+}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
 <main>
 <section class="login card" id="login"><h2>Staff Sign In / دخول الموظفين</h2><p class="muted">Private access · Accounts assigned by management only</p><form id="loginForm"><div class="field"><label for="email">Email / البريد الإلكتروني</label><input id="email" autocomplete="username" type="email" required></div><div class="field"><label for="password">Password / كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div><button class="btn primary" type="submit">Sign In / دخول</button><button class="btn" id="registerBtn" type="button" style="width:100%;margin-top:9px">First-time manager setup / تفعيل حساب المدير</button><p class="muted" style="margin-top:11px;font-size:12px">First-time setup requires the approved manager email, a password of at least 12 characters, and email verification. No access is granted before verification.</p></form></section>
 <section id="app" class="hidden">
-<div class="head"><div><h2>Today & Reservations / الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small></div><div class="row head-actions"><input type="date" id="date" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div></div>
+<div class="head"><div><h2>Today & Reservations / الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small></div><div class="row head-actions"><input type="date" id="date" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div><div class="quick-links"><button type="button" class="btn" id="toTimes">الأوقات · Times ↓</button><button type="button" class="btn" id="toBookings">الحجوزات · Bookings ↓</button></div></div>
 <div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong></div></div>
-<div class="card capacity-card"><div class="row capacity-heading"><h2 class="grow">Capacity by time / المقاعد حسب الوقت</h2><small>90 min guests + 30 min cleaning</small></div><div class="capacity-summary"><span>All times · كل الأوقات</span><span id="slotCount" class="pill">—</span></div><div class="capacity-tablewrap"><table class="capacity-table" aria-label="Capacity by time"><thead><tr><th>Time<br>الوقت</th><th>Booked<br>محجوز</th><th>Held<br>مؤقت</th><th>Available<br>متاح</th><th>Status<br>الحالة</th></tr></thead><tbody id="timeline"></tbody></table></div><div id="overrideChips" class="overrides"></div>
+<div class="card capacity-card" id="capacitySection"><div class="row capacity-heading"><h2 class="grow">Capacity by time / المقاعد حسب الوقت</h2><small>90 min guests + 30 min cleaning</small></div><div class="capacity-summary"><span>All times · كل الأوقات</span><span id="slotCount" class="pill">—</span><button type="button" class="btn" id="toggleTimes" aria-expanded="true" aria-controls="capacityTable">إخفاء الجدول · Hide</button></div><div class="capacity-tablewrap" id="capacityTable"><table class="capacity-table" aria-label="Capacity by time"><thead><tr><th>Time<br>الوقت</th><th>Booked<br>محجوز</th><th>Held<br>مؤقت</th><th>Available<br>متاح</th><th>Status<br>الحالة</th></tr></thead><tbody id="timeline"></tbody></table></div><div id="overrideChips" class="overrides"></div>
 <div class="row manager management-actions"><button class="btn" id="addOverride">Close / Limit · إغلاق أو تحديد السعة</button><button class="btn" id="auditBtn">Activity log / سجل التغييرات</button></div></div>
-<div class="split panel"><div class="card bookings-panel"><div class="row bookings-title" style="margin-bottom:12px"><h2 class="grow">Bookings / الحجوزات</h2><input type="search" id="search" placeholder="Search name, phone, reference / بحث"></div><div class="tablewrap"><table class="table"><thead><tr><th>Time / الوقت</th><th>Guest / الزبون</th><th>Covers</th><th>Arrival</th><th>Payment</th><th>Reference</th></tr></thead><tbody id="bookingRows"></tbody></table></div></div>
+<div class="split panel"><div class="card bookings-panel" id="bookingsPanel"><div class="row bookings-title" style="margin-bottom:12px"><h2 class="grow">Bookings / الحجوزات</h2><input type="search" id="search" placeholder="Search name, phone, reference / بحث"></div><div class="tablewrap"><table class="table"><thead><tr><th>Time / الوقت</th><th>Guest / الزبون</th><th>Covers</th><th>Arrival</th><th>Payment</th><th>Reference</th></tr></thead><tbody id="bookingRows"></tbody></table></div></div>
 <aside class="aside card" id="detail"><h2>Booking details / تفاصيل الحجز</h2><p class="muted" style="margin-top:12px">Select a booking to view its details and mark arrival or departure.</p></aside></div>
 <div id="message" role="status" aria-live="polite"></div>
 </section>
@@ -316,6 +333,15 @@ $('loginForm').onsubmit=async e=>{
    token=r.access_token;sessionStorage.setItem('kb_staff_token',token);$('password').value='';await enter();
  }catch(err){alert('Sign in failed: '+err.message);logout()}
  finally{btn.disabled=false}
+};
+
+const jumpTo=id=>$(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+$('toTimes').onclick=()=>jumpTo('capacitySection');
+$('toBookings').onclick=()=>jumpTo('bookingsPanel');
+$('toggleTimes').onclick=()=>{
+ const panel=$('capacityTable'),closed=panel.classList.toggle('hidden');
+ $('toggleTimes').setAttribute('aria-expanded',String(!closed));
+ $('toggleTimes').textContent=closed?'عرض جميع الأوقات · Show all':'إخفاء الجدول · Hide';
 };
 $('date').value=today();$('date').onchange=load;$('reload').onclick=load;$('search').oninput=renderRows;
 $('addPhone').onclick=()=>openDialog('create_phone');$('addOverride').onclick=()=>openDialog('override');$('auditBtn').onclick=()=>openDialog('audit');
