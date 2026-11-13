@@ -21,17 +21,122 @@ dialog{border:1px solid var(--edge);border-radius:14px;box-shadow:0 20px 70px #0
 .footer{color:var(--muted);font-size:12px;text-align:center;margin:22px auto}
 @media(max-width:940px){.split{grid-template-columns:1fr}.aside{position:static;max-height:none}.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.kpi{gap:7px}.kpi .card{padding:10px}.kpi strong{font-size:20px}header h1{font-size:18px}}
+
+/* KWEIDER Booking Manager – responsive operational dashboard, mobile first */
+html{width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%}
+body{width:100%;max-width:100%;overflow-x:hidden}
+main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-width:0}
+#sessionTools{justify-content:flex-end}
+.capacity-summary{display:none}
+.capacity-tablewrap{width:100%;max-height:465px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;border:1px solid var(--edge);border-radius:10px;margin:11px 0 13px}
+.capacity-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.capacity-table th,.capacity-table td{padding:10px 8px;border-bottom:1px solid var(--edge);text-align:center;font-variant-numeric:tabular-nums}
+.capacity-table thead th{position:sticky;top:0;background:#f5ede6;z-index:1;font-size:11px;line-height:1.35;color:#685b56}
+.capacity-table tbody tr:last-child td{border-bottom:0}
+.capacity-table tbody tr:nth-child(even){background:#fcfaf7}
+.capacity-table tbody tr.danger{background:#fff2f1}
+.capacity-table tbody tr.warning{background:#fff9eb}
+.slot-time{font-weight:800;color:var(--wine)}
+.slot-remaining{font-weight:800;color:#246547}
+.slot-capacity{font-weight:400;color:var(--muted);font-size:10px}
+.slot-status{display:inline-block;padding:5px 8px;border-radius:9px;font-size:11px;font-weight:700;line-height:1.4;white-space:normal}
+.slot-status.success{background:#e4f4ea;color:#216342}
+.slot-status.warning{background:#fff0ce;color:#7a4e0b}
+.slot-status.danger{background:#fbe0e0;color:#9a3036}
+.empty-slots{color:var(--muted);font-weight:600}
+.head-actions input[type=date]{width:164px}
+#search{width:min(100%,280px)}
+.mobile-booking-subtitle{display:none}
+@media(max-width:960px){
+ .split{grid-template-columns:minmax(0,1fr)}
+ .aside{position:static;max-height:none}
+}
+@media(max-width:760px){
+ header{padding:12px 14px;align-items:flex-start;gap:8px}
+ header h1{font-size:17px;line-height:1.24}
+ header small{font-size:10px;display:block;margin-top:4px}
+ #sessionTools{gap:6px;max-width:50%;align-self:flex-start}
+ #sessionTools .pill{white-space:normal;overflow-wrap:anywhere;text-align:center;font-size:10px;max-width:116px;padding:4px 6px}
+ #sessionTools .btn{padding:8px 9px;font-size:12px}
+ main{padding:12px 10px 28px;width:100%;max-width:100%}
+ .head{display:block;margin-bottom:12px}
+ .head h2{font-size:17px}
+ .head small{display:block;margin-top:5px;line-height:1.4;font-size:11px}
+ .head-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:12px;width:100%}
+ .head-actions #date{width:100%;min-width:0;height:43px}
+ .head-actions #reload{height:43px}
+ .head-actions #addPhone{grid-column:1/-1;height:44px}
+ .btn{min-height:40px;font-size:13px}
+ .kpi{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+ .kpi .card{padding:11px 12px;min-height:80px}
+ .kpi span{font-size:11px;line-height:1.4;display:block}
+ .kpi strong{font-size:22px;margin-top:6px}
+ .card{padding:13px 12px;border-radius:12px}
+ .panel{margin-top:10px}
+ .capacity-heading{display:flex;align-items:flex-start;gap:4px}
+ .capacity-heading h2{font-size:15px}
+ .capacity-heading small{width:100%;font-size:11px;line-height:1.4}
+ .capacity-summary{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px;color:var(--muted)}
+ .capacity-tablewrap{max-height:360px;overflow-y:auto;margin:10px 0 12px}
+ .capacity-table th,.capacity-table td{padding:9px 3px;font-size:12px}
+ .capacity-table thead th{font-size:10px}
+ .capacity-table th:nth-child(1){width:18%}
+ .capacity-table th:nth-child(2),.capacity-table th:nth-child(3){width:14%}
+ .capacity-table th:nth-child(4){width:20%}
+ .capacity-table th:nth-child(5){width:34%}
+ .slot-status{font-size:10px;padding:4px 3px}
+ .slot-capacity{display:block;font-size:9px}
+ .management-actions{display:grid;grid-template-columns:1fr;gap:8px}
+ .management-actions button{width:100%}
+ .overrides .chip{width:100%;overflow-wrap:anywhere}
+ .bookings-title{display:flex;flex-direction:column;align-items:stretch}
+ .bookings-title h2{font-size:16px}
+ #search{width:100%;height:43px}
+ .tablewrap{overflow:visible;max-height:none}
+ .table{width:100%;min-width:0;display:block}
+ .table thead{display:none}
+ .table tbody{display:grid;gap:10px}
+ .table tr.booking-entry{display:grid;grid-template-columns:1fr 1fr;gap:9px 12px;padding:13px;border:1px solid var(--edge);border-radius:11px;background:#fff;box-shadow:0 2px 8px #53131c08}
+ .table tr.booking-entry td{min-width:0;border:0;padding:0;display:block;font-size:13px;overflow-wrap:anywhere}
+ .table tr.booking-entry td::before{content:attr(data-label);display:block;color:var(--muted);font-size:10px;font-weight:600;line-height:1.5;margin-bottom:3px}
+ .table tr.booking-entry td:nth-child(2){grid-column:2;grid-row:1}
+ .table tr.booking-entry td:nth-child(5){grid-column:1/-1}
+ .table tr.booking-entry td:nth-child(6){grid-column:1/-1}
+ .table tr.booking-entry td b{font-size:14px}
+ .table tr.booking-entry .pill{display:inline-block;white-space:normal}
+ .mobile-booking-subtitle{display:block;font-size:10px;color:var(--muted)}
+ .table tr.empty-bookings{display:block;width:100%}
+ .table tr.empty-bookings td{display:block;border:0;padding:14px 2px}
+ #detail{scroll-margin-top:10px}
+ #detail .detailrow{font-size:12px}
+ #detail .detailrow span:first-child{flex:0 0 45%}
+ #detail .detailrow b{max-width:55%;text-align:end;overflow-wrap:anywhere}
+ #detail .row>.btn{flex:1 1 140px}
+ dialog{width:calc(100vw - 16px);max-width:100%;max-height:93dvh;padding:17px 14px;border-radius:12px}
+ .formgrid{grid-template-columns:1fr 1fr;gap:10px}
+ .formgrid .field{min-width:0}
+ .dialog-actions{position:sticky;bottom:-17px;background:#fff;padding:12px 0 0;z-index:2}
+ .dialog-actions .btn{flex:1}
+ .footer{font-size:10px;padding:0 15px}
+}
+@media(max-width:350px){
+ header h1{font-size:15px}
+ .formgrid{grid-template-columns:1fr}
+ .slot-status{font-size:9px}
+ .capacity-table th,.capacity-table td{font-size:11px}
+}
+
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
 <main>
 <section class="login card" id="login"><h2>Staff Sign In / دخول الموظفين</h2><p class="muted">Private access · Accounts assigned by management only</p><form id="loginForm"><div class="field"><label for="email">Email / البريد الإلكتروني</label><input id="email" autocomplete="username" type="email" required></div><div class="field"><label for="password">Password / كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div><button class="btn primary" type="submit">Sign In / دخول</button><button class="btn" id="registerBtn" type="button" style="width:100%;margin-top:9px">First-time manager setup / تفعيل حساب المدير</button><p class="muted" style="margin-top:11px;font-size:12px">First-time setup requires the approved manager email, a password of at least 12 characters, and email verification. No access is granted before verification.</p></form></section>
 <section id="app" class="hidden">
-<div class="head"><div><h2>Today & Reservations / الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small></div><div class="row"><input type="date" id="date" style="width:170px"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking</button></div></div>
+<div class="head"><div><h2>Today & Reservations / الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small></div><div class="row head-actions"><input type="date" id="date" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div></div>
 <div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong></div></div>
-<div class="card"><div class="row"><h2 class="grow">Capacity by time / المقاعد حسب الوقت</h2><small>Booked seats are checked per overlapping two-hour window</small></div><div id="timeline" class="timeline"></div><div id="overrideChips" class="overrides"></div>
-<div class="row manager"><button class="btn" id="addOverride">Close date / Limit capacity</button><button class="btn" id="auditBtn">Activity log / سجل التغييرات</button></div></div>
-<div class="split panel"><div class="card"><div class="row" style="margin-bottom:12px"><h2 class="grow">Bookings / الحجوزات</h2><input type="search" id="search" style="width:min(100%,280px)" placeholder="Search name, phone, reference / بحث"></div><div class="tablewrap"><table class="table"><thead><tr><th>Time / الوقت</th><th>Guest / الزبون</th><th>Covers</th><th>Arrival</th><th>Payment</th><th>Reference</th></tr></thead><tbody id="bookingRows"></tbody></table></div></div>
+<div class="card capacity-card"><div class="row capacity-heading"><h2 class="grow">Capacity by time / المقاعد حسب الوقت</h2><small>90 min guests + 30 min cleaning</small></div><div class="capacity-summary"><span>All times · كل الأوقات</span><span id="slotCount" class="pill">—</span></div><div class="capacity-tablewrap"><table class="capacity-table" aria-label="Capacity by time"><thead><tr><th>Time<br>الوقت</th><th>Booked<br>محجوز</th><th>Held<br>مؤقت</th><th>Available<br>متاح</th><th>Status<br>الحالة</th></tr></thead><tbody id="timeline"></tbody></table></div><div id="overrideChips" class="overrides"></div>
+<div class="row manager management-actions"><button class="btn" id="addOverride">Close / Limit · إغلاق أو تحديد السعة</button><button class="btn" id="auditBtn">Activity log / سجل التغييرات</button></div></div>
+<div class="split panel"><div class="card bookings-panel"><div class="row bookings-title" style="margin-bottom:12px"><h2 class="grow">Bookings / الحجوزات</h2><input type="search" id="search" placeholder="Search name, phone, reference / بحث"></div><div class="tablewrap"><table class="table"><thead><tr><th>Time / الوقت</th><th>Guest / الزبون</th><th>Covers</th><th>Arrival</th><th>Payment</th><th>Reference</th></tr></thead><tbody id="bookingRows"></tbody></table></div></div>
 <aside class="aside card" id="detail"><h2>Booking details / تفاصيل الحجز</h2><p class="muted" style="margin-top:12px">Select a booking to view its details and mark arrival or departure.</p></aside></div>
 <div id="message" role="status" aria-live="polite"></div>
 </section>
@@ -75,7 +180,23 @@ async function load(){
  finally{$('reload').disabled=false}
 }
 function renderTimeline(){
- $('timeline').innerHTML=(data.slots||[]).map(s=>'<div class="time'+(s.remaining_covers<=0?' closed':'')+'"><strong>'+esc(s.time)+'</strong><small>'+Number(s.remaining_covers)+' seats left</small></div>').join('')||'<span class="muted">No time slots available</span>';
+ const slots=data.slots||[];
+ $('slotCount').textContent=slots.length+' times';
+ $('timeline').innerHTML=slots.map(slot=>{
+   const capacity=Math.max(0,Number(slot.capacity??data.settings?.capacity??40));
+   const booked=Math.max(0,Number(slot.booked_covers||0));
+   const held=Math.max(0,Number(slot.held_covers||0));
+   const left=Math.max(0,Number(slot.remaining_covers||0));
+   const closed=capacity===0,full=left===0,limited=!closed&&capacity<Number(data.settings?.capacity??40);
+   const color=closed||full?'danger':left<=8?'warning':'success';
+   const status=closed?'Closed / مغلق':full?'Full / ممتلئ':limited?'Limited / محدود':left<=8?'Almost full / شبه ممتلئ':'Open / متاح';
+   return '<tr class="slot-row '+color+'" data-time="'+esc(slot.time)+'">'+
+     '<td class="slot-time" data-label="Time">'+esc(slot.time)+'</td>'+
+     '<td data-label="Booked">'+booked+'</td><td data-label="Held">'+held+'</td>'+
+     '<td class="slot-remaining" data-label="Available">'+left+
+     '<small class="slot-capacity"> / '+capacity+'</small></td>'+
+     '<td data-label="Status"><span class="slot-status '+color+'">'+status+'</span></td></tr>';
+ }).join('')||'<tr><td colspan="5" class="empty-slots">No time slots available / لا توجد أوقات متاحة</td></tr>';
 }
 function renderOverrides(){
  $('overrideChips').innerHTML=(data.overrides||[]).map(o=>'<div class="chip">'+fmtTime(o.start_at)+' – '+fmtTime(o.end_at)+' · '+(o.capacity===0?'CLOSED':o.capacity+' seats')+' · '+esc(o.reason)+
@@ -89,8 +210,15 @@ function arrival(b){return b.attendance==='ARRIVED'?'Arrived / وصل':b.attenda
 function renderRows(){
  const term=$('search').value.toLocaleLowerCase();
  const filtered=data.bookings.filter(b=>!term||[b.customer_name,b.phone,b.reference,b.email].some(v=>String(v||'').toLowerCase().includes(term)));
- $('bookingRows').innerHTML=filtered.map(b=>'<tr data-id="'+esc(b.id)+'"><td><b>'+fmtTime(b.start_at)+'</b><br><small>90m + 30m</small></td><td>'+esc(b.customer_name||'—')+'<br><small>'+esc(b.source)+'</small></td><td>'+Number(b.guests)+'</td><td><span class="pill '+(b.attendance==='ARRIVED'?'arrived':b.status!=='CONFIRMED'?'closed':'')+'">'+esc(b.status==='CONFIRMED'?arrival(b):b.status)+'</span></td><td>'+esc(b.payment_status)+'<br><small>'+money(b.amount_paid)+'</small></td><td>'+esc(b.reference)+'</td></tr>').join('')||'<tr><td colspan="6" class="muted">No bookings on this date / لا توجد حجوزات</td></tr>';
- $('bookingRows').querySelectorAll('[data-id]').forEach(row=>row.onclick=()=>{selected=data.bookings.find(b=>b.id===row.dataset.id);renderDetail()});
+ $('bookingRows').innerHTML=filtered.map(b=>'<tr class="booking-entry" data-id="'+esc(b.id)+'" tabindex="0" role="button" aria-label="Open booking '+esc(b.reference)+'"><td data-label="Time / الوقت"><b>'+fmtTime(b.start_at)+'</b><small class="mobile-booking-subtitle">90 min + 30 cleaning</small></td><td data-label="Guest / الزبون"><b>'+esc(b.customer_name||'—')+'</b><br><small>'+esc(b.source)+'</small></td><td data-label="Guests / الأشخاص">'+Number(b.guests)+'</td><td data-label="Arrival / الحضور"><span class="pill '+(b.attendance==='ARRIVED'?'arrived':b.status!=='CONFIRMED'?'closed':'')+'">'+esc(b.status==='CONFIRMED'?arrival(b):b.status)+'</span></td><td data-label="Payment / الدفع">'+esc(b.payment_status)+'<br><small>'+money(b.amount_paid)+'</small></td><td data-label="Reference / المرجع">'+esc(b.reference)+'</td></tr>').join('')||'<tr class="empty-bookings"><td colspan="6" class="muted">No bookings on this date / لا توجد حجوزات</td></tr>';
+ $('bookingRows').querySelectorAll('[data-id]').forEach(row=>{
+   const show=()=>{
+     selected=data.bookings.find(b=>b.id===row.dataset.id);
+     renderDetail();
+     if(window.matchMedia('(max-width:760px)').matches)$('detail').scrollIntoView({behavior:'smooth',block:'start'});
+   };
+   row.onclick=show;row.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show();}};
+ });
 }
 const detailRow=(label,value)=>'<div class="detailrow"><span>'+esc(label)+'</span><b>'+esc(value??'—')+'</b></div>';
 function renderDetail(){
