@@ -195,7 +195,8 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 const API='https://zybamugtuzootaovodut.supabase.co/functions/v1/booking-staff-api';
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const londonParts=(d=new Date())=>Object.fromEntries(new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d).map(x=>[x.type,x.value]));
+let serverClockOffset=0,clockVerified=false;
+const londonParts=(d=new Date(Date.now()+serverClockOffset))=>Object.fromEntries(new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d).map(x=>[x.type,x.value]));
 const today=()=>{const p=londonParts();return p.year+'-'+p.month+'-'+p.day};
 const londonClock=()=>{const p=londonParts();return p.day+'/'+p.month+'/'+p.year+' · '+p.hour+':'+p.minute};
 const dateLabel=iso=>/^\d{4}-\d{2}-\d{2}$/.test(iso||'')?iso.slice(8)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4):'Invalid date';
@@ -225,7 +226,7 @@ function notifyBooking(msg){
  $('bookingAlert').classList.remove('hidden');playAlert();
 }
 function tickClock(){
- $('clockStrip').textContent='London / لندن: '+londonClock();
+ $('clockStrip').textContent='London / لندن: '+londonClock()+(clockVerified?' ✓ server synced / من الخادم':' · checking clock / التحقق من الوقت');
  const day=$('date').value;
  if(day!==today()){
   $('dateWarning').classList.remove('hidden');
@@ -255,7 +256,7 @@ async function loadCalendar(){
  if(!token)return;
  const month=monthView;
  try{
-  const r=await request('calendar',{month});if(month!==monthView)return;
+  const r=await request('calendar',{month});if(r.server_utc){const t=Date.parse(r.server_utc);if(Number.isFinite(t)){serverClockOffset=t-Date.now();clockVerified=true;tickClock()}}if(month!==monthView)return;
   calendarCounts=Object.fromEntries((r.days||[]).map(x=>[x.day,x]));renderCalendar();
  }catch(e){console.warn('Calendar unavailable',e);$('calendarDays').textContent='Calendar unavailable / تعذر تحميل التقويم'}
 }
@@ -279,6 +280,7 @@ async function monitorBookings(){
  if(!token||document.hidden||!user)return;
  try{
   const r=await request('monitor'),items=r.recent||[];
+  if(r.server_utc){const t=Date.parse(r.server_utc);if(Number.isFinite(t)){serverClockOffset=t-Date.now();clockVerified=true;tickClock()}}
   const fresh=new Set(items.map(x=>String(x.id)));
   if(monitorStarted){
    const newBookings=items.filter(x=>!knownIds.has(String(x.id)));
@@ -291,7 +293,7 @@ async function monitorBookings(){
   knownIds=fresh;monitorStarted=true;
   const now=Date.now();
   const due=(r.upcoming||[]).find(x=>{
-   const diff=new Date(x.start_at).getTime()-now;
+   const diff=new Date(x.start_at).getTime()-(now+serverClockOffset);
    return diff>=-60000&&diff<=15*60000&&!alertedStarts.has(String(x.id));
   });
   if(due){
