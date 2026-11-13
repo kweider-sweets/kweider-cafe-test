@@ -143,14 +143,41 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
  #toggleTimes{font-size:10px}
  .capacity-table th,.capacity-table td{padding:8px 3px}
 }
+
+.clock-strip{margin-top:8px;color:#53131c;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.date-warning{margin-top:8px;padding:9px 11px;border:1px solid #ebc77c;background:#fff2cb;border-radius:8px;color:#684208;font-size:12px;font-weight:700}
+.alert-controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0}
+.alert-mode{font-size:11px;color:var(--muted)}.booking-alert{border:2px solid #d7aa3b;background:#fff1c1;color:#573016;border-radius:10px;padding:13px;margin:10px 0;font-weight:800;line-height:1.6}
+.calendar-panel{margin:10px 0 13px}.calendar-header{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap}
+.calendar-nav{display:flex;align-items:center;gap:7px}.calendar-nav b{min-width:110px;text-align:center}.calendar-nav .btn{padding:7px 10px}
+.calendar-key{margin:11px 0;color:#80601b;font-size:11px}
+.calendar-weekdays,.calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.calendar-weekdays span{text-align:center;color:var(--muted);font-size:11px;padding:7px 0}
+.calendar-days .day{display:flex;align-items:center;justify-content:center;flex-direction:column;min-height:51px;border:1px solid var(--edge);border-radius:8px;background:#fcfaf8;color:var(--ink);font-size:13px;gap:2px;touch-action:manipulation}
+.calendar-days .day small{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.calendar-days .day.has-booking{background:#ffdf77;border-color:#b98319;color:#3f2b10}
+.calendar-days .day.has-booking small{color:#694900;font-weight:800}
+.calendar-days .day.selected{outline:2px solid var(--wine);outline-offset:-2px}
+.calendar-days .day.is-today:not(.selected){box-shadow:inset 0 0 0 1px var(--gold)}
+.calendar-spacer{min-height:20px}
+@media(max-width:760px){
+ .alert-controls{display:grid;grid-template-columns:1fr 1fr}.alert-controls #enableAlerts{grid-column:1/-1}
+ .alert-controls .alert-mode{font-size:10px}
+ .calendar-panel{padding:12px 9px}.calendar-header h2{font-size:14px}
+ .calendar-nav{width:100%;justify-content:space-between}.calendar-nav b{min-width:95px;font-size:12px}
+ .calendar-nav .btn{padding:7px 8px;font-size:11px}
+ .calendar-days,.calendar-weekdays{gap:3px}
+ .calendar-days .day{min-height:45px;font-size:12px;padding:2px}
+ .calendar-days .day small{font-size:9px}
+}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
 <main>
 <section class="login card" id="login"><h2>Staff Sign In / دخول الموظفين</h2><p class="muted">Private access · Accounts assigned by management only</p><form id="loginForm"><div class="field"><label for="email">Email / البريد الإلكتروني</label><input id="email" autocomplete="username" type="email" required></div><div class="field"><label for="password">Password / كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div><button class="btn primary" type="submit">Sign In / دخول</button><button class="btn" id="registerBtn" type="button" style="width:100%;margin-top:9px">First-time manager setup / تفعيل حساب المدير</button><p class="muted" style="margin-top:11px;font-size:12px">First-time setup requires the approved manager email, a password of at least 12 characters, and email verification. No access is granted before verification.</p></form></section>
 <section id="app" class="hidden">
-<div class="head"><div><h2>Today & Reservations / الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small></div><div class="row head-actions"><input type="date" id="date" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div><div class="quick-links"><button type="button" class="btn" id="toTimes">الأوقات · Times ↓</button><button type="button" class="btn" id="toBookings">الحجوزات · Bookings ↓</button></div></div>
-<div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong></div></div>
+<div class="head"><div><h2>Booking Operations / إدارة الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small><div id="clockStrip" class="clock-strip" role="status">London time / وقت لندن: —</div><div id="dateWarning" class="date-warning hidden" role="status"></div></div><div class="row head-actions"><input type="date" id="date" lang="en-GB" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div><div class="alert-controls"><button type="button" class="btn primary" id="enableAlerts">🔔 Enable sound / تفعيل التنبيه</button><span id="alertMode" class="alert-mode">Sound off · الصوت غير مفعل</span><small class="alert-mode">Page must remain open · يلزم إبقاء الصفحة مفتوحة</small></div><div id="bookingAlert" class="booking-alert hidden" role="alert" aria-live="assertive"></div><div class="quick-links"><button type="button" class="btn" id="toTimes">الأوقات · Times ↓</button><button type="button" class="btn" id="toBookings">الحجوزات · Bookings ↓</button></div></div>
+<div class="calendar-panel card"><div class="calendar-header"><h2>Reservation calendar / تقويم الحجوزات</h2><div class="calendar-nav"><button type="button" class="btn" id="monthPrev">‹</button><b id="monthLabel">—</b><button type="button" class="btn" id="monthNext">›</button><button type="button" class="btn" id="monthToday">Today / اليوم</button></div></div><div class="calendar-key">🟨 Yellow = at least 1 confirmed booking / الأصفر = حجز مؤكد واحد على الأقل</div><div class="calendar-weekdays"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div class="calendar-days" id="calendarDays" aria-label="Booking days"></div></div><div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong></div></div>
 <div class="card capacity-card" id="capacitySection"><div class="row capacity-heading"><h2 class="grow">Capacity by time / المقاعد حسب الوقت</h2><small>90 min guests + 30 min cleaning</small></div><div class="capacity-summary"><span>All times · كل الأوقات</span><span id="slotCount" class="pill">—</span><button type="button" class="btn" id="toggleTimes" aria-expanded="true" aria-controls="capacityTable">إخفاء الجدول · Hide</button></div><div class="capacity-tablewrap" id="capacityTable"><table class="capacity-table" aria-label="Capacity by time"><thead><tr><th>Time<br>الوقت</th><th>Booked<br>محجوز</th><th>Held<br>مؤقت</th><th>Available<br>متاح</th><th>Status<br>الحالة</th></tr></thead><tbody id="timeline"></tbody></table></div><div id="overrideChips" class="overrides"></div>
 <div class="row manager management-actions"><button class="btn" id="addOverride">Close / Limit · إغلاق أو تحديد السعة</button><button class="btn" id="auditBtn">Activity log / سجل التغييرات</button></div></div>
 <div class="split panel"><div class="card bookings-panel" id="bookingsPanel"><div class="row bookings-title" style="margin-bottom:12px"><h2 class="grow">Bookings / الحجوزات</h2><input type="search" id="search" placeholder="Search name, phone, reference / بحث"></div><div class="tablewrap"><table class="table"><thead><tr><th>Time / الوقت</th><th>Guest / الزبون</th><th>Covers</th><th>Arrival</th><th>Payment</th><th>Reference</th></tr></thead><tbody id="bookingRows"></tbody></table></div></div>
@@ -165,11 +192,117 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 const API='https://zybamugtuzootaovodut.supabase.co/functions/v1/booking-staff-api';
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const londonParts=(d=new Date())=>Object.fromEntries(new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d).map(x=>[x.type,x.value]));
+const today=()=>{const p=londonParts();return p.year+'-'+p.month+'-'+p.day};
+const londonClock=()=>{const p=londonParts();return p.day+'/'+p.month+'/'+p.year+' · '+p.hour+':'+p.minute};
+const dateLabel=iso=>/^\d{4}-\d{2}-\d{2}$/.test(iso||'')?iso.slice(8)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4):'Invalid date';
+const isPastClock=(day,time)=>day<today()||(day===today()&&time<(londonParts().hour+':'+londonParts().minute));
+
 const fmtTime=v=>v?new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(v)):'';
 const fmtDate=v=>v?new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',day:'2-digit',month:'short',year:'numeric'}).format(new Date(v)):'';
 const money=v=>'£'+Number(v||0).toFixed(2);
 let token=sessionStorage.getItem('kb_staff_token')||'',user=null,data=null,selected=null,dlgAction=null;
+let monthView=today().slice(0,7),calendarCounts={},alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),alertedStarts=new Set(),monitorTimer=null;
+const AUDIO_CONTEXT=window.AudioContext||window.webkitAudioContext;
+function playAlert(){
+ if(!alertsEnabled||!audioCtx)return;
+ try{
+  if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});
+  [0,0.25,0.5].forEach((offset,i)=>{
+   const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+offset;
+   o.type='sine';o.frequency.value=i===1?740:880;g.gain.setValueAtTime(0.0001,t);
+   g.gain.exponentialRampToValueAtTime(0.09,t+0.02);
+   g.gain.exponentialRampToValueAtTime(0.0001,t+0.17);
+   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+0.18);
+  });
+ }catch(e){console.warn('Audio unavailable',e)}
+}
+function notifyBooking(msg){
+ $('bookingAlert').textContent='🔔 '+msg;
+ $('bookingAlert').classList.remove('hidden');playAlert();
+}
+function tickClock(){
+ $('clockStrip').textContent='London / لندن: '+londonClock();
+ const day=$('date').value;
+ if(day!==today()){
+  $('dateWarning').classList.remove('hidden');
+  $('dateWarning').textContent='⚠ Selected / التاريخ المختار: '+dateLabel(day)+' · Not today / ليس اليوم';
+ }else $('dateWarning').classList.add('hidden');
+}
+function validOperationTime(day,time){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)){
+  alert('Please check date and time / تأكد من التاريخ والوقت');return false;
+ }
+ if(isPastClock(day,time)){
+  alert('Booking time is in the past (London time). Check the date and time.\nموعد الحجز مضى بتوقيت لندن. تأكد من التاريخ والوقت.');return false;
+ }
+ return confirm('Please confirm the booking date and time / تأكيد موعد الحجز:\n'+dateLabel(day)+'  ·  '+time+' London\n90 min guest + 30 min cleaning / 90 دقيقة للزبون + 30 دقيقة تنظيف');
+}
+async function enableSound(){
+ if(!AUDIO_CONTEXT){alert('Sound is not supported in this browser / المتصفح لا يدعم الصوت');return}
+ try{
+  if(!audioCtx)audioCtx=new AUDIO_CONTEXT();
+  await audioCtx.resume();alertsEnabled=true;
+  $('enableAlerts').textContent='🔊 Sound ON / الصوت مفعل';
+  $('alertMode').textContent='Sound active while page open · الصوت يعمل والصفحة مفتوحة';
+  playAlert();
+ }catch(e){alert('Check iPad volume and sound permissions / تحقق من مستوى الصوت');}
+}
+async function loadCalendar(){
+ if(!token)return;
+ const month=monthView;
+ try{
+  const r=await request('calendar',{month});if(month!==monthView)return;
+  calendarCounts=Object.fromEntries((r.days||[]).map(x=>[x.day,x]));renderCalendar();
+ }catch(e){console.warn('Calendar unavailable',e);$('calendarDays').textContent='Calendar unavailable / تعذر تحميل التقويم'}
+}
+function renderCalendar(){
+ const [y,m]=monthView.split('-').map(Number);
+ const first=new Date(Date.UTC(y,m-1,1)),length=new Date(Date.UTC(y,m,0)).getUTCDate(),gap=(first.getUTCDay()+6)%7;
+ $('monthLabel').textContent=new Intl.DateTimeFormat('en-GB-u-nu-latn',{month:'long',year:'numeric',timeZone:'UTC'}).format(first);
+ let html='<span class="calendar-spacer"></span>'.repeat(gap);
+ for(let n=1;n<=length;n++){
+  const day=monthView+'-'+String(n).padStart(2,'0'),count=Number(calendarCounts[day]?.bookings||0);
+  html+='<button type="button" class="day'+(count?' has-booking':'')+(day===$('date').value?' selected':'')+(day===today()?' is-today':'')+'" data-day="'+day+'" aria-label="'+dateLabel(day)+' '+count+' bookings"><strong>'+n+'</strong><small>'+(count?'● '+count:'—')+'</small></button>';
+ }
+ $('calendarDays').innerHTML=html;
+ $('calendarDays').querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{$('date').value=b.dataset.day;tickClock();renderCalendar();load()});
+}
+function changeMonth(shift){
+ const [y,m]=monthView.split('-').map(Number),d=new Date(Date.UTC(y,m-1+shift,1));
+ monthView=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');loadCalendar();
+}
+async function monitorBookings(){
+ if(!token||document.hidden||!user)return;
+ try{
+  const r=await request('monitor'),items=r.recent||[];
+  const fresh=new Set(items.map(x=>String(x.id)));
+  if(monitorStarted){
+   const newBookings=items.filter(x=>!knownIds.has(String(x.id)));
+   if(newBookings.length){
+    const b=newBookings[0];notifyBooking('New confirmed booking / حجز جديد: '+(b.reference||'')+' · '+b.guests+' guests · '+fmtTime(b.start_at));
+    if($('date').value===today())await load();
+    await loadCalendar();
+   }
+  }
+  knownIds=fresh;monitorStarted=true;
+  const now=Date.now();
+  const due=(r.upcoming||[]).find(x=>{
+   const diff=new Date(x.start_at).getTime()-now;
+   return diff>=-60000&&diff<=15*60000&&!alertedStarts.has(String(x.id));
+  });
+  if(due){
+   alertedStarts.add(String(due.id));
+   notifyBooking('Arriving within 15 minutes / وصول خلال 15 دقيقة: '+due.reference+' · '+due.guests+' guests · '+fmtTime(due.start_at));
+  }
+ }catch(e){console.warn('Monitor unavailable',e)}
+}
+function initializeMonitor(){
+ if(monitorTimer)clearInterval(monitorTimer);
+ monitorStarted=false;knownIds.clear();monitorBookings();
+ monitorTimer=setInterval(()=>{if(!document.hidden)monitorBookings()},30000);
+}
+
 const editor=()=>user&&['manager','assistant'].includes(user.role);
 const alertMsg=(msg,bad=false)=>{$('message').textContent=msg;$('message').className=bad?'bad':'';if(bad)console.warn(msg)};
 async function request(action,payload={}){
