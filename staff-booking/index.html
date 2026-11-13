@@ -179,6 +179,17 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 .calendar-days .day.is-past.selected{outline:2px solid var(--wine);outline-offset:-2px}
 .calendar-days .day.has-booking:not(.is-past){background:#ffdf77;border-color:#b98319;color:#3f2b10}
 #bookingsPanel{scroll-margin-top:18px}
+
+.staff-notes{margin-top:12px}
+.notes-info{margin:9px 0 13px;line-height:1.5}
+.notes-list{display:grid;gap:8px;margin:10px 0 16px;max-height:340px;overflow-y:auto}
+.note-entry{padding:11px 12px;border:1px solid var(--edge);border-radius:10px;background:#fcfaf8}
+.note-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px}
+.note-head strong{color:var(--wine)}.note-head small{margin-inline-start:auto}
+.note-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
+#notesForm textarea{resize:vertical;min-height:72px}
+.notes-actions{margin-top:8px}
+@media(max-width:760px){.staff-notes{padding:13px 12px}.notes-list{max-height:none}.notes-actions #sendNote{width:100%}.note-head small{margin-inline-start:0;width:100%}}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
@@ -191,7 +202,12 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 <div class="row manager management-actions"><button class="btn" id="addOverride">Close / Limit · إغلاق أو تحديد السعة</button><button class="btn" id="auditBtn">Activity log / سجل التغييرات</button></div></div>
 <div class="split panel"><div class="card bookings-panel" id="bookingsPanel"><div class="row bookings-title" style="margin-bottom:12px"><h2 class="grow">Bookings / الحجوزات</h2><input type="search" id="search" placeholder="Search name, phone, reference / بحث"></div><div class="tablewrap"><table class="table"><thead><tr><th>Time / الوقت</th><th>Guest / الزبون</th><th>Covers</th><th>Arrival</th><th>Payment</th><th>Reference</th></tr></thead><tbody id="bookingRows"></tbody></table></div></div>
 <aside class="aside card" id="detail"><h2>Booking details / تفاصيل الحجز</h2><p class="muted" style="margin-top:12px">Select a booking to view its details and mark arrival or departure.</p></aside></div>
-<div id="message" role="status" aria-live="polite"></div>
+<section class="card staff-notes" id="staffNotes">
+ <div class="row"><h2 class="grow">Daily handover notes / ملاحظات الصالة</h2><span id="notesDate" class="pill">—</span></div>
+ <p class="muted notes-info">Manager ↔ staff · For operational notes only. Messages are timestamped and cannot be edited or deleted. / ملاحظات الإدارة والموظفين مع اسم الكاتب والوقت.</p>
+ <div id="notesList" class="notes-list" aria-live="polite">Loading / تحميل…</div>
+ <form id="notesForm"><label for="noteMessage">Write a note / اكتب ملاحظة</label><textarea id="noteMessage" rows="2" maxlength="600" required placeholder="Message for the team / رسالة لفريق العمل"></textarea><div class="row notes-actions"><small class="grow">Internal staff notes only · ملاحظات داخلية للموظفين</small><button type="submit" class="btn primary" id="sendNote">Post note / إرسال الملاحظة</button></div></form>
+ </section><div id="message" role="status" aria-live="polite"></div>
 </section>
 <dialog id="dialog"><div id="dialogBody"></div><div class="dialog-actions"><button class="btn" id="dialogClose" type="button">Cancel / إلغاء</button><button class="btn primary" id="dialogSave" type="button">Save / حفظ</button></div></dialog>
 <div class="footer">KWEIDER LIMITED · Protected staff portal · Europe/London time</div>
@@ -324,6 +340,32 @@ function initializeMonitor(){
  monitorTimer=setInterval(()=>{if(!document.hidden)monitorBookings()},30000);
 }
 
+async function loadNotes(){
+ if(!token||!user)return;
+ const day=$('date').value;
+ $('notesDate').textContent=dateLabel(day);
+ try{
+  const r=await request('day_notes',{date:day});
+  if($('date').value!==day)return;
+  $('notesList').innerHTML=(r.notes||[]).map(n=>
+   '<article class="note-entry"><div class="note-head"><strong>'+esc(n.author_name)+
+   '</strong><span class="pill">'+esc(n.author_role)+'</span><small>'+esc(fmtDate(n.created_at)+' · '+fmtTime(n.created_at))+
+   '</small></div><div class="note-body">'+esc(n.message)+'</div></article>'
+  ).join('')||'<p class="muted">No notes for this day / لا توجد ملاحظات لهذا اليوم</p>';
+ }catch(e){$('notesList').textContent='Unable to load notes / تعذر تحميل الملاحظات';console.warn(e)}
+}
+async function submitNote(event){
+ event.preventDefault();
+ const note=$('noteMessage').value.trim(),day=$('date').value;
+ if(!note||note.length>600){alert('Enter a note up to 600 characters / اكتب ملاحظة لا تتجاوز 600 حرف');return}
+ $('sendNote').disabled=true;
+ try{
+  await request('add_day_note',{date:day,message:note});
+  $('noteMessage').value='';
+  await loadNotes();
+ }catch(e){alert('Could not save the note / تعذر حفظ الملاحظة: '+e.message)}
+ finally{$('sendNote').disabled=false}
+}
 const editor=()=>user&&['manager','assistant'].includes(user.role);
 const alertMsg=(msg,bad=false)=>{$('message').textContent=msg;$('message').className=bad?'bad':'';if(bad)console.warn(msg)};
 async function request(action,payload={}){
@@ -336,7 +378,7 @@ async function enter(){
  const r=await request('me');user=r.staff;$('login').classList.add('hidden');$('app').classList.remove('hidden');
  $('sessionTools').innerHTML='<span class="pill">'+esc(user.name)+' · '+esc(user.role)+'</span><button id="signout" class="btn">Sign Out</button>';
  $('signout').onclick=logout;document.querySelectorAll('.manager').forEach(x=>x.classList.toggle('hidden',!editor()));
- tickClock();await load();await loadCalendar();initializeMonitor();
+ tickClock();await load();await loadCalendar();await loadNotes();initializeMonitor();
 }
 async function load(){
  if(!token)return;const date=$('date').value;try{
@@ -344,7 +386,7 @@ async function load(){
   const active=r.bookings.filter(b=>b.status==='CONFIRMED');
   $('kBookings').textContent=active.length;$('kPeople').textContent=active.reduce((n,b)=>n+Number(b.guests),0);
   $('kHolds').textContent=Number(r.holds?.covers||0)+' covers';$('kCapacity').textContent=r.settings?.capacity||40;
-  renderTimeline();renderOverrides();renderRows();tickClock();
+  renderTimeline();renderOverrides();renderRows();tickClock();loadNotes();
   if(selected){selected=r.bookings.find(b=>b.id===selected.id)||null;renderDetail();}
   alertMsg(''); 
  }catch(e){alertMsg('Could not load bookings: '+e.message,true)}
@@ -507,6 +549,7 @@ $('date').onchange=()=>{const day=$('date').value;if(!/^\d{4}-\d{2}-\d{2}$/.test
 };
 $('reload').onclick=async()=>{await load();await loadCalendar();await monitorBookings()};
 $('search').oninput=renderRows;
+$('notesForm').onsubmit=submitNote;
 $('enableAlerts').onclick=async()=>{await enableSound();await monitorBookings()};
 $('monthPrev').onclick=()=>changeMonth(-1);
 $('monthNext').onclick=()=>changeMonth(1);
