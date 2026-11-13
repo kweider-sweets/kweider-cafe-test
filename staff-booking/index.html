@@ -170,6 +170,9 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
  .calendar-days .day{min-height:45px;font-size:12px;padding:2px}
  .calendar-days .day small{font-size:9px}
 }
+
+.slot-row.muted{opacity:.68;background:#f2f0ee}
+.slot-status.muted{background:#ece8e3;color:#6a625c}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
@@ -198,8 +201,8 @@ const londonClock=()=>{const p=londonParts();return p.day+'/'+p.month+'/'+p.year
 const dateLabel=iso=>/^\d{4}-\d{2}-\d{2}$/.test(iso||'')?iso.slice(8)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4):'Invalid date';
 const isPastClock=(day,time)=>day<today()||(day===today()&&time<(londonParts().hour+':'+londonParts().minute));
 
-const fmtTime=v=>v?new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(v)):'';
-const fmtDate=v=>v?new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',day:'2-digit',month:'short',year:'numeric'}).format(new Date(v)):'';
+const fmtTime=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(v)):'';
+const fmtDate=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',day:'2-digit',month:'short',year:'numeric'}).format(new Date(v)):'';
 const money=v=>'£'+Number(v||0).toFixed(2);
 let token=sessionStorage.getItem('kb_staff_token')||'',user=null,data=null,selected=null,dlgAction=null;
 let monthView=today().slice(0,7),calendarCounts={},alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),alertedStarts=new Set(),monitorTimer=null;
@@ -310,12 +313,12 @@ async function request(action,payload={}){
  const out=await r.json().catch(()=>({error:'UNAVAILABLE'}));
  if(!r.ok||out.ok!==true)throw Error(out.error||'REQUEST_FAILED');return out;
 }
-function logout(){token='';user=null;data=null;sessionStorage.removeItem('kb_staff_token');$('login').classList.remove('hidden');$('app').classList.add('hidden');$('sessionTools').innerHTML='';}
+function logout(){token='';user=null;data=null;monitorStarted=false;knownIds.clear();if(monitorTimer){clearInterval(monitorTimer);monitorTimer=null}sessionStorage.removeItem('kb_staff_token');$('login').classList.remove('hidden');$('app').classList.add('hidden');$('sessionTools').innerHTML='';}
 async function enter(){
  const r=await request('me');user=r.staff;$('login').classList.add('hidden');$('app').classList.remove('hidden');
  $('sessionTools').innerHTML='<span class="pill">'+esc(user.name)+' · '+esc(user.role)+'</span><button id="signout" class="btn">Sign Out</button>';
  $('signout').onclick=logout;document.querySelectorAll('.manager').forEach(x=>x.classList.toggle('hidden',!editor()));
- await load();
+ tickClock();await load();await loadCalendar();initializeMonitor();
 }
 async function load(){
  if(!token)return;const date=$('date').value;try{
@@ -323,7 +326,7 @@ async function load(){
   const active=r.bookings.filter(b=>b.status==='CONFIRMED');
   $('kBookings').textContent=active.length;$('kPeople').textContent=active.reduce((n,b)=>n+Number(b.guests),0);
   $('kHolds').textContent=Number(r.holds?.covers||0)+' covers';$('kCapacity').textContent=r.settings?.capacity||40;
-  renderTimeline();renderOverrides();renderRows();
+  renderTimeline();renderOverrides();renderRows();tickClock();
   if(selected){selected=r.bookings.find(b=>b.id===selected.id)||null;renderDetail();}
   alertMsg(''); 
  }catch(e){alertMsg('Could not load bookings: '+e.message,true)}
@@ -337,9 +340,9 @@ function renderTimeline(){
    const booked=Math.max(0,Number(slot.booked_covers||0));
    const held=Math.max(0,Number(slot.held_covers||0));
    const left=Math.max(0,Number(slot.remaining_covers||0));
-   const closed=capacity===0,full=left===0,limited=!closed&&capacity<Number(data.settings?.capacity??40);
-   const color=closed||full?'danger':left<=8?'warning':'success';
-   const status=closed?'Closed / مغلق':full?'Full / ممتلئ':limited?'Limited / محدود':left<=8?'Almost full / شبه ممتلئ':'Open / متاح';
+   const closed=capacity===0,full=left===0,limited=!closed&&capacity<Number(data.settings?.capacity??40),past=$('date').value===today()&&isPastClock($('date').value,String(slot.time));
+   const color=past?'muted':closed||full?'danger':left<=8?'warning':'success';
+   const status=past?'Past / مضى':closed?'Closed / مغلق':full?'Full / ممتلئ':limited?'Limited / محدود':left<=8?'Almost full / شبه ممتلئ':'Open / متاح';
    return '<tr class="slot-row '+color+'" data-time="'+esc(slot.time)+'">'+
      '<td class="slot-time" data-label="Time">'+esc(slot.time)+'</td>'+
      '<td data-label="Booked">'+booked+'</td><td data-label="Held">'+held+'</td>'+
@@ -400,7 +403,7 @@ function field(id,label,value,type='text',more=''){return '<div class="field"><l
 function openDialog(action){
  if(!editor())return;dlgAction=action;const b=selected||{},date=$('date').value;
  if(action==='create_phone')$('dialogBody').innerHTML='<h2>New phone reservation / حجز هاتفي</h2><div class="formgrid">'+field('fdate','Date / التاريخ',date,'date')+field('ftime','Time / الوقت','12:00','time')+field('fguests','Guests / أشخاص',2,'number','min="1" max="40"')+field('fname','Customer name / الاسم','','text')+field('fphone','Phone / الهاتف','','tel')+field('femail','Email','','email')+'</div>';
- if(action==='edit')$('dialogBody').innerHTML='<h2>Edit reservation / تعديل الحجز</h2><p class="muted">The guest spends 90 minutes, then 30 minutes are reserved for cleaning.</p><div class="formgrid" style="margin-top:15px">'+field('fdate','Date',new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(b.start_at)),'date')+field('ftime','Time',fmtTime(b.start_at),'time')+field('fguests','Guests',b.guests,'number','min="1" max="40"')+'</div>';
+ if(action==='edit')$('dialogBody').innerHTML='<h2>Edit reservation / تعديل الحجز</h2><p class="muted">The guest spends 90 minutes, then 30 minutes are reserved for cleaning.</p><div class="formgrid" style="margin-top:15px">'+field('fdate','Date',(()=>{const p=londonParts(new Date(b.start_at));return p.year+'-'+p.month+'-'+p.day})(),'date')+field('ftime','Time',fmtTime(b.start_at),'time')+field('fguests','Guests',b.guests,'number','min="1" max="40"')+'</div>';
  if(action==='cancel')$('dialogBody').innerHTML='<h2>Cancel booking / إلغاء الحجز</h2><p>'+esc(b.reference||'')+' — '+esc(b.customer_name||'')+'</p><p class="muted" style="margin:10px 0">Cancelling does not refund Shopify payments automatically. Review paid orders separately.</p>'+field('freason','Reason / السبب','','text','required');
  if(action==='override')$('dialogBody').innerHTML='<h2>Close day / Limit capacity</h2><p class="muted">Overrides apply to overlapping 120-minute occupancy windows. Existing confirmed bookings will not be deleted.</p><div class="formgrid" style="margin-top:13px">'+field('fdate','Date',date,'date')+field('fstart','From / من','00:00','time')+'<div class="field"><label for="fend">To / حتى</label><select id="fend"><option value="24:00">End of day / نهاية اليوم</option><option value="14:00">14:00</option><option value="18:00">18:00</option><option value="20:00">20:00</option></select></div>'+field('fcap','Allowed capacity / السعة (0 = closed)',0,'number','min="0" max="40"')+field('freason','Reason / السبب','Private event')+'</div>';
  if(action==='audit'){$('dialogBody').innerHTML='<h2>Activity log / سجل التغييرات</h2><p class="muted">Loading…</p>';request('audit').then(r=>{
@@ -414,10 +417,14 @@ async function saveDialog(){
  const val=id=>$(id)?.value??'',a=dlgAction;
  try{
   $('dialogSave').disabled=true;let result;
+  if(['create_phone','edit'].includes(a)&&!validOperationTime(val('fdate'),val('ftime')))return;
   if(a==='create_phone')result=await request('create_phone',{date:val('fdate'),time:val('ftime'),guests:Number(val('fguests')),customer_name:val('fname'),phone:val('fphone'),email:val('femail')});
   else if(a==='edit')result=await request('edit',{booking_id:selected.id,date:val('fdate'),time:val('ftime'),guests:Number(val('fguests'))});
   else if(a==='cancel')result=await request('cancel',{booking_id:selected.id,reason:val('freason')});
   else if(a==='override'){
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(val('fdate'))){alert('Check the date / تأكد من التاريخ');return}
+   if(val('fdate')<today()){alert('Cannot create closure in the past / لا يمكن إغلاق تاريخ مضى');return}
+   if(!confirm('Confirm restriction date / تأكيد تاريخ التقييد: '+dateLabel(val('fdate'))))return;
    const input={date:val('fdate'),start:val('fstart'),end:val('fend'),capacity:Number(val('fcap')),reason:val('freason')};
    result=await request('set_override',input);
    if(result.requires_ack){
@@ -427,7 +434,7 @@ async function saveDialog(){
   }
   if(result?.accepted===false)throw Error(result.reason||'No capacity');
   if(result?.financial_review_required)alert('Booking cancelled. Payment or refund must be reviewed separately in Shopify.');
-  $('dialog').close();alertMsg('Saved / تم الحفظ');await load();
+  $('dialog').close();alertMsg('Saved / تم الحفظ');await load();await loadCalendar();
  }catch(e){alertMsg(e.message,true);alert('Unable to save: '+e.message)}
  finally{$('dialogSave').disabled=false}
 }
@@ -476,7 +483,18 @@ $('toggleTimes').onclick=()=>{
  $('toggleTimes').setAttribute('aria-expanded',String(!closed));
  $('toggleTimes').textContent=closed?'عرض جميع الأوقات · Show all':'إخفاء الجدول · Hide';
 };
-$('date').value=today();$('date').onchange=load;$('reload').onclick=load;$('search').oninput=renderRows;
+$('date').value=today();
+$('date').onchange=()=>{const day=$('date').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(day)){alert('Check the date / تأكد من التاريخ');return}
+  monthView=day.slice(0,7);tickClock();load();loadCalendar();
+};
+$('reload').onclick=async()=>{await load();await loadCalendar();await monitorBookings()};
+$('search').oninput=renderRows;
+$('enableAlerts').onclick=async()=>{await enableSound();await monitorBookings()};
+$('monthPrev').onclick=()=>changeMonth(-1);
+$('monthNext').onclick=()=>changeMonth(1);
+$('monthToday').onclick=()=>{$('date').value=today();monthView=today().slice(0,7);tickClock();load();loadCalendar()};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user){tickClock();monitorBookings();load();loadCalendar()}});
+setInterval(()=>{if(user)tickClock()},30000);
 $('addPhone').onclick=()=>openDialog('create_phone');$('addOverride').onclick=()=>openDialog('override');$('auditBtn').onclick=()=>openDialog('audit');
 $('dialogClose').onclick=()=>$('dialog').close();$('dialogSave').onclick=saveDialog;
 if(token)enter().catch(()=>logout());
