@@ -25,7 +25,7 @@ dialog{border:1px solid var(--edge);border-radius:14px;box-shadow:0 20px 70px #0
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
 <main>
-<section class="login card" id="login"><h2>Staff Sign In / دخول الموظفين</h2><p class="muted">Private access · Accounts assigned by management only</p><form id="loginForm"><div class="field"><label for="email">Email / البريد الإلكتروني</label><input id="email" autocomplete="username" type="email" required></div><div class="field"><label for="password">Password / كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div><button class="btn primary" type="submit">Sign In / دخول</button></form></section>
+<section class="login card" id="login"><h2>Staff Sign In / دخول الموظفين</h2><p class="muted">Private access · Accounts assigned by management only</p><form id="loginForm"><div class="field"><label for="email">Email / البريد الإلكتروني</label><input id="email" autocomplete="username" type="email" required></div><div class="field"><label for="password">Password / كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div><button class="btn primary" type="submit">Sign In / دخول</button><button class="btn" id="registerBtn" type="button" style="width:100%;margin-top:9px">First-time manager setup / تفعيل حساب المدير</button><p class="muted" style="margin-top:11px;font-size:12px">First-time setup requires the approved manager email, a password of at least 12 characters, and email verification. No access is granted before verification.</p></form></section>
 <section id="app" class="hidden">
 <div class="head"><div><h2>Today & Reservations / الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small></div><div class="row"><input type="date" id="date" style="width:170px"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking</button></div></div>
 <div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong></div></div>
@@ -153,10 +153,39 @@ async function saveDialog(){
  }catch(e){alertMsg(e.message,true);alert('Unable to save: '+e.message)}
  finally{$('dialogSave').disabled=false}
 }
+$('registerBtn').onclick=async()=>{
+ const email=$('email').value.trim(),password=$('password').value;
+ if(!email){alert('Enter your approved manager email first / أدخل البريد المعتمد');return}
+ if(password.length<12){alert('Choose a password with at least 12 characters / اختر كلمة مرور 12 حرفاً على الأقل');return}
+ if(!confirm('Create an account for '+email+'? You will need to confirm this email before access.'))return;
+ $('registerBtn').disabled=true;
+ try{
+  const result=await request('register',{email,password});
+  $('password').value='';
+  alert('Registration requested. Please check your email and confirm the address. Then return to this page and sign in. / تحقق من رسالة تأكيد البريد ثم عد لتسجيل الدخول.');
+ }catch(err){alert('Could not register: '+err.message)}
+ finally{$('registerBtn').disabled=false}
+};
 $('loginForm').onsubmit=async e=>{
  e.preventDefault();const btn=$('loginForm').querySelector('button');btn.disabled=true;
- try{const r=await request('login',{email:$('email').value,password:$('password').value});
-  token=r.access_token;sessionStorage.setItem('kb_staff_token',token);$('password').value='';await enter();
+ try{
+   let r;
+   try{r=await request('login',{email:$('email').value,password:$('password').value});}
+   catch(err){
+     // A confirmed, pre-approved email can claim the pre-assigned role once.
+     if(err.message!=='ACCOUNT_NOT_ACTIVATED')throw err;
+     const signin=await fetch('https://zybamugtuzootaovodut.supabase.co/auth/v1/token?grant_type=password',{
+       method:'POST',headers:{'Content-Type':'application/json','apikey':'sb_publishable_SX6WfHESZNGHaXnXN7_fCQ_DcXVmMsx'},
+       body:JSON.stringify({email:$('email').value,password:$('password').value}),cache:'no-store'
+     });
+     if(!signin.ok)throw Error('INVALID_CREDENTIALS');
+     const t=await signin.json();
+     token=t.access_token;
+     await request('activate');
+     r=await request('me');
+     r.access_token=token;
+   }
+   token=r.access_token;sessionStorage.setItem('kb_staff_token',token);$('password').value='';await enter();
  }catch(err){alert('Sign in failed: '+err.message);logout()}
  finally{btn.disabled=false}
 };
