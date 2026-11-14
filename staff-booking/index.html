@@ -276,6 +276,9 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
  #availabilityParty{flex:0 1 110px}
  .capacity-summary{gap:6px;line-height:1.4}
 }
+
+.events-card .bookings-actions{display:flex;flex-wrap:wrap;gap:7px}
+@media(max-width:760px){.events-card .bookings-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.events-card .bookings-actions #addEvent{grid-column:1/-1}}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
@@ -284,7 +287,7 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 <section id="app" class="hidden">
 <div class="head"><div><h2>Booking Operations / إدارة الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small><div id="clockStrip" class="clock-strip" role="status">London time / وقت لندن: —</div><div id="dateWarning" class="date-warning hidden" role="status"></div></div><div class="row head-actions"><input type="date" id="date" lang="en-GB" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div><div class="alert-controls"><button type="button" class="btn primary" id="enableAlerts">🔔 Enable sound / تفعيل التنبيه</button><button type="button" class="btn" id="testBookingSound">Test booking / تجربة الحجز</button><button type="button" class="btn" id="testNoteSound">Test messages / تجربة الرسائل</button><span id="alertMode" class="alert-mode">Sound off · الصوت غير مفعل</span><small class="alert-mode">Page must remain open · يلزم إبقاء الصفحة مفتوحة</small></div><div id="bookingAlert" class="booking-alert hidden" role="alert" aria-live="assertive"></div><div id="noteAlert" class="note-alert hidden" role="alert" aria-live="assertive"></div><div class="quick-links"><button type="button" class="btn" id="toTimes">الأوقات · Times ↓</button><button type="button" class="btn" id="toBookings">الحجوزات · Bookings ↓</button></div></div>
 <div class="calendar-panel card"><div class="calendar-header"><h2>Reservation calendar / تقويم الحجوزات</h2><div class="calendar-nav"><button type="button" class="btn" id="monthPrev">‹</button><b id="monthLabel">—</b><button type="button" class="btn" id="monthNext">›</button><button type="button" class="btn" id="monthToday">Today / اليوم</button></div></div><div class="calendar-key">🟨 Yellow: upcoming confirmed bookings · الأصفر للحجوزات القادمة | Grey: past dates · الرمادي للأيام الماضية</div><div class="calendar-weekdays"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div class="calendar-days" id="calendarDays" aria-label="Booking days"></div></div><section class="card events-card" id="eventsSection">
-  <div class="row"><h2 class="grow">Special Events & Tarab Nights / المناسبات وسهرات الطرب</h2><button type="button" class="btn manager" id="addEvent">+ Add Event / إضافة مناسبة</button></div>
+  <div class="row"><h2 class="grow">Special Events & Tarab Nights / المناسبات وسهرات الطرب</h2><div class="bookings-actions"><button class="btn primary" type="button" id="activeEvents">Upcoming / القادمة</button><button class="btn" type="button" id="archivedEvents">Archive / الأرشيف</button><button type="button" class="btn manager" id="addEvent">+ Add Event / إضافة مناسبة</button></div></div>
   <p class="muted events-hint">Manager publishes guest-facing messages; drafts remain private. / المدير يتحكم برسائل الزبائن، والمسودات لا تظهر على الموقع.</p>
   <div id="eventsList" class="events-list"></div>
  </section><div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong><button type="button" class="btn manager" id="quickCapacity">Adjust / تعديل السعة</button></div></div>
@@ -318,7 +321,7 @@ const fmtTime=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/L
 const fmtDate=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',day:'2-digit',month:'short',year:'numeric'}).format(new Date(v)):'';
 const money=v=>'£'+Number(v||0).toFixed(2);
 let token=sessionStorage.getItem('kb_staff_token')||'',user=null,data=null,selected=null,dlgAction=null;
-let bookingView='active',availabilityPartySize=1;
+let bookingView='active',eventView='active',availabilityPartySize=1;
 let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),knownNoteIds=new Set(),alertedStarts=new Set(),monitorTimer=null,checkingMonitor=false,lastNoticeDay=null;
 const AUDIO_CONTEXT=window.AudioContext||window.webkitAudioContext;
 // These are two original browser-generated tones (no external audio files).
@@ -440,7 +443,15 @@ async function printKitchenEvent(id){
 }
 
 function renderEvents(){
- const monthEvents=eventRows.filter(x=>x.date.slice(0,7)===monthView);
+ const monthEvents=eventRows.filter(x=>{
+   const localEnd=x.date+'T'+x.end+':00',ended=new Date((x.date+'T'+x.end+':00')+'Z').getTime()+30*60000;
+   // Local wall-clock comparison avoids UTC shifts at the DST boundary.
+   const parts=londonParts(),nowLocal=parts.year+'-'+parts.month+'-'+parts.day+'T'+parts.hour+':'+parts.minute;
+   const finish=new Date(x.date+'T'+x.end+':00Z');const finishLocal=x.date+'T'+x.end;
+   const past=finishLocal<=nowLocal;
+   return x.date.slice(0,7)===monthView&&(eventView==='archive'?past:!past);
+ });
+ $('activeEvents').classList.toggle('primary',eventView==='active');$('archivedEvents').classList.toggle('primary',eventView==='archive');
  $('eventsList').innerHTML=monthEvents.map(e=>{
   const c=e.kind==='TARAB'?'tarab':'private';
   const editing=editor()?'<button type="button" class="btn" data-event-edit="'+esc(e.id)+'">Edit / تعديل</button>'+
@@ -548,6 +559,7 @@ function renderCalendar(){
   }
   await load();
   const matching=eventRows.find(e=>e.date===b.dataset.day&&e.status==='PUBLISHED');
+  if(matching){eventView=(matching.date+'T'+matching.end)<(today()+'T'+londonParts().hour+':'+londonParts().minute)?'archive':'active';renderEvents();}
   if(matching){
     $('eventsSection').scrollIntoView({behavior:'smooth',block:'start'});
     const card=$('event-'+matching.id);
@@ -939,6 +951,8 @@ $('monthNext').onclick=()=>changeMonth(1);
 $('monthToday').onclick=()=>{$('date').value=today();monthView=today().slice(0,7);tickClock();load();loadCalendar();loadEvents()};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user){tickClock();monitorBookings();load();loadCalendar()}});
 setInterval(()=>{if(user)tickClock()},30000);
+$('activeEvents').onclick=()=>{eventView='active';renderEvents()};
+$('archivedEvents').onclick=()=>{eventView='archive';renderEvents()};
 $('addEvent').onclick=()=>openEventDialog();
 $('addPhone').onclick=()=>openDialog('create_phone');$('quickCapacity').onclick=()=>openDialog('override');
 $('addOverride').onclick=()=>openDialog('override');$('auditBtn').onclick=()=>openDialog('audit');
