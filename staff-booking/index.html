@@ -383,7 +383,7 @@ function openEventDialog(event=null){
   field('evGuests','Number of event guests / عدد حضور المناسبة',event?.guest_count??'','number','min="1" max="200"')+
   '<div class="field"><label for="evOrders">Requested food, drinks & quantities / الطلبات والكميات</label><textarea id="evOrders" rows="4" maxlength="4000" placeholder="Example: 20 Kunafa plates, 25 drinks / مثال: 20 صحن كنافة، 25 مشروب">'+v('order_details')+'</textarea></div>'+
   '<div class="field"><label for="evSetup">Preparation instructions / تعليمات وتجهيزات الصالة</label><textarea id="evSetup" rows="3" maxlength="2000" placeholder="Tables, decoration, timing, dietary requirements / ترتيب الطاولات والتجهيزات">'+v('setup_notes')+'</textarea></div>'+
-  '<div class="field"><label for="evImage">Attach an image / إرفاق صورة (JPG, PNG, WEBP - max 2MB)</label><input id="evImage" type="file" accept="image/jpeg,image/png,image/webp"></div>'+
+  '<div class="field"><label for="evImage">Attach an image / إرفاق صورة (JPG, PNG, WEBP - max 5MB)</label><input id="evImage" type="file" accept="image/jpeg,image/png,image/webp"></div>'+
   (event?.image_path?'<p class="muted">A private image is already attached. Selecting a new image will replace it after saving. / توجد صورة محفوظة، ويمكن استبدالها.</p>':'')+
   '</div>'+
   '<label class="event-checkbox"><input type="checkbox" id="evBlock"> Block regular table reservations during the event / إغلاق الحجوزات العادية خلال ساعات المناسبة أو سهرة الطرب</label>'+
@@ -508,7 +508,7 @@ async function showEventImage(eventId){
    });
    if(!res.ok)throw Error('IMAGE_UNAVAILABLE');
    const blob=await res.blob();
-   if(!['image/jpeg','image/png','image/webp'].includes(blob.type)||blob.size>2097152)throw Error('INVALID_IMAGE');
+   if(!['image/jpeg','image/png','image/webp'].includes(blob.type)||blob.size>5242880)throw Error('INVALID_IMAGE');
    const objectUrl=URL.createObjectURL(blob),img=document.createElement('img');
    img.alt='Private event photo / صورة المناسبة الخاصة';img.className='event-photo';
    img.onload=()=>URL.revokeObjectURL(objectUrl);img.onerror=()=>URL.revokeObjectURL(objectUrl);
@@ -517,8 +517,8 @@ async function showEventImage(eventId){
 }
 async function uploadEventImage(eventId,file){
  if(!file)return;
- if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>2097152||file.size<12)
-   throw Error('Image must be JPG, PNG or WEBP, less than 2 MB / الصورة يجب أن تكون أقل من 2MB');
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5242880||file.size<12)
+   throw Error('Image must be JPG, PNG or WEBP, less than 5 MB / الصورة يجب أن تكون أقل من 5MB');
  const res=await fetch(EVENT_IMAGE_URL+'?event='+encodeURIComponent(eventId),{
    method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':file.type},body:file,cache:'no-store'
  });
