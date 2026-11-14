@@ -270,6 +270,9 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 .status-cell .slot-status{max-width:100%}
 .slot-status.muted{background:#eae6e3;color:#68615c}
 .booking-entry[aria-pressed="true"] td{background:#fcf1e5!important}
+.split:not(.detail-open){grid-template-columns:minmax(0,1fr)}
+.split.detail-open{grid-template-columns:minmax(0,1fr) 340px}
+@media(max-width:960px){.split.detail-open{grid-template-columns:1fr}}
 @media(max-width:760px){
  .bookings-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%}
  .bookings-actions #bookingsViewCount{grid-column:1/-1;text-align:center}
@@ -766,7 +769,7 @@ function renderRows(){
    const clicked=data.bookings.find(b=>b.id===row.dataset.id);
    if(selected?.id===clicked?.id&&!$('detail').classList.contains('hidden')){collapseDetail();return}
    selected=clicked;renderDetail();
-   $('detail').classList.remove('hidden');
+   $('detail').classList.remove('hidden');$('detail').parentElement.classList.add('detail-open');
    $('bookingRows').querySelectorAll('[data-id]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.id===selected?.id)));
    if(window.matchMedia('(max-width:760px)').matches)$('detail').scrollIntoView({behavior:'smooth',block:'start'});
   };
@@ -774,7 +777,7 @@ function renderRows(){
  });
 }
 function collapseDetail(){
- selected=null;$('detail').classList.add('hidden');
+ selected=null;$('detail').classList.add('hidden');$('detail').parentElement.classList.remove('detail-open');
  $('bookingRows').querySelectorAll('[data-id]').forEach(el=>el.setAttribute('aria-pressed','false'));
 }
 function switchBookingView(view){
