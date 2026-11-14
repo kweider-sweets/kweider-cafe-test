@@ -218,7 +218,27 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 #dialogBody #evDate{border:2px solid #a98b52}
 #dialogBody .event-checkbox{padding:11px;background:#fbf4df;border:1px solid #d7b775;border-radius:8px;font-weight:700}
 #dialogBody .event-checkbox input{accent-color:#53131c}
-</style></head>
+
+.event-card.event-focus{outline:3px solid #b28b49;outline-offset:2px}
+.kitchen-print{display:none}
+@media print{
+ @page{size:A4 portrait;margin:12mm}
+ html,body{width:100%!important;overflow:visible!important;background:white!important}
+ body *{visibility:hidden!important}
+ #kitchenPrint,#kitchenPrint *{visibility:visible!important}
+ #kitchenPrint{display:block!important;position:absolute;left:0;top:0;width:100%;background:white;color:#171516;
+ padding:0!important;font-family:Arial,"Segoe UI",sans-serif;font-size:11pt;line-height:1.5;box-shadow:none}
+ #kitchenPrint .kp-brand{color:#53131c;font-weight:800;letter-spacing:.6px;border-bottom:2px solid #53131c;padding:0 0 9px}
+ #kitchenPrint h1{font-size:19pt;margin:12px 0 3px;color:#53131c}
+ #kitchenPrint .kp-disclaimer{margin:0 0 18px;color:#555;font-size:9pt}
+ #kitchenPrint .kp-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+ #kitchenPrint .kp-field{margin:12px 0;padding:9px 10px;border:1px solid #bbb;break-inside:avoid}
+ #kitchenPrint .kp-field h3{font-size:10pt;margin:0 0 7px;font-weight:800}
+ #kitchenPrint .kp-field>div{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12pt}
+ #kitchenPrint .kp-photo-holder{margin-top:14px;break-inside:avoid}
+ #kitchenPrint .kp-photo-holder img{display:block;max-width:100%;max-height:110mm;object-fit:contain;border:1px solid #ccc}
+ #kitchenPrint .kp-signatures{display:flex;justify-content:space-between;gap:18px;margin-top:22px;padding:10px 0;border-top:1px solid #999;font-size:10pt}
+}</style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
 <main>
@@ -239,7 +259,7 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
  <p class="muted notes-info">Manager ↔ staff · For operational notes only. Messages are timestamped and cannot be edited or deleted. / ملاحظات الإدارة والموظفين مع اسم الكاتب والوقت.</p>
  <div id="notesList" class="notes-list" aria-live="polite">Loading / تحميل…</div>
  <form id="notesForm"><label for="noteMessage">Write a note / اكتب ملاحظة</label><textarea id="noteMessage" rows="2" maxlength="600" required placeholder="Message for the team / رسالة لفريق العمل"></textarea><div class="row notes-actions"><small class="grow">Internal staff notes only · ملاحظات داخلية للموظفين</small><button type="submit" class="btn primary" id="sendNote">Post note / إرسال الملاحظة</button></div></form>
- </section><div id="message" role="status" aria-live="polite"></div>
+ </section><div id="message" role="status" aria-live="polite"></div><section id="kitchenPrint" class="kitchen-print" aria-hidden="true"></section>
 </section>
 <dialog id="dialog"><div id="dialogBody"></div><div class="dialog-actions"><button class="btn" id="dialogClose" type="button">Cancel / إلغاء</button><button class="btn primary" id="dialogSave" type="button">Save / حفظ</button></div></dialog>
 <div class="footer">KWEIDER LIMITED · Protected staff portal · Europe/London time</div>
@@ -324,13 +344,49 @@ async function loadEvents(){
   eventRows=result.events||[];renderEvents();renderCalendar();
  }catch(e){console.warn('Events unavailable',e);$('eventsList').textContent='Events unavailable / تعذر تحميل المناسبات'}
 }
+
+let kitchenPrintPhoto=null;
+async function printKitchenEvent(id){
+ const e=eventRows.find(item=>item.id===id);
+ if(!e){alert('Event not found / لم يتم العثور على المناسبة');return}
+ const sheet=$('kitchenPrint');if(kitchenPrintPhoto){URL.revokeObjectURL(kitchenPrintPhoto);kitchenPrintPhoto=null}
+ const safe=(value)=>esc(String(value??''));
+ const field=(title,value,dir='auto')=>'<section class="kp-field"><h3>'+title+'</h3><div dir="'+dir+'">'+safe(value||'Not entered / غير مدخل')+'</div></section>';
+ sheet.innerHTML='<div class="kp-brand">KWEIDER · Kitchen / المطبخ</div>'+
+  '<h1>Event Kitchen Sheet / طلب مطبخ المناسبة</h1>'+
+  '<p class="kp-disclaimer">Internal staff document · مستند داخلي للموظفين</p>'+
+  field('Event / المناسبة',e.title_en+' — '+e.title_ar)+
+  field('Type / النوع',e.kind==='TARAB'?'Tarab Night / سهرة طرب':'Private Event / مناسبة خاصة')+
+  '<div class="kp-facts">'+field('Date / التاريخ',dateLabel(e.date))+
+  field('Time / الوقت',e.start+' – '+e.end+' (London)')+
+  field('Guests / عدد الضيوف',e.guest_count??'Not entered')+'</div>'+
+  field('Kitchen orders & quantities / طلبات المطبخ والكميات',e.order_details,'auto')+
+  field('Preparation / تعليمات التحضير والتجهيز',e.setup_notes,'auto')+
+  '<div class="kp-photo-holder" id="kpPhoto"></div>'+
+  '<div class="kp-signatures"><span>Prepared / تم التجهيز: ______________</span><span>Checked / المراجعة: ______________</span></div>';
+ if(e.image_path){
+  try{
+   const res=await fetch(EVENT_IMAGE_URL+'?event='+encodeURIComponent(e.id),{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+   if(!res.ok)throw Error('image_unavailable');
+   const blob=await res.blob();
+   if(!['image/png','image/jpeg','image/webp'].includes(blob.type)||blob.size>5242880)throw Error('image_unavailable');
+   kitchenPrintPhoto=URL.createObjectURL(blob);
+   const img=document.createElement('img');img.src=kitchenPrintPhoto;img.alt='Event order attachment / صورة طلب المناسبة';
+   $('kpPhoto').appendChild(img);
+   await Promise.race([img.decode().catch(()=>{}),new Promise(resolve=>setTimeout(resolve,2500))]);
+  }catch(err){$('kpPhoto').textContent='Photo is attached separately / توجد صورة مرفقة يمكن عرضها من لوحة الصالة'}
+ }
+ window.addEventListener('afterprint',()=>{if(kitchenPrintPhoto){URL.revokeObjectURL(kitchenPrintPhoto);kitchenPrintPhoto=null}},{once:true});
+ window.print();
+}
+
 function renderEvents(){
  const monthEvents=eventRows.filter(x=>x.date.slice(0,7)===monthView);
  $('eventsList').innerHTML=monthEvents.map(e=>{
   const c=e.kind==='TARAB'?'tarab':'private';
   const editing=editor()?'<button type="button" class="btn" data-event-edit="'+esc(e.id)+'">Edit / تعديل</button>'+
     '<button type="button" class="btn warn" data-event-cancel="'+esc(e.id)+'">Cancel / إلغاء المناسبة</button>':'';
-  return '<article class="event-card '+c+'"><div class="row"><strong>'+esc(e.title_en)+' · '+esc(e.title_ar)+'</strong>'+
+  return '<article class="event-card '+c+'" data-event-day="'+esc(e.date)+'" id="event-'+esc(e.id)+'"><div class="row"><strong>'+esc(e.title_en)+' · '+esc(e.title_ar)+'</strong>'+
     '<span class="pill">'+esc(e.kind)+' · '+esc(e.status)+'</span></div>'+
     '<p>'+esc(e.date)+' · '+esc(e.start)+'–'+esc(e.end)+' (London)</p>'+
     '<p>'+esc(e.message_en)+'</p><p dir="rtl">'+esc(e.message_ar)+'</p>'+
@@ -341,9 +397,10 @@ function renderEvents(){
     '<p><strong>Orders / الطلبات:</strong> '+(e.order_details?esc(e.order_details):'Not entered / غير مدخل')+'</p>'+
     '<p><strong>Preparation / التجهيز:</strong> '+(e.setup_notes?esc(e.setup_notes):'Not entered / غير مدخل')+'</p>'+
     (e.image_path?'<button type="button" class="btn" data-photo-id="'+esc(e.id)+'">View photo / عرض الصورة</button><div data-photo-preview="'+esc(e.id)+'"></div>':'')+
-    '</div><div class="row">'+editing+'</div></article>';
+    '</div><div class="row"><button type="button" class="btn primary" data-event-print="'+esc(e.id)+'">🖨 Print Kitchen / طباعة المطبخ</button>'+editing+'</div></article>';
  }).join('')||'<p class="muted">No special events this month / لا توجد مناسبات خلال هذا الشهر</p>';
  $('eventsList').querySelectorAll('[data-photo-id]').forEach(btn=>btn.onclick=()=>showEventImage(btn.dataset.photoId));
+ $('eventsList').querySelectorAll('[data-event-print]').forEach(btn=>btn.onclick=()=>printKitchenEvent(btn.dataset.eventPrint));
  $('eventsList').querySelectorAll('[data-event-edit]').forEach(btn=>btn.onclick=()=>openEventDialog(eventRows.find(x=>x.id===btn.dataset.eventEdit)));
  $('eventsList').querySelectorAll('[data-event-cancel]').forEach(btn=>btn.onclick=async()=>{
   if(!editor()||!confirm('Cancel this event and reopen its private booking restriction? / إلغاء المناسبة وإعادة فتح الفترات المغلقة الخاصة بها؟'))return;
@@ -431,7 +488,12 @@ function renderCalendar(){
     $('toggleTimes').textContent='عرض جميع الأوقات · Show all';
   }
   await load();
-  $('bookingsPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  const matching=eventRows.find(e=>e.date===b.dataset.day&&e.status==='PUBLISHED');
+  if(matching){
+    $('eventsSection').scrollIntoView({behavior:'smooth',block:'start'});
+    const card=$('event-'+matching.id);
+    if(card){card.classList.add('event-focus');card.scrollIntoView({behavior:'smooth',block:'nearest'});setTimeout(()=>card.classList.remove('event-focus'),3500);}
+  } else $('bookingsPanel').scrollIntoView({behavior:'smooth',block:'start'});
 });
 }
 function changeMonth(shift){
