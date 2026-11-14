@@ -238,7 +238,16 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
  #kitchenPrint .kp-photo-holder{margin-top:14px;break-inside:avoid}
  #kitchenPrint .kp-photo-holder img{display:block;max-width:100%;max-height:110mm;object-fit:contain;border:1px solid #ccc}
  #kitchenPrint .kp-signatures{display:flex;justify-content:space-between;gap:18px;margin-top:22px;padding:10px 0;border-top:1px solid #999;font-size:10pt}
-}</style></head>
+}
+.capacity-chip{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 10px}
+.capacity-chip small{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.capacity-chip .btn{padding:5px 9px;margin-inline-start:auto}
+.capacity-empty{padding:5px 0}
+#quickCapacity{display:block;margin-top:10px;padding:6px 9px;min-height:30px;font-size:11px}
+.capacity-day-end{display:flex;align-items:center;gap:10px;margin-top:12px}
+.capacity-day-end input{width:19px;height:19px;flex-shrink:0}
+@media(max-width:760px){.capacity-chip{width:100%}.capacity-chip .btn{margin:0;min-width:100%}#quickCapacity{width:100%}}
+</style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
 <main>
@@ -249,9 +258,9 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
   <div class="row"><h2 class="grow">Special Events & Tarab Nights / المناسبات وسهرات الطرب</h2><button type="button" class="btn manager" id="addEvent">+ Add Event / إضافة مناسبة</button></div>
   <p class="muted events-hint">Manager publishes guest-facing messages; drafts remain private. / المدير يتحكم برسائل الزبائن، والمسودات لا تظهر على الموقع.</p>
   <div id="eventsList" class="events-list"></div>
- </section><div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong></div></div>
+ </section><div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong><button type="button" class="btn manager" id="quickCapacity">Adjust / تعديل السعة</button></div></div>
 <div class="card capacity-card" id="capacitySection"><div class="row capacity-heading"><h2 class="grow">Capacity by time / المقاعد حسب الوقت</h2><small>90 min guests + 30 min cleaning</small></div><div class="capacity-summary"><span>All times · كل الأوقات</span><span id="slotCount" class="pill">—</span><button type="button" class="btn" id="toggleTimes" aria-expanded="true" aria-controls="capacityTable">إخفاء الجدول · Hide</button></div><div class="capacity-tablewrap" id="capacityTable"><table class="capacity-table" aria-label="Capacity by time"><thead><tr><th>Time<br>الوقت</th><th>Booked<br>محجوز</th><th>Held<br>مؤقت</th><th>Available<br>متاح</th><th>Status<br>الحالة</th></tr></thead><tbody id="timeline"></tbody></table></div><div id="overrideChips" class="overrides"></div>
-<div class="row manager management-actions"><button class="btn" id="addOverride">Close / Limit · إغلاق أو تحديد السعة</button><button class="btn" id="auditBtn">Activity log / سجل التغييرات</button></div></div>
+<div class="row manager management-actions"><button class="btn" id="addOverride">Set capacity by date & time / تحديد السعة حسب التاريخ والوقت</button><button class="btn" id="auditBtn">Activity log / سجل التغييرات</button></div></div>
 <div class="split panel"><div class="card bookings-panel" id="bookingsPanel"><div class="row bookings-title" style="margin-bottom:12px"><h2 class="grow">Bookings / الحجوزات</h2><input type="search" id="search" placeholder="Search name, phone, reference / بحث"></div><div class="tablewrap"><table class="table"><thead><tr><th>Time / الوقت</th><th>Guest / الزبون</th><th>Covers</th><th>Arrival</th><th>Payment</th><th>Reference</th></tr></thead><tbody id="bookingRows"></tbody></table></div></div>
 <aside class="aside card" id="detail"><h2>Booking details / تفاصيل الحجز</h2><p class="muted" style="margin-top:12px">Select a booking to view its details and mark arrival or departure.</p></aside></div>
 <section class="card staff-notes" id="staffNotes">
@@ -633,10 +642,15 @@ function renderTimeline(){
  }).join('')||'<tr><td colspan="5" class="empty-slots">No time slots available / لا توجد أوقات متاحة</td></tr>';
 }
 function renderOverrides(){
- $('overrideChips').innerHTML=(data.overrides||[]).map(o=>'<div class="chip">'+fmtTime(o.start_at)+' – '+fmtTime(o.end_at)+' · '+(o.capacity===0?'CLOSED':o.capacity+' seats')+' · '+esc(o.reason)+
- (editor()?'<button class="btn warn" style="padding:3px 7px;margin-left:8px" data-del="'+esc(o.id)+'">Remove</button>':'')+'</div>').join('');
+ $('overrideChips').innerHTML=(data.overrides||[]).map(o=>{
+   const managed=/^(Private event:|Post-event cleaning|Tarab event:)/i.test(String(o.reason||''));
+   const label=Number(o.capacity)===0?'CLOSED / مغلق':Number(o.capacity)+' seats / مقعد';
+   const tool=editor()&&!managed?'<button class="btn warn" type="button" data-del="'+esc(o.id)+'">Remove / إزالة</button>':
+    managed?'<span class="pill">Event managed / من المناسبة</span>':'';
+   return '<div class="chip capacity-chip"><strong>'+fmtTime(o.start_at)+' – '+fmtTime(o.end_at)+'</strong><span>'+label+'</span><small>'+esc(o.reason)+'</small>'+tool+'</div>';
+ }).join('')||'<p class="muted capacity-empty">No additional restrictions for this date / لا توجد قيود إضافية لهذا اليوم</p>';
  $('overrideChips').querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
-   if(!confirm('Remove this capacity restriction? / إزالة هذا التقييد؟'))return;
+   if(!confirm('Remove this custom capacity limit? / إزالة قيد السعة المخصص؟'))return;
    try{await request('delete_override',{id:b.dataset.del});await load()}catch(e){alertMsg(e.message,true)}
  });
 }
@@ -686,7 +700,16 @@ function openDialog(action){
  if(action==='create_phone')$('dialogBody').innerHTML='<h2>New phone reservation / حجز هاتفي</h2><div class="formgrid">'+field('fdate','Date / التاريخ',date,'date')+field('ftime','Time / الوقت','12:00','time')+field('fguests','Guests / أشخاص',2,'number','min="1" max="40"')+field('fname','Customer name / الاسم','','text')+field('fphone','Phone / الهاتف','','tel')+field('femail','Email','','email')+'</div>';
  if(action==='edit')$('dialogBody').innerHTML='<h2>Edit reservation / تعديل الحجز</h2><p class="muted">The guest spends 90 minutes, then 30 minutes are reserved for cleaning.</p><div class="formgrid" style="margin-top:15px">'+field('fdate','Date',(()=>{const p=londonParts(new Date(b.start_at));return p.year+'-'+p.month+'-'+p.day})(),'date')+field('ftime','Time',fmtTime(b.start_at),'time')+field('fguests','Guests',b.guests,'number','min="1" max="40"')+'</div>';
  if(action==='cancel')$('dialogBody').innerHTML='<h2>Cancel booking / إلغاء الحجز</h2><p>'+esc(b.reference||'')+' — '+esc(b.customer_name||'')+'</p><p class="muted" style="margin:10px 0">Cancelling does not refund Shopify payments automatically. Review paid orders separately.</p>'+field('freason','Reason / السبب','','text','required');
- if(action==='override')$('dialogBody').innerHTML='<h2>Close day / Limit capacity</h2><p class="muted">Overrides apply to overlapping 120-minute occupancy windows. Existing confirmed bookings will not be deleted.</p><div class="formgrid" style="margin-top:13px">'+field('fdate','Date',date,'date')+field('fstart','From / من','00:00','time')+'<div class="field"><label for="fend">To / حتى</label><select id="fend"><option value="24:00">End of day / نهاية اليوم</option><option value="14:00">14:00</option><option value="18:00">18:00</option><option value="20:00">20:00</option></select></div>'+field('fcap','Allowed capacity / السعة (0 = closed)',0,'number','min="0" max="40"')+field('freason','Reason / السبب','Private event')+'</div>';
+ if(action==='override')$('dialogBody').innerHTML='<h2>Set capacity / تحديد السعة</h2>'+
+ '<p class="muted">Set available seats for a specific date and time range. 0 closes bookings. This does not change event attendance or cancel existing reservations. / حدد المقاعد المتاحة لفترة معينة؛ 0 يعني الإغلاق. لا تتغير أعداد حضور المناسبات أو الحجوزات السابقة.</p>'+
+ '<div class="formgrid" style="margin-top:13px">'+field('fdate','Date / التاريخ',date,'date','required')+
+ field('fstart','From / من','11:30','time','required')+
+ field('fend','To / حتى','22:00','time','required')+
+ field('fcap','Allowed seats / المقاعد المسموحة (0 = closed)',data?.settings?.capacity??40,'number','min="0" max="'+Number(data?.settings?.capacity??40)+'" required')+
+ field('freason','Reason / السبب','Operating capacity / سعة التشغيل','text','required')+'</div>'+
+ '<label class="capacity-day-end"><input type="checkbox" id="fendDay"> End at midnight 24:00 / حتى منتصف الليل</label>'+
+ '<p class="muted">Maximum current regular-table capacity: '+Number(data?.settings?.capacity??40)+'. Event restrictions must be edited through the event itself. / قيود المناسبات تُعدّل من المناسبة نفسها.</p>';
+ if(action==='override')$('fendDay').onchange=()=>{$('fend').disabled=$('fendDay').checked};
  if(action==='audit'){$('dialogBody').innerHTML='<h2>Activity log / سجل التغييرات</h2><p class="muted">Loading…</p>';request('audit').then(r=>{
  $('dialogBody').innerHTML='<h2>Activity log / سجل التغييرات</h2>'+r.rows.map(x=>'<div class="detailrow"><span>'+fmtDate(x.created_at)+' · '+fmtTime(x.created_at)+'<br>'+esc(x.actor)+'</span><b>'+esc(x.action)+'<br>'+esc(x.target_type)+'</b></div>').join('')
  }).catch(e=>{$('dialogBody').textContent=e.message})}
@@ -735,7 +758,12 @@ async function saveDialog(){
    if(!/^\d{4}-\d{2}-\d{2}$/.test(val('fdate'))){alert('Check the date / تأكد من التاريخ');return}
    if(val('fdate')<today()){alert('Cannot create closure in the past / لا يمكن إغلاق تاريخ مضى');return}
    if(!confirm('Confirm restriction date / تأكيد تاريخ التقييد: '+dateLabel(val('fdate'))))return;
-   const input={date:val('fdate'),start:val('fstart'),end:val('fend'),capacity:Number(val('fcap')),reason:val('freason')};
+   const newCap=Number(val('fcap')),baseCap=Number(data?.settings?.capacity??40);
+   if(!Number.isInteger(newCap)||newCap<0||newCap>baseCap){
+    alert('Enter capacity between 0 and '+baseCap+' / أدخل السعة بين 0 و '+baseCap);return;
+   }
+   const input={date:val('fdate'),start:val('fstart'),end:$('fendDay')?.checked?'24:00':val('fend'),capacity:newCap,reason:val('freason')};
+   if(input.end!=='24:00'&&input.end<=input.start){alert('End time must be later than start time / وقت النهاية يجب أن يكون بعد البداية');return}
    result=await request('set_override',input);
    if(result.requires_ack){
     if(!confirm('Existing confirmed bookings: '+result.existing_bookings+'. This restriction will not cancel them. Continue?'))return;
@@ -807,7 +835,8 @@ $('monthToday').onclick=()=>{$('date').value=today();monthView=today().slice(0,7
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user){tickClock();monitorBookings();load();loadCalendar()}});
 setInterval(()=>{if(user)tickClock()},30000);
 $('addEvent').onclick=()=>openEventDialog();
-$('addPhone').onclick=()=>openDialog('create_phone');$('addOverride').onclick=()=>openDialog('override');$('auditBtn').onclick=()=>openDialog('audit');
+$('addPhone').onclick=()=>openDialog('create_phone');$('quickCapacity').onclick=()=>openDialog('override');
+$('addOverride').onclick=()=>openDialog('override');$('auditBtn').onclick=()=>openDialog('audit');
 $('dialogClose').onclick=()=>$('dialog').close();$('dialogSave').onclick=saveDialog;
 if(token)enter().catch(()=>logout());
 })();
