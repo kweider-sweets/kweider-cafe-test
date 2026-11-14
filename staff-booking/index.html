@@ -284,6 +284,10 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 @media(max-width:760px){.events-card .bookings-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.events-card .bookings-actions #addEvent{grid-column:1/-1}}
 .explicit-date{display:inline-block;margin-top:6px;color:#563d2d;font-size:12px;font-weight:750;direction:ltr;font-variant-numeric:tabular-nums}
 #date{font-family:Arial,Helvetica,sans-serif;font-variant-numeric:tabular-nums}
+
+#noteAlert{position:sticky;top:4px;z-index:30;cursor:pointer;box-shadow:0 4px 16px #3a245c33}
+#unreadNotes{cursor:pointer}
+@media(max-width:760px){#noteAlert{font-size:13px}}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
@@ -328,7 +332,7 @@ const fmtDate=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/L
 const money=v=>'£'+Number(v||0).toFixed(2);
 let token=sessionStorage.getItem('kb_staff_token')||'',user=null,data=null,selected=null,dlgAction=null;
 let bookingView='active',eventView='active',availabilityPartySize=1,lastObservedLondonDate=today();
-let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),knownNoteIds=new Set(),alertedStarts=new Set(),monitorTimer=null,checkingMonitor=false,lastNoticeDay=null;
+let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),knownNoteIds=new Set(),alertedStarts=new Set(),monitorTimer=null,checkingMonitor=false,lastNoticeDay=null,pendingUnreadNote=null,lastAlertNoteId=null;
 const AUDIO_CONTEXT=window.AudioContext||window.webkitAudioContext;
 // These are two original browser-generated tones (no external audio files).
 // Browser output gain cannot override iPad system volume or silent-mode restrictions.
@@ -358,13 +362,33 @@ function notifyBooking(msg){
  $('bookingAlert').classList.remove('hidden');playTone('booking');
 }
 function notifyNote(note){
- const from=note.author_name||'Staff';lastNoticeDay=note.day;
- $('noteAlert').textContent='✉ New staff message / رسالة جديدة من '+from+' · '+dateLabel(note.day);
+ const from=note.author_name||'Staff';
+ pendingUnreadNote=note;lastNoticeDay=note.day;
+ $('noteAlert').textContent='✉ Unread staff message / رسالة غير مقروءة من '+from+' · '+dateLabel(note.day)+' · Tap to read / اضغط للقراءة';
  $('noteAlert').classList.remove('hidden');
  $('unreadNotes').classList.remove('hidden');
- $('unreadNotes').textContent='✉ New message / رسالة جديدة';
- playTone('message');
+ $('unreadNotes').textContent='✉ Unread / غير مقروءة';
+ if(String(lastAlertNoteId)!==String(note.id)){
+   lastAlertNoteId=String(note.id);playTone('message');
+ }
  if($('date').value===note.day)loadNotes();
+}
+async function openUnreadNote(){
+ const note=pendingUnreadNote;
+ if(!note)return;
+ try{
+   await request('ack_day_note',{note_id:Number(note.id)});
+   pendingUnreadNote=null;
+   $('noteAlert').classList.add('hidden');$('unreadNotes').classList.add('hidden');
+   const day=note.day;
+   if(day!==$('date').value){
+     $('date').value=day;monthView=day.slice(0,7);
+     await Promise.all([load(),loadCalendar(),loadEvents()]);
+   }
+   await loadNotes();
+   $('staffNotes').scrollIntoView({behavior:'smooth',block:'start'});
+   monitorBookings();
+ }catch(e){alert('Could not confirm message read / تعذر تأكيد قراءة الرسالة: '+e.message)}
 }
 
 function tickClock(){
@@ -398,7 +422,7 @@ async function enableSound(){
   await audioCtx.resume();alertsEnabled=true;
   $('enableAlerts').textContent='🔊 Sound ON / الصوت مفعل';
   $('alertMode').textContent='Sound active while page open · الصوت يعمل والصفحة مفتوحة';
-  playTone('booking');
+  playTone(pendingUnreadNote?'message':'booking');
  }catch(e){alert('Check iPad volume and sound permissions / تحقق من مستوى الصوت');}
 }
 async function loadCalendar(){
@@ -602,9 +626,14 @@ async function monitorBookings(){
   knownIds=fresh;
   const recentNotes=(r.notes||[]).filter(n=>n&&n.id);
   const freshNotes=new Set(recentNotes.map(n=>String(n.id)));
-  if(monitorStarted){
-    const others=recentNotes.filter(n=>!knownNoteIds.has(String(n.id))&&String(n.author_id)!==String(r.staff_id));
-    if(others.length)notifyNote(others[0]);
+  const unread=recentNotes.filter(n=>!n.acknowledged&&String(n.author_id)!==String(r.staff_id));
+  // First login, foreground return, refresh and future polling all use the same server-backed unread state.
+  if(unread.length){
+    if(!pendingUnreadNote||String(pendingUnreadNote.id)!==String(unread[0].id))
+      notifyNote(unread[0]);
+  }else if(pendingUnreadNote){
+    pendingUnreadNote=null;
+    $('unreadNotes').classList.add('hidden');$('noteAlert').classList.add('hidden');
   }
   knownNoteIds=freshNotes;monitorStarted=true;
   const now=Date.now();
@@ -621,8 +650,8 @@ async function monitorBookings(){
 }
 function initializeMonitor(){
  if(monitorTimer)clearInterval(monitorTimer);
- monitorStarted=false;knownIds.clear();knownNoteIds.clear();monitorBookings();
- monitorTimer=setInterval(()=>{if(!document.hidden)monitorBookings()},30000);
+ monitorStarted=false;knownIds.clear();knownNoteIds.clear();lastAlertNoteId=null;pendingUnreadNote=null;monitorBookings();
+ monitorTimer=setInterval(()=>{if(!document.hidden)monitorBookings()},5000);
 }
 
 async function loadNotes(){
@@ -687,7 +716,7 @@ async function request(action,payload={}){
  const out=await r.json().catch(()=>({error:'UNAVAILABLE'}));
  if(!r.ok||out.ok!==true)throw Error(out.error||'REQUEST_FAILED');return out;
 }
-function logout(){token='';user=null;data=null;monitorStarted=false;knownIds.clear();knownNoteIds.clear();checkingMonitor=false;if(monitorTimer){clearInterval(monitorTimer);monitorTimer=null}sessionStorage.removeItem('kb_staff_token');$('login').classList.remove('hidden');$('app').classList.add('hidden');$('sessionTools').innerHTML='';}
+function logout(){token='';user=null;data=null;monitorStarted=false;knownIds.clear();knownNoteIds.clear();checkingMonitor=false;pendingUnreadNote=null;lastAlertNoteId=null;if(monitorTimer){clearInterval(monitorTimer);monitorTimer=null}sessionStorage.removeItem('kb_staff_token');$('login').classList.remove('hidden');$('app').classList.add('hidden');$('sessionTools').innerHTML='';}
 async function enter(){
  const r=await request('me');user=r.staff;$('login').classList.add('hidden');$('app').classList.remove('hidden');
  $('sessionTools').innerHTML='<span class="pill">'+esc(user.name)+' · '+esc(user.role)+'</span><button id="signout" class="btn">Sign Out</button>';
@@ -951,11 +980,8 @@ $('showArchive').onclick=()=>switchBookingView('archive');
 $('availabilityParty').onchange=()=>{availabilityPartySize=Number($('availabilityParty').value)||1;load()};
 
 $('notesForm').onsubmit=submitNote;
-$('unreadNotes').onclick=()=>{if(lastNoticeDay){$('date').value=lastNoticeDay;monthView=lastNoticeDay.slice(0,7);load();loadCalendar();loadEvents();}
- $('staffNotes').scrollIntoView({behavior:'smooth',block:'start'});
- $('unreadNotes').classList.add('hidden');$('noteAlert').classList.add('hidden');loadNotes();
-};
-$('noteAlert').onclick=()=>$('unreadNotes').click();
+$('unreadNotes').onclick=openUnreadNote;
+$('noteAlert').onclick=openUnreadNote;
 $('enableAlerts').onclick=async()=>{await enableSound();await monitorBookings()};
 $('testBookingSound').onclick=async()=>{if(!alertsEnabled)await enableSound();else playTone('booking')};
 $('testNoteSound').onclick=async()=>{if(!alertsEnabled)await enableSound();playTone('message')};
