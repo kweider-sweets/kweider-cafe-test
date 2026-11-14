@@ -247,13 +247,22 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 .capacity-day-end{display:flex;align-items:center;gap:10px;margin-top:12px}
 .capacity-day-end input{width:19px;height:19px;flex-shrink:0}
 @media(max-width:760px){.capacity-chip{width:100%}.capacity-chip .btn{margin:0;min-width:100%}#quickCapacity{width:100%}}
+
+.note-alert{border:2px solid #8064b5;background:#f0e4ff;color:#42225f;border-radius:10px;padding:12px;margin:10px 0;font-weight:750;line-height:1.6}
+#unreadNotes{background:#ebdef9;color:#592986;font-weight:800}
+#testBookingSound,#testNoteSound{font-size:12px;padding:8px 10px;background:#fff}
+@media(max-width:760px){
+ .alert-controls{grid-template-columns:1fr 1fr}
+ .alert-controls #testBookingSound,.alert-controls #testNoteSound{width:100%;white-space:normal;min-height:42px}
+ .alert-controls #enableAlerts{grid-column:1/-1}
+}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
 <main>
 <section class="login card" id="login"><h2>Staff Sign In / دخول الموظفين</h2><p class="muted">Private access · Accounts assigned by management only</p><form id="loginForm"><div class="field"><label for="email">Email / البريد الإلكتروني</label><input id="email" autocomplete="username" type="email" required></div><div class="field"><label for="password">Password / كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div><button class="btn primary" type="submit">Sign In / دخول</button><button class="btn" id="registerBtn" type="button" style="width:100%;margin-top:9px">First-time staff setup / تفعيل حساب الموظف</button><p class="muted" style="margin-top:11px;font-size:12px">First-time setup requires an approved staff email, a password of at least 12 characters, and email verification. No access is granted before verification.</p></form></section>
 <section id="app" class="hidden">
-<div class="head"><div><h2>Booking Operations / إدارة الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small><div id="clockStrip" class="clock-strip" role="status">London time / وقت لندن: —</div><div id="dateWarning" class="date-warning hidden" role="status"></div></div><div class="row head-actions"><input type="date" id="date" lang="en-GB" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div><div class="alert-controls"><button type="button" class="btn primary" id="enableAlerts">🔔 Enable sound / تفعيل التنبيه</button><span id="alertMode" class="alert-mode">Sound off · الصوت غير مفعل</span><small class="alert-mode">Page must remain open · يلزم إبقاء الصفحة مفتوحة</small></div><div id="bookingAlert" class="booking-alert hidden" role="alert" aria-live="assertive"></div><div class="quick-links"><button type="button" class="btn" id="toTimes">الأوقات · Times ↓</button><button type="button" class="btn" id="toBookings">الحجوزات · Bookings ↓</button></div></div>
+<div class="head"><div><h2>Booking Operations / إدارة الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small><div id="clockStrip" class="clock-strip" role="status">London time / وقت لندن: —</div><div id="dateWarning" class="date-warning hidden" role="status"></div></div><div class="row head-actions"><input type="date" id="date" lang="en-GB" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div><div class="alert-controls"><button type="button" class="btn primary" id="enableAlerts">🔔 Enable sound / تفعيل التنبيه</button><button type="button" class="btn" id="testBookingSound">Test booking / تجربة الحجز</button><button type="button" class="btn" id="testNoteSound">Test messages / تجربة الرسائل</button><span id="alertMode" class="alert-mode">Sound off · الصوت غير مفعل</span><small class="alert-mode">Page must remain open · يلزم إبقاء الصفحة مفتوحة</small></div><div id="bookingAlert" class="booking-alert hidden" role="alert" aria-live="assertive"></div><div id="noteAlert" class="note-alert hidden" role="alert" aria-live="assertive"></div><div class="quick-links"><button type="button" class="btn" id="toTimes">الأوقات · Times ↓</button><button type="button" class="btn" id="toBookings">الحجوزات · Bookings ↓</button></div></div>
 <div class="calendar-panel card"><div class="calendar-header"><h2>Reservation calendar / تقويم الحجوزات</h2><div class="calendar-nav"><button type="button" class="btn" id="monthPrev">‹</button><b id="monthLabel">—</b><button type="button" class="btn" id="monthNext">›</button><button type="button" class="btn" id="monthToday">Today / اليوم</button></div></div><div class="calendar-key">🟨 Yellow: upcoming confirmed bookings · الأصفر للحجوزات القادمة | Grey: past dates · الرمادي للأيام الماضية</div><div class="calendar-weekdays"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div class="calendar-days" id="calendarDays" aria-label="Booking days"></div></div><section class="card events-card" id="eventsSection">
   <div class="row"><h2 class="grow">Special Events & Tarab Nights / المناسبات وسهرات الطرب</h2><button type="button" class="btn manager" id="addEvent">+ Add Event / إضافة مناسبة</button></div>
   <p class="muted events-hint">Manager publishes guest-facing messages; drafts remain private. / المدير يتحكم برسائل الزبائن، والمسودات لا تظهر على الموقع.</p>
@@ -264,7 +273,7 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 <div class="split panel"><div class="card bookings-panel" id="bookingsPanel"><div class="row bookings-title" style="margin-bottom:12px"><h2 class="grow">Bookings / الحجوزات</h2><input type="search" id="search" placeholder="Search name, phone, reference / بحث"></div><div class="tablewrap"><table class="table"><thead><tr><th>Time / الوقت</th><th>Guest / الزبون</th><th>Covers</th><th>Arrival</th><th>Payment</th><th>Reference</th></tr></thead><tbody id="bookingRows"></tbody></table></div></div>
 <aside class="aside card" id="detail"><h2>Booking details / تفاصيل الحجز</h2><p class="muted" style="margin-top:12px">Select a booking to view its details and mark arrival or departure.</p></aside></div>
 <section class="card staff-notes" id="staffNotes">
- <div class="row"><h2 class="grow">Daily handover notes / ملاحظات الصالة</h2><span id="notesDate" class="pill">—</span></div>
+ <div class="row"><h2 class="grow">Daily handover notes / ملاحظات الصالة</h2><span id="unreadNotes" class="pill hidden">New / جديد</span><span id="notesDate" class="pill">—</span></div>
  <p class="muted notes-info">Manager ↔ staff · For operational notes only. Messages are timestamped and cannot be edited or deleted. / ملاحظات الإدارة والموظفين مع اسم الكاتب والوقت.</p>
  <div id="notesList" class="notes-list" aria-live="polite">Loading / تحميل…</div>
  <form id="notesForm"><label for="noteMessage">Write a note / اكتب ملاحظة</label><textarea id="noteMessage" rows="2" maxlength="600" required placeholder="Message for the team / رسالة لفريق العمل"></textarea><div class="row notes-actions"><small class="grow">Internal staff notes only · ملاحظات داخلية للموظفين</small><button type="submit" class="btn primary" id="sendNote">Post note / إرسال الملاحظة</button></div></form>
@@ -289,25 +298,45 @@ const fmtTime=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/L
 const fmtDate=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',day:'2-digit',month:'short',year:'numeric'}).format(new Date(v)):'';
 const money=v=>'£'+Number(v||0).toFixed(2);
 let token=sessionStorage.getItem('kb_staff_token')||'',user=null,data=null,selected=null,dlgAction=null;
-let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),alertedStarts=new Set(),monitorTimer=null;
+let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),knownNoteIds=new Set(),alertedStarts=new Set(),monitorTimer=null,checkingMonitor=false,lastNoticeDay=null;
 const AUDIO_CONTEXT=window.AudioContext||window.webkitAudioContext;
-function playAlert(){
- if(!alertsEnabled||!audioCtx)return;
+// These are two original browser-generated tones (no external audio files).
+// Browser output gain cannot override iPad system volume or silent-mode restrictions.
+function playTone(kind='booking'){
+ if(!alertsEnabled||!audioCtx||audioCtx.state!=='running')return;
  try{
-  if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});
-  [0,0.25,0.5].forEach((offset,i)=>{
-   const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+offset;
-   o.type='sine';o.frequency.value=i===1?740:880;g.gain.setValueAtTime(0.0001,t);
-   g.gain.exponentialRampToValueAtTime(0.09,t+0.02);
-   g.gain.exponentialRampToValueAtTime(0.0001,t+0.17);
-   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+0.18);
-  });
- }catch(e){console.warn('Audio unavailable',e)}
+   const now=audioCtx.currentTime;
+   const notes=kind==='message'
+    ?[{t:0,hz:660},{t:.17,hz:880},{t:.34,hz:1100},{t:.58,hz:880},{t:.76,hz:1100}]
+    :[{t:0,hz:840},{t:.22,hz:620},{t:.44,hz:840},{t:.75,hz:620},{t:.97,hz:840}];
+   for(const n of notes){
+     const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),t=now+n.t;
+     osc.type=kind==='message'?'triangle':'square';
+     osc.frequency.setValueAtTime(n.hz,t);
+     gain.gain.setValueAtTime(0.0001,t);
+     gain.gain.linearRampToValueAtTime(kind==='message'?0.24:0.19,t+0.025);
+     gain.gain.setValueAtTime(kind==='message'?0.24:0.19,t+0.09);
+     gain.gain.exponentialRampToValueAtTime(0.0001,t+0.17);
+     osc.connect(gain);gain.connect(audioCtx.destination);
+     osc.start(t);osc.stop(t+0.18);
+   }
+ }catch(e){console.warn('Tone unavailable',e)}
 }
+function playAlert(){playTone('booking')}
 function notifyBooking(msg){
  $('bookingAlert').textContent='🔔 '+msg;
- $('bookingAlert').classList.remove('hidden');playAlert();
+ $('bookingAlert').classList.remove('hidden');playTone('booking');
 }
+function notifyNote(note){
+ const from=note.author_name||'Staff';lastNoticeDay=note.day;
+ $('noteAlert').textContent='✉ New staff message / رسالة جديدة من '+from+' · '+dateLabel(note.day);
+ $('noteAlert').classList.remove('hidden');
+ $('unreadNotes').classList.remove('hidden');
+ $('unreadNotes').textContent='✉ New message / رسالة جديدة';
+ playTone('message');
+ if($('date').value===note.day)loadNotes();
+}
+
 function tickClock(){
  $('clockStrip').textContent='London / لندن: '+londonClock()+(clockVerified?' ✓ server synced / من الخادم':' · checking clock / التحقق من الوقت');
  const day=$('date').value;
@@ -332,7 +361,7 @@ async function enableSound(){
   await audioCtx.resume();alertsEnabled=true;
   $('enableAlerts').textContent='🔊 Sound ON / الصوت مفعل';
   $('alertMode').textContent='Sound active while page open · الصوت يعمل والصفحة مفتوحة';
-  playAlert();
+  playTone('booking');
  }catch(e){alert('Check iPad volume and sound permissions / تحقق من مستوى الصوت');}
 }
 async function loadCalendar(){
@@ -510,7 +539,8 @@ function changeMonth(shift){
  monthView=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');loadCalendar();loadEvents();
 }
 async function monitorBookings(){
- if(!token||document.hidden||!user)return;
+ if(!token||document.hidden||!user||checkingMonitor)return;
+ checkingMonitor=true;
  try{
   const r=await request('monitor'),items=r.recent||[];
   if(r.server_utc){const t=Date.parse(r.server_utc);if(Number.isFinite(t)){serverClockOffset=t-Date.now();clockVerified=true;tickClock()}}
@@ -523,7 +553,14 @@ async function monitorBookings(){
     await loadCalendar();
    }
   }
-  knownIds=fresh;monitorStarted=true;
+  knownIds=fresh;
+  const recentNotes=(r.notes||[]).filter(n=>n&&n.id);
+  const freshNotes=new Set(recentNotes.map(n=>String(n.id)));
+  if(monitorStarted){
+    const others=recentNotes.filter(n=>!knownNoteIds.has(String(n.id))&&String(n.author_id)!==String(r.staff_id));
+    if(others.length)notifyNote(others[0]);
+  }
+  knownNoteIds=freshNotes;monitorStarted=true;
   const now=Date.now();
   const due=(r.upcoming||[]).find(x=>{
    const diff=new Date(x.start_at).getTime()-(now+serverClockOffset);
@@ -534,10 +571,11 @@ async function monitorBookings(){
    notifyBooking('Arriving within 15 minutes / وصول خلال 15 دقيقة: '+due.reference+' · '+due.guests+' guests · '+fmtTime(due.start_at));
   }
  }catch(e){console.warn('Monitor unavailable',e)}
+ finally{checkingMonitor=false}
 }
 function initializeMonitor(){
  if(monitorTimer)clearInterval(monitorTimer);
- monitorStarted=false;knownIds.clear();monitorBookings();
+ monitorStarted=false;knownIds.clear();knownNoteIds.clear();monitorBookings();
  monitorTimer=setInterval(()=>{if(!document.hidden)monitorBookings()},30000);
 }
 
@@ -545,6 +583,7 @@ async function loadNotes(){
  if(!token||!user)return;
  const day=$('date').value;
  $('notesDate').textContent=dateLabel(day);
+ if(lastNoticeDay===day){$('unreadNotes').classList.add('hidden');$('noteAlert').classList.add('hidden')}
  try{
   const r=await request('day_notes',{date:day});
   if($('date').value!==day)return;
@@ -603,7 +642,7 @@ async function request(action,payload={}){
  const out=await r.json().catch(()=>({error:'UNAVAILABLE'}));
  if(!r.ok||out.ok!==true)throw Error(out.error||'REQUEST_FAILED');return out;
 }
-function logout(){token='';user=null;data=null;monitorStarted=false;knownIds.clear();if(monitorTimer){clearInterval(monitorTimer);monitorTimer=null}sessionStorage.removeItem('kb_staff_token');$('login').classList.remove('hidden');$('app').classList.add('hidden');$('sessionTools').innerHTML='';}
+function logout(){token='';user=null;data=null;monitorStarted=false;knownIds.clear();knownNoteIds.clear();checkingMonitor=false;if(monitorTimer){clearInterval(monitorTimer);monitorTimer=null}sessionStorage.removeItem('kb_staff_token');$('login').classList.remove('hidden');$('app').classList.add('hidden');$('sessionTools').innerHTML='';}
 async function enter(){
  const r=await request('me');user=r.staff;$('login').classList.add('hidden');$('app').classList.remove('hidden');
  $('sessionTools').innerHTML='<span class="pill">'+esc(user.name)+' · '+esc(user.role)+'</span><button id="signout" class="btn">Sign Out</button>';
@@ -829,6 +868,8 @@ $('reload').onclick=async()=>{await load();await loadCalendar();await monitorBoo
 $('search').oninput=renderRows;
 $('notesForm').onsubmit=submitNote;
 $('enableAlerts').onclick=async()=>{await enableSound();await monitorBookings()};
+$('testBookingSound').onclick=async()=>{if(!alertsEnabled)await enableSound();else playTone('booking')};
+$('testNoteSound').onclick=async()=>{if(!alertsEnabled)await enableSound();playTone('message')};
 $('monthPrev').onclick=()=>changeMonth(-1);
 $('monthNext').onclick=()=>changeMonth(1);
 $('monthToday').onclick=()=>{$('date').value=today();monthView=today().slice(0,7);tickClock();load();loadCalendar();loadEvents()};
