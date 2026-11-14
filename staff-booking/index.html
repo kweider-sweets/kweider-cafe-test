@@ -334,6 +334,41 @@ const fmtTime=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/L
 const fmtDate=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',day:'2-digit',month:'short',year:'numeric'}).format(new Date(v)):'';
 const money=v=>'£'+Number(v||0).toFixed(2);
 let token=sessionStorage.getItem('kb_staff_token')||'',user=null,data=null,selected=null,dlgAction=null;
+let refreshToken=sessionStorage.getItem('kb_staff_refresh_token')||'';
+let tokenExpiresAt=Number(sessionStorage.getItem('kb_staff_expires_at')||0);
+let refreshingSession=null;
+function saveStaffSession(auth){
+ if(auth?.access_token){token=auth.access_token;sessionStorage.setItem('kb_staff_token',token)}
+ if(auth?.refresh_token){refreshToken=auth.refresh_token;sessionStorage.setItem('kb_staff_refresh_token',refreshToken)}
+ if(Number.isFinite(Number(auth?.expires_in))&&Number(auth.expires_in)>0){
+  tokenExpiresAt=Date.now()+Number(auth.expires_in)*1000;
+  sessionStorage.setItem('kb_staff_expires_at',String(tokenExpiresAt));
+ }
+}
+async function refreshStaffSession(){
+ if(refreshingSession)return refreshingSession;
+ if(!refreshToken)throw Error('SIGN_IN_REQUIRED');
+ refreshingSession=(async()=>{
+  const response=await fetch(RT_BASE+'/auth/v1/token?grant_type=refresh_token',{
+   method:'POST',headers:{'Content-Type':'application/json',apikey:RT_KEY},
+   body:JSON.stringify({refresh_token:refreshToken}),cache:'no-store'
+  });
+  if(!response.ok)throw Error('SESSION_EXPIRED');
+  const auth=await response.json();
+  if(!auth.access_token||!auth.refresh_token)throw Error('SESSION_REFRESH_FAILED');
+  saveStaffSession(auth);
+  if(rtClient)await rtClient.realtime.setAuth(token);
+  return token;
+ })().finally(()=>{refreshingSession=null});
+ return refreshingSession;
+}
+async function ensureFreshSession(){
+ if(!token)return;
+ if(!refreshToken)return;
+ if(tokenExpiresAt&&Date.now()<tokenExpiresAt-90000)return;
+ await refreshStaffSession();
+}
+
 let bookingView='active',eventView='active',availabilityPartySize=1,lastObservedLondonDate=today();
 let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),knownNoteIds=new Set(),alertedStarts=new Set(),monitorTimer=null,checkingMonitor=false,lastNoticeDay=null,pendingUnreadNote=null,lastAlertNoteId=null,rtClient=null,rtChannel=null,rtGeneration=0,rtConnected=false;
 const AUDIO_CONTEXT=window.AudioContext||window.webkitAudioContext;
@@ -634,6 +669,8 @@ async function startRealtime(){
  if(previousClient&&previousChannel)previousClient.removeChannel(previousChannel).catch(()=>{});
  if(!user||!token||!window.supabase?.createClient)return;
  try{
+  await ensureFreshSession();
+  if(generation!==rtGeneration||!token)return;
   const client=window.supabase.createClient(RT_BASE,RT_KEY,{
    auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
   });
@@ -761,11 +798,18 @@ async function uploadEventImage(eventId,file){
 
 const alertMsg=(msg,bad=false)=>{$('message').textContent=msg;$('message').className=bad?'bad':'';if(bad)console.warn(msg)};
 async function request(action,payload={}){
- const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},cache:'no-store',body:JSON.stringify({action,...payload})});
+ const isAuthAction=action==='login'||action==='register';
+ if(!isAuthAction)await ensureFreshSession();
+ const execute=()=>fetch(API,{method:'POST',
+  headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},
+  cache:'no-store',body:JSON.stringify({action,...payload})});
+ let r=await execute();
+ if(r.status===401&&refreshToken&&!isAuthAction){await refreshStaffSession();r=await execute()}
  const out=await r.json().catch(()=>({error:'UNAVAILABLE'}));
- if(!r.ok||out.ok!==true)throw Error(out.error||'REQUEST_FAILED');return out;
+ if(!r.ok||out.ok!==true)throw Error(out.error||'REQUEST_FAILED');
+ return out;
 }
-function logout(){stopRealtime();token='';user=null;data=null;monitorStarted=false;knownIds.clear();knownNoteIds.clear();checkingMonitor=false;pendingUnreadNote=null;lastAlertNoteId=null;if(monitorTimer){clearInterval(monitorTimer);monitorTimer=null}sessionStorage.removeItem('kb_staff_token');$('login').classList.remove('hidden');$('app').classList.add('hidden');$('sessionTools').innerHTML='';}
+function logout(){stopRealtime();token='';refreshToken='';tokenExpiresAt=0;user=null;data=null;monitorStarted=false;knownIds.clear();knownNoteIds.clear();checkingMonitor=false;pendingUnreadNote=null;lastAlertNoteId=null;if(monitorTimer){clearInterval(monitorTimer);monitorTimer=null}sessionStorage.removeItem('kb_staff_token');sessionStorage.removeItem('kb_staff_refresh_token');sessionStorage.removeItem('kb_staff_expires_at');$('login').classList.remove('hidden');$('app').classList.add('hidden');$('sessionTools').innerHTML='';}
 async function enter(){
  const r=await request('me');user=r.staff;$('login').classList.add('hidden');$('app').classList.remove('hidden');
  $('sessionTools').innerHTML='<span class="pill">'+esc(user.name)+' · '+esc(user.role)+'</span><button id="signout" class="btn">Sign Out</button>';
@@ -1003,9 +1047,9 @@ $('loginForm').onsubmit=async e=>{
      token=t.access_token;
      await request('activate');
      r=await request('me');
-     r.access_token=token;
+     r.access_token=token;r.refresh_token=t.refresh_token;r.expires_in=t.expires_in;
    }
-   token=r.access_token;sessionStorage.setItem('kb_staff_token',token);$('password').value='';await enter();
+   saveStaffSession(r);$('password').value='';await enter();
  }catch(err){alert('Sign in failed: '+err.message);logout()}
  finally{btn.disabled=false}
 };
@@ -1042,6 +1086,8 @@ window.addEventListener('online',()=>{if(user){monitorBookings();if(!rtConnected
 window.addEventListener('pageshow',e=>{if(user&&(e.persisted||!rtConnected)){monitorBookings();if(!rtConnected)startRealtime()}});
 
 setInterval(()=>{if(user)tickClock()},30000);
+setInterval(()=>{if(user&&refreshToken&&tokenExpiresAt&&Date.now()>tokenExpiresAt-120000)
+ ensureFreshSession().catch(e=>{console.warn('Staff session refresh unavailable',e);setRealtimeStatus(false)})},60000);
 $('activeEvents').onclick=()=>{eventView='active';renderEvents()};
 $('archivedEvents').onclick=()=>{eventView='archive';renderEvents()};
 $('addEvent').onclick=()=>openEventDialog();
