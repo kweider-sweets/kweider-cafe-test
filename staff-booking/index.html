@@ -214,6 +214,10 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 .event-operational-form input[type=file]{padding:9px;max-width:100%}
 .event-photo{display:block;max-width:100%;width:min(100%,440px);height:auto;max-height:360px;object-fit:contain;margin-top:8px;border:1px solid var(--edge);border-radius:9px;background:#fff}
 @media(max-width:760px){.event-operational-form{padding:10px}.event-photo{max-height:260px}}
+
+#dialogBody #evDate{border:2px solid #a98b52}
+#dialogBody .event-checkbox{padding:11px;background:#fbf4df;border:1px solid #d7b775;border-radius:8px;font-weight:700}
+#dialogBody .event-checkbox input{accent-color:#53131c}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
@@ -361,7 +365,7 @@ function openEventDialog(event=null){
  const v=(name,defaultValue='')=>esc(event?.[name]??temp[name]??defaultValue);
  $('dialogBody').innerHTML='<h2>'+ (event?'Edit Event / تعديل المناسبة':'New Special Event / مناسبة جديدة')+'</h2>'+
   '<div class="formgrid">'+
-  field('evDate','Date / التاريخ',event?.date||$('date').value,'date')+
+  field('evDate','Event date (required) / تاريخ المناسبة (إلزامي)',event?.date||'','date','required')+
   field('evStart','From / من',event?.start||'18:00','time')+
   field('evEnd','To / حتى',event?.end||'22:00','time')+
   '<div class="field"><label for="evKind">Event type / النوع</label><select id="evKind"><option value="PRIVATE">Private Event / مناسبة خاصة</option><option value="TARAB">Tarab Night / سهرة طرب</option></select></div>'+
@@ -376,18 +380,19 @@ function openEventDialog(event=null){
   field('evLink','Tarab booking URL / رابط حجز السهرة',v('booking_url'),'url','placeholder="https://events.kweidersweets.co.uk/..."')+
   '<div class="event-operational-form"><h3>Internal team information / معلومات خاصة للموظفين</h3>'+
   '<p class="muted">These fields are not shown to customers. / هذه المعلومات لا تظهر للزبون.</p>'+
-  field('evGuests','Number of guests / عدد الأشخاص',event?.guest_count??'','number','min="1" max="40"')+
+  field('evGuests','Number of event guests / عدد حضور المناسبة',event?.guest_count??'','number','min="1" max="200"')+
   '<div class="field"><label for="evOrders">Requested food, drinks & quantities / الطلبات والكميات</label><textarea id="evOrders" rows="4" maxlength="4000" placeholder="Example: 20 Kunafa plates, 25 drinks / مثال: 20 صحن كنافة، 25 مشروب">'+v('order_details')+'</textarea></div>'+
   '<div class="field"><label for="evSetup">Preparation instructions / تعليمات وتجهيزات الصالة</label><textarea id="evSetup" rows="3" maxlength="2000" placeholder="Tables, decoration, timing, dietary requirements / ترتيب الطاولات والتجهيزات">'+v('setup_notes')+'</textarea></div>'+
   '<div class="field"><label for="evImage">Attach an image / إرفاق صورة (JPG, PNG, WEBP - max 2MB)</label><input id="evImage" type="file" accept="image/jpeg,image/png,image/webp"></div>'+
   (event?.image_path?'<p class="muted">A private image is already attached. Selecting a new image will replace it after saving. / توجد صورة محفوظة، ويمكن استبدالها.</p>':'')+
   '</div>'+
-  '<label class="event-checkbox"><input type="checkbox" id="evBlock"> Block normal table bookings during this private event / إغلاق الحجوزات العادية أثناء المناسبة الخاصة</label>'+
+  '<label class="event-checkbox"><input type="checkbox" id="evBlock"> Block regular table reservations during the event / إغلاق الحجوزات العادية خلال ساعات المناسبة أو سهرة الطرب</label>'+
   '<p class="muted">Tarab booking URL must be the real event reservation page on events.kweidersweets.co.uk. Nothing appears to customers until Published.</p>';
- $('evKind').value=k;$('evStatus').value=event?.status||'DRAFT';$('evBlock').checked=event?.block_regular_booking===true;
+ $('evKind').value=k;$('evStatus').value=event?.status||'DRAFT';$('evBlock').checked=event?.block_regular_booking===true||(!event&&k==='PRIVATE');
  $('evKind').onchange=()=>{
   const tarab=$('evKind').value==='TARAB';
-  $('evBlock').disabled=tarab;if(tarab)$('evBlock').checked=false;
+  $('evBlock').disabled=false;
+  if(!eventEditing)$('evBlock').checked=true;
   if(!eventEditing){
    const preset=tarab?{
     title_en:'Diwan KWEIDER — Tarab Night',title_ar:'ديوان قويدر — سهرة طرب',
@@ -638,15 +643,27 @@ async function saveDialog(){
     message_en:val('evMessageEn'),message_ar:val('evMessageAr'),
     cta_en:val('evCtaEn'),cta_ar:val('evCtaAr'),booking_url:val('evLink'),block_regular_booking:$('evBlock').checked,
     guest_count:val('evGuests')||null,order_details:val('evOrders'),setup_notes:val('evSetup')};
+   if(!v.date){alert('Select the event date before saving. / يجب تحديد تاريخ المناسبة قبل الحفظ.');$('evDate').focus();return}
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(v.date)||!v.start||!v.end||v.end<=v.start){alert('Check the event date and hours. / تأكد من تاريخ المناسبة وساعاتها.');return}
+   const count=v.guest_count==null?null:Number(v.guest_count);
+   if(count!==null&&(!Number.isInteger(count)||count<1||count>200)){alert('Event guest count must be 1–200. / عدد حضور المناسبة يجب أن يكون من 1 إلى 200.');return}
    result=await request('save_event',v);
    if(result.requires_ack){
-     if(!confirm('Existing confirmed bookings: '+result.confirmed_bookings+'. They will NOT be cancelled. Continue / توجد حجوزات مؤكدة لن تلغى. متابعة؟'))return;
+     if(!confirm('Existing bookings affected: '+(Number(result.confirmed_bookings||0)+Number(result.cleaning_conflicts||0))+'. These confirmed bookings will NOT be cancelled. Continue? / توجد حجوزات مؤكدة قد تتأثر، ولن تُلغى تلقائياً. متابعة؟'))return;
      result=await request('save_event',{...v,ack_existing:true});
    }
    if(result.saved){
      eventEditing={...(eventEditing||{}),id:result.id};
      const photo=$('evImage')?.files?.[0];
-     if(photo)await uploadEventImage(result.id,photo);
+     if(photo){
+       try{await uploadEventImage(result.id,photo)}
+       catch(imgError){alert('The event was saved, but its photo could not be uploaded. / تم حفظ المناسبة، لكن لم يتم رفع الصورة. '+imgError.message)}
+     }
+     $('dialog').close();
+     await load();await loadCalendar();await loadEvents();
+     alertMsg('Event saved successfully / تم حفظ المناسبة بنجاح');
+     alert('Event saved successfully / تم حفظ المناسبة بنجاح\n'+dateLabel(v.date)+' · '+v.start+'–'+v.end);
+     return;
    }
   }
   else if(a==='create_phone')result=await request('create_phone',{date:val('fdate'),time:val('ftime'),guests:Number(val('fguests')),customer_name:val('fname'),phone:val('fphone'),email:val('femail')});
