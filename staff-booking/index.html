@@ -257,6 +257,25 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
  .alert-controls #enableAlerts{grid-column:1/-1}
 }
 #unreadNotes,#noteAlert{cursor:pointer}#staffNotes{scroll-margin-top:14px}
+
+/* Operations: English digits, clear source-of-truth status and simple archives */
+#app,#app input,#app select,#app button,#app table,#app .pill{font-variant-numeric:tabular-nums;direction:ltr}
+#app [dir=rtl]{direction:rtl}
+#availabilityParty{width:115px;min-height:34px;padding:6px;font-size:12px}
+.bookings-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.bookings-actions .btn{min-height:34px;font-size:12px;padding:7px 11px}
+.bookings-panel{min-width:0}
+#detail{scroll-margin-top:14px}
+#detail .detail-close{min-height:30px;padding:5px 9px}
+.status-cell .slot-status{max-width:100%}
+.slot-status.muted{background:#eae6e3;color:#68615c}
+.booking-entry[aria-pressed="true"] td{background:#fcf1e5!important}
+@media(max-width:760px){
+ .bookings-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%}
+ .bookings-actions #bookingsViewCount{grid-column:1/-1;text-align:center}
+ #availabilityParty{flex:0 1 110px}
+ .capacity-summary{gap:6px;line-height:1.4}
+}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
@@ -269,10 +288,10 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
   <p class="muted events-hint">Manager publishes guest-facing messages; drafts remain private. / المدير يتحكم برسائل الزبائن، والمسودات لا تظهر على الموقع.</p>
   <div id="eventsList" class="events-list"></div>
  </section><div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong><button type="button" class="btn manager" id="quickCapacity">Adjust / تعديل السعة</button></div></div>
-<div class="card capacity-card" id="capacitySection"><div class="row capacity-heading"><h2 class="grow">Capacity by time / المقاعد حسب الوقت</h2><small>90 min guests + 30 min cleaning</small></div><div class="capacity-summary"><span>All times · كل الأوقات</span><span id="slotCount" class="pill">—</span><button type="button" class="btn" id="toggleTimes" aria-expanded="true" aria-controls="capacityTable">إخفاء الجدول · Hide</button></div><div class="capacity-tablewrap" id="capacityTable"><table class="capacity-table" aria-label="Capacity by time"><thead><tr><th>Time<br>الوقت</th><th>Booked<br>محجوز</th><th>Held<br>مؤقت</th><th>Available<br>متاح</th><th>Status<br>الحالة</th></tr></thead><tbody id="timeline"></tbody></table></div><div id="overrideChips" class="overrides"></div>
+<div class="card capacity-card" id="capacitySection"><div class="row capacity-heading"><h2 class="grow">Capacity by time / المقاعد حسب الوقت</h2><small>90 min guests + 30 min cleaning</small></div><div class="capacity-summary"><span>Availability for / التوافر لعدد:</span><select id="availabilityParty" aria-label="Number of guests for availability"><option value="1">1 guest</option><option value="2">2 guests</option><option value="4">4 guests</option><option value="6">6 guests</option><option value="10">10 guests</option><option value="20">20 guests</option><option value="40">40 guests</option></select><span>All times · كل الأوقات</span><span id="slotCount" class="pill">—</span><button type="button" class="btn" id="toggleTimes" aria-expanded="true" aria-controls="capacityTable">إخفاء الجدول · Hide</button></div><div class="capacity-tablewrap" id="capacityTable"><table class="capacity-table" aria-label="Capacity by time"><thead><tr><th>Time<br>الوقت</th><th>Booked<br>محجوز</th><th>Held<br>مؤقت</th><th>Available<br>متاح</th><th>Status<br>الحالة</th></tr></thead><tbody id="timeline"></tbody></table></div><div id="overrideChips" class="overrides"></div>
 <div class="row manager management-actions"><button class="btn" id="addOverride">Set capacity by date & time / تحديد السعة حسب التاريخ والوقت</button><button class="btn" id="auditBtn">Activity log / سجل التغييرات</button></div></div>
-<div class="split panel"><div class="card bookings-panel" id="bookingsPanel"><div class="row bookings-title" style="margin-bottom:12px"><h2 class="grow">Bookings / الحجوزات</h2><input type="search" id="search" placeholder="Search name, phone, reference / بحث"></div><div class="tablewrap"><table class="table"><thead><tr><th>Time / الوقت</th><th>Guest / الزبون</th><th>Covers</th><th>Arrival</th><th>Payment</th><th>Reference</th></tr></thead><tbody id="bookingRows"></tbody></table></div></div>
-<aside class="aside card" id="detail"><h2>Booking details / تفاصيل الحجز</h2><p class="muted" style="margin-top:12px">Select a booking to view its details and mark arrival or departure.</p></aside></div>
+<div class="split panel"><div class="card bookings-panel" id="bookingsPanel"><div class="row bookings-title" style="margin-bottom:12px"><h2 class="grow">Bookings / الحجوزات</h2><div class="bookings-actions"><button type="button" id="showActive" class="btn primary">Current / الحالية</button><button type="button" id="showArchive" class="btn">Archive / الأرشيف</button><span id="bookingsViewCount" class="pill">—</span></div><input type="search" id="search" placeholder="Search name, phone, reference / بحث"></div><div class="tablewrap"><table class="table"><thead><tr><th>Time / الوقت</th><th>Guest / الزبون</th><th>Covers</th><th>Arrival</th><th>Payment</th><th>Reference</th></tr></thead><tbody id="bookingRows"></tbody></table></div></div>
+<aside class="aside card hidden" id="detail"><h2>Booking details / تفاصيل الحجز</h2><p class="muted" style="margin-top:12px">Select a booking to view its details and mark arrival or departure.</p></aside></div>
 <section class="card staff-notes" id="staffNotes">
  <div class="row"><h2 class="grow">Daily handover notes / ملاحظات الصالة</h2><span id="unreadNotes" class="pill hidden">New / جديد</span><span id="notesDate" class="pill">—</span></div>
  <p class="muted notes-info">Manager ↔ staff · For operational notes only. Messages are timestamped and cannot be edited or deleted. / ملاحظات الإدارة والموظفين مع اسم الكاتب والوقت.</p>
@@ -299,6 +318,7 @@ const fmtTime=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/L
 const fmtDate=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',day:'2-digit',month:'short',year:'numeric'}).format(new Date(v)):'';
 const money=v=>'£'+Number(v||0).toFixed(2);
 let token=sessionStorage.getItem('kb_staff_token')||'',user=null,data=null,selected=null,dlgAction=null;
+let bookingView='active',availabilityPartySize=1;
 let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),knownNoteIds=new Set(),alertedStarts=new Set(),monitorTimer=null,checkingMonitor=false,lastNoticeDay=null;
 const AUDIO_CONTEXT=window.AudioContext||window.webkitAudioContext;
 // These are two original browser-generated tones (no external audio files).
@@ -651,12 +671,15 @@ async function enter(){
 }
 async function load(){
  if(!token)return;const date=$('date').value;try{
-  $('reload').disabled=true;const r=await request('dashboard',{date});data=r;
-  const active=r.bookings.filter(b=>b.status==='CONFIRMED');
+  $('reload').disabled=true;const r=await request('dashboard',{date,party_size:availabilityPartySize});if($('date').value!==date)return;data=r;
+  const active=r.bookings.filter(b=>b.status==='CONFIRMED'&&new Date(b.end_at).getTime()>Date.now()+serverClockOffset);
   $('kBookings').textContent=active.length;$('kPeople').textContent=active.reduce((n,b)=>n+Number(b.guests),0);
   $('kHolds').textContent=Number(r.holds?.covers||0)+' covers';$('kCapacity').textContent=r.settings?.capacity||40;
   renderTimeline();renderOverrides();renderRows();tickClock();loadNotes();
-  if(selected){selected=r.bookings.find(b=>b.id===selected.id)||null;renderDetail();}
+  if(selected){selected=r.bookings.find(b=>b.id===selected.id)||null;
+    if(!selected||isArchivedBooking(selected)!==(bookingView==='archive'))collapseDetail();
+    else renderDetail();
+  }
   alertMsg(''); 
  }catch(e){alertMsg('Could not load bookings: '+e.message,true)}
  finally{$('reload').disabled=false}
@@ -669,15 +692,17 @@ function renderTimeline(){
    const booked=Math.max(0,Number(slot.booked_covers||0));
    const held=Math.max(0,Number(slot.held_covers||0));
    const left=Math.max(0,Number(slot.remaining_covers||0));
-   const closed=capacity===0,full=left===0,limited=!closed&&capacity<Number(data.settings?.capacity??40),past=$('date').value===today()&&isPastClock($('date').value,String(slot.time));
-   const color=past?'muted':closed||full?'danger':left<=8?'warning':'success';
-   const status=past?'Past / مضى':closed?'Closed / مغلق':full?'Full / ممتلئ':limited?'Limited / محدود':left<=8?'Almost full / شبه ممتلئ':'Open / متاح';
+   const past=$('date').value<today()||($('date').value===today()&&isPastClock($('date').value,String(slot.time)));
+   const online=Boolean(slot.online_available),admin=Boolean(slot.available);
+   const closed=capacity===0,full=left<availabilityPartySize,limited=!closed&&capacity<Number(data.settings?.capacity??40);
+   const color=past?'muted':!admin?'danger':left<=8?'warning':'success';
+   const status=past?'Past / مضى':closed?'Closed / مغلق':!admin?(slot.rule_reason==='AFTER_CLOSING'?'After hours / خارج الدوام':full?'Full / ممتلئ':'Unavailable / غير متاح'):online?'Open online / متاح للزبون':'Staff only / للموظف فقط';
    return '<tr class="slot-row '+color+'" data-time="'+esc(slot.time)+'">'+
      '<td class="slot-time" data-label="Time">'+esc(slot.time)+'</td>'+
      '<td data-label="Booked">'+booked+'</td><td data-label="Held">'+held+'</td>'+
      '<td class="slot-remaining" data-label="Available">'+left+
      '<small class="slot-capacity"> / '+capacity+'</small></td>'+
-     '<td data-label="Status"><span class="slot-status '+color+'">'+status+'</span></td></tr>';
+     '<td class="status-cell" data-label="Status"><span class="slot-status '+color+'">'+status+'</span></td></tr>';
  }).join('')||'<tr><td colspan="5" class="empty-slots">No time slots available / لا توجد أوقات متاحة</td></tr>';
 }
 function renderOverrides(){
@@ -694,24 +719,53 @@ function renderOverrides(){
  });
 }
 function arrival(b){return b.attendance==='ARRIVED'?'Arrived / وصل':b.attendance==='DEPARTED'?'Departed / غادر':'Expected / منتظر'}
+function isArchivedBooking(b){
+ const end=Date.parse(b.end_at),current=Date.now()+serverClockOffset;
+ return b.status!=='CONFIRMED'||(Number.isFinite(end)&&end<=current);
+}
 function renderRows(){
+ if(!data)return;
  const term=$('search').value.toLocaleLowerCase();
- const filtered=data.bookings.filter(b=>!term||[b.customer_name,b.phone,b.reference,b.email].some(v=>String(v||'').toLowerCase().includes(term)));
- $('bookingRows').innerHTML=filtered.map(b=>'<tr class="booking-entry" data-id="'+esc(b.id)+'" tabindex="0" role="button" aria-label="Open booking '+esc(b.reference)+'"><td data-label="Time / الوقت"><b>'+fmtTime(b.start_at)+'</b><small class="mobile-booking-subtitle">90 min + 30 cleaning</small></td><td data-label="Guest / الزبون"><b>'+esc(b.customer_name||'—')+'</b><br><small>'+esc(b.source)+'</small></td><td data-label="Guests / الأشخاص">'+Number(b.guests)+'</td><td data-label="Arrival / الحضور"><span class="pill '+(b.attendance==='ARRIVED'?'arrived':b.status!=='CONFIRMED'?'closed':'')+'">'+esc(b.status==='CONFIRMED'?arrival(b):b.status)+'</span></td><td data-label="Payment / الدفع">'+esc(b.payment_status)+'<br><small>'+money(b.amount_paid)+'</small></td><td data-label="Reference / المرجع">'+esc(b.reference)+'</td></tr>').join('')||'<tr class="empty-bookings"><td colspan="6" class="muted">No bookings on this date / لا توجد حجوزات</td></tr>';
+ const filtered=data.bookings.filter(b=>
+  (bookingView==='archive'?isArchivedBooking(b):!isArchivedBooking(b)) &&
+  (!term||[b.customer_name,b.phone,b.reference,b.email].some(v=>String(v||'').toLowerCase().includes(term)))
+ );
+ $('bookingsViewCount').textContent=filtered.length+' / '+(bookingView==='archive'?'Archived':'Current');
+ $('bookingRows').innerHTML=filtered.map(b=>'<tr class="booking-entry" data-id="'+esc(b.id)+'" tabindex="0" role="button" aria-pressed="'+(selected?.id===b.id)+'" aria-label="Open booking '+esc(b.reference)+'">'+
+ '<td data-label="Time / الوقت"><b>'+fmtTime(b.start_at)+'</b><small class="mobile-booking-subtitle">90 + 30 min</small></td>'+
+ '<td data-label="Guest / الزبون"><b>'+esc(b.customer_name||'—')+'</b><br><small>'+esc(b.source)+'</small></td>'+
+ '<td data-label="Guests / الأشخاص">'+Number(b.guests)+'</td>'+
+ '<td data-label="Arrival / الحضور"><span class="pill '+(b.attendance==='ARRIVED'?'arrived':b.status!=='CONFIRMED'?'closed':'')+'">'+esc(b.status==='CONFIRMED'?arrival(b):b.status)+'</span></td>'+
+ '<td data-label="Payment / الدفع">'+esc(b.payment_status)+'<br><small>'+money(b.amount_paid)+'</small></td>'+
+ '<td data-label="Reference / المرجع">'+esc(b.reference)+'</td></tr>').join('')||
+ '<tr class="empty-bookings"><td colspan="6" class="muted">'+(bookingView==='archive'?'No archived bookings / لا توجد حجوزات مؤرشفة':'No upcoming bookings / لا توجد حجوزات قادمة')+'</td></tr>';
  $('bookingRows').querySelectorAll('[data-id]').forEach(row=>{
-   const show=()=>{
-     selected=data.bookings.find(b=>b.id===row.dataset.id);
-     renderDetail();
-     if(window.matchMedia('(max-width:760px)').matches)$('detail').scrollIntoView({behavior:'smooth',block:'start'});
-   };
-   row.onclick=show;row.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show();}};
+  const show=()=>{
+   const clicked=data.bookings.find(b=>b.id===row.dataset.id);
+   if(selected?.id===clicked?.id&&!$('detail').classList.contains('hidden')){collapseDetail();return}
+   selected=clicked;renderDetail();
+   $('detail').classList.remove('hidden');
+   $('bookingRows').querySelectorAll('[data-id]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.id===selected?.id)));
+   if(window.matchMedia('(max-width:760px)').matches)$('detail').scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  row.onclick=show;row.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show()}};
  });
+}
+function collapseDetail(){
+ selected=null;$('detail').classList.add('hidden');
+ $('bookingRows').querySelectorAll('[data-id]').forEach(el=>el.setAttribute('aria-pressed','false'));
+}
+function switchBookingView(view){
+ bookingView=view;collapseDetail();
+ $('showActive').classList.toggle('primary',view==='active');
+ $('showArchive').classList.toggle('primary',view==='archive');
+ renderRows();
 }
 const detailRow=(label,value)=>'<div class="detailrow"><span>'+esc(label)+'</span><b>'+esc(value??'—')+'</b></div>';
 function renderDetail(){
  if(!selected){$('detail').innerHTML='<h2>Booking details</h2><p class="muted">Select a booking.</p>';return}
  const b=selected,items=Array.isArray(b.menu_order)?b.menu_order:[];
- $('detail').innerHTML='<div class="row"><h2 class="grow">Booking / الحجز</h2><span class="pill">'+esc(b.status)+'</span></div>'+
+ $('detail').innerHTML='<div class="row"><h2 class="grow">Booking / الحجز</h2><span class="pill">'+esc(b.status)+'</span><button type="button" id="closeDetail" class="btn detail-close">✕ Close / طي</button></div>'+
  detailRow('Reference / رقم الحجز',b.reference)+detailRow('Guest / الاسم',b.customer_name)+
  detailRow('Phone / الهاتف',b.phone)+detailRow('Email',b.email)+
  detailRow('Date / التاريخ',fmtDate(b.start_at))+detailRow('Arrival / الوصول',fmtTime(b.start_at))+
@@ -727,6 +781,7 @@ function renderDetail(){
  (b.status==='CONFIRMED'&&b.attendance==='ARRIVED'?'<button class="btn primary" id="depart">✓ Check out / مغادرة</button>':'')+
  (editor()&&b.status==='CONFIRMED'?'<button class="btn" id="edit">Edit / تعديل</button><button class="btn warn" id="cancelBooking">Cancel booking</button>':'')+
  '</div>';
+ if($('closeDetail'))$('closeDetail').onclick=collapseDetail;
  if($('arrive'))$('arrive').onclick=()=>doAttendance('ARRIVED');
  if($('depart'))$('depart').onclick=()=>doAttendance('DEPARTED');
  if($('edit'))$('edit').onclick=()=>openDialog('edit');
@@ -866,6 +921,10 @@ $('date').onchange=()=>{const day=$('date').value;if(!/^\d{4}-\d{2}-\d{2}$/.test
 };
 $('reload').onclick=async()=>{await load();await loadCalendar();await monitorBookings()};
 $('search').oninput=renderRows;
+$('showActive').onclick=()=>switchBookingView('active');
+$('showArchive').onclick=()=>switchBookingView('archive');
+$('availabilityParty').onchange=()=>{availabilityPartySize=Number($('availabilityParty').value)||1;load()};
+
 $('notesForm').onsubmit=submitNote;
 $('unreadNotes').onclick=()=>{if(lastNoticeDay){$('date').value=lastNoticeDay;monthView=lastNoticeDay.slice(0,7);load();loadCalendar();loadEvents();}
  $('staffNotes').scrollIntoView({behavior:'smooth',block:'start'});
