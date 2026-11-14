@@ -206,6 +206,14 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 #dialogBody .field{margin-bottom:11px}
 #dialogBody textarea{font-size:13px}
 @media(max-width:760px){.events-card{padding:13px 12px}.event-card{padding:10px}.event-card .row .btn{width:100%}}
+
+.event-private-info{border-top:1px dashed var(--edge);margin-top:11px;padding:11px 10px;background:#f6f0e8;border-radius:7px}
+.event-private-info p{white-space:pre-wrap;overflow-wrap:anywhere}
+.event-operational-form{background:#f7f1e8;border:1px solid #decfbd;border-radius:10px;padding:15px;margin-top:12px;margin-bottom:12px}
+.event-operational-form h3{color:var(--wine);margin-bottom:7px}
+.event-operational-form input[type=file]{padding:9px;max-width:100%}
+.event-photo{display:block;max-width:100%;width:min(100%,440px);height:auto;max-height:360px;object-fit:contain;margin-top:8px;border:1px solid var(--edge);border-radius:9px;background:#fff}
+@media(max-width:760px){.event-operational-form{padding:10px}.event-photo{max-height:260px}}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
@@ -324,8 +332,14 @@ function renderEvents(){
     '<p>'+esc(e.message_en)+'</p><p dir="rtl">'+esc(e.message_ar)+'</p>'+
     (e.kind==='PRIVATE'&&e.block_regular_booking?'<small>Regular booking blocked during this window / الحجوزات العادية مغلقة أثناء المناسبة</small>':'')+
     (e.kind==='TARAB'&&e.booking_url?'<small>Event booking: '+esc(e.booking_url)+'</small>':'')+
-    '<div class="row">'+editing+'</div></article>';
+    '<div class="event-private-info"><strong>Internal operations / معلومات الصالة</strong>'+
+    '<p>Guests / عدد الأشخاص: '+(e.guest_count==null?'Not entered / غير مدخل':Number(e.guest_count))+'</p>'+
+    '<p><strong>Orders / الطلبات:</strong> '+(e.order_details?esc(e.order_details):'Not entered / غير مدخل')+'</p>'+
+    '<p><strong>Preparation / التجهيز:</strong> '+(e.setup_notes?esc(e.setup_notes):'Not entered / غير مدخل')+'</p>'+
+    (e.image_path?'<button type="button" class="btn" data-photo-id="'+esc(e.id)+'">View photo / عرض الصورة</button><div data-photo-preview="'+esc(e.id)+'"></div>':'')+
+    '</div><div class="row">'+editing+'</div></article>';
  }).join('')||'<p class="muted">No special events this month / لا توجد مناسبات خلال هذا الشهر</p>';
+ $('eventsList').querySelectorAll('[data-photo-id]').forEach(btn=>btn.onclick=()=>showEventImage(btn.dataset.photoId));
  $('eventsList').querySelectorAll('[data-event-edit]').forEach(btn=>btn.onclick=()=>openEventDialog(eventRows.find(x=>x.id===btn.dataset.eventEdit)));
  $('eventsList').querySelectorAll('[data-event-cancel]').forEach(btn=>btn.onclick=async()=>{
   if(!editor()||!confirm('Cancel this event and reopen its private booking restriction? / إلغاء المناسبة وإعادة فتح الفترات المغلقة الخاصة بها؟'))return;
@@ -360,6 +374,14 @@ function openEventDialog(event=null){
   '<div class="formgrid">'+field('evCtaEn','Button English / الزر بالإنجليزية',v('cta_en','Book the event'))+
   field('evCtaAr','Button Arabic / الزر بالعربية',v('cta_ar','احجز السهرة'))+'</div>'+
   field('evLink','Tarab booking URL / رابط حجز السهرة',v('booking_url'),'url','placeholder="https://events.kweidersweets.co.uk/..."')+
+  '<div class="event-operational-form"><h3>Internal team information / معلومات خاصة للموظفين</h3>'+
+  '<p class="muted">These fields are not shown to customers. / هذه المعلومات لا تظهر للزبون.</p>'+
+  field('evGuests','Number of guests / عدد الأشخاص',event?.guest_count??'','number','min="1" max="40"')+
+  '<div class="field"><label for="evOrders">Requested food, drinks & quantities / الطلبات والكميات</label><textarea id="evOrders" rows="4" maxlength="4000" placeholder="Example: 20 Kunafa plates, 25 drinks / مثال: 20 صحن كنافة، 25 مشروب">'+v('order_details')+'</textarea></div>'+
+  '<div class="field"><label for="evSetup">Preparation instructions / تعليمات وتجهيزات الصالة</label><textarea id="evSetup" rows="3" maxlength="2000" placeholder="Tables, decoration, timing, dietary requirements / ترتيب الطاولات والتجهيزات">'+v('setup_notes')+'</textarea></div>'+
+  '<div class="field"><label for="evImage">Attach an image / إرفاق صورة (JPG, PNG, WEBP - max 2MB)</label><input id="evImage" type="file" accept="image/jpeg,image/png,image/webp"></div>'+
+  (event?.image_path?'<p class="muted">A private image is already attached. Selecting a new image will replace it after saving. / توجد صورة محفوظة، ويمكن استبدالها.</p>':'')+
+  '</div>'+
   '<label class="event-checkbox"><input type="checkbox" id="evBlock"> Block normal table bookings during this private event / إغلاق الحجوزات العادية أثناء المناسبة الخاصة</label>'+
   '<p class="muted">Tarab booking URL must be the real event reservation page on events.kweidersweets.co.uk. Nothing appears to customers until Published.</p>';
  $('evKind').value=k;$('evStatus').value=event?.status||'DRAFT';$('evBlock').checked=event?.block_regular_booking===true;
@@ -470,6 +492,35 @@ async function submitNote(event){
  finally{$('sendNote').disabled=false}
 }
 const editor=()=>user?.role==='manager';
+const EVENT_IMAGE_URL='https://zybamugtuzootaovodut.supabase.co/functions/v1/booking-event-image';
+async function showEventImage(eventId){
+ const target=document.querySelector('[data-photo-preview="'+CSS.escape(eventId)+'"]');
+ if(!target)return;
+ target.textContent='Loading image / جاري تحميل الصورة…';
+ try{
+   const res=await fetch(EVENT_IMAGE_URL+'?event='+encodeURIComponent(eventId),{
+     method:'GET',headers:{Authorization:'Bearer '+token},cache:'no-store'
+   });
+   if(!res.ok)throw Error('IMAGE_UNAVAILABLE');
+   const blob=await res.blob();
+   if(!['image/jpeg','image/png','image/webp'].includes(blob.type)||blob.size>2097152)throw Error('INVALID_IMAGE');
+   const objectUrl=URL.createObjectURL(blob),img=document.createElement('img');
+   img.alt='Private event photo / صورة المناسبة الخاصة';img.className='event-photo';
+   img.onload=()=>URL.revokeObjectURL(objectUrl);img.onerror=()=>URL.revokeObjectURL(objectUrl);
+   img.src=objectUrl;target.textContent='';target.appendChild(img);
+ }catch(e){target.textContent='Image unavailable / تعذر تحميل الصورة'}
+}
+async function uploadEventImage(eventId,file){
+ if(!file)return;
+ if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>2097152||file.size<12)
+   throw Error('Image must be JPG, PNG or WEBP, less than 2 MB / الصورة يجب أن تكون أقل من 2MB');
+ const res=await fetch(EVENT_IMAGE_URL+'?event='+encodeURIComponent(eventId),{
+   method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':file.type},body:file,cache:'no-store'
+ });
+ const out=await res.json().catch(()=>({}));
+ if(!res.ok||out.ok!==true)throw Error('Image upload failed / تعذر رفع الصورة: '+(out.error||'UPLOAD_FAILED'));
+}
+
 const alertMsg=(msg,bad=false)=>{$('message').textContent=msg;$('message').className=bad?'bad':'';if(bad)console.warn(msg)};
 async function request(action,payload={}){
  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},cache:'no-store',body:JSON.stringify({action,...payload})});
@@ -585,11 +636,17 @@ async function saveDialog(){
    const v={id:eventEditing?.id||'',date:val('evDate'),start:val('evStart'),end:val('evEnd'),
     kind:val('evKind'),status:val('evStatus'),title_en:val('evTitleEn'),title_ar:val('evTitleAr'),
     message_en:val('evMessageEn'),message_ar:val('evMessageAr'),
-    cta_en:val('evCtaEn'),cta_ar:val('evCtaAr'),booking_url:val('evLink'),block_regular_booking:$('evBlock').checked};
+    cta_en:val('evCtaEn'),cta_ar:val('evCtaAr'),booking_url:val('evLink'),block_regular_booking:$('evBlock').checked,
+    guest_count:val('evGuests')||null,order_details:val('evOrders'),setup_notes:val('evSetup')};
    result=await request('save_event',v);
    if(result.requires_ack){
      if(!confirm('Existing confirmed bookings: '+result.confirmed_bookings+'. They will NOT be cancelled. Continue / توجد حجوزات مؤكدة لن تلغى. متابعة؟'))return;
      result=await request('save_event',{...v,ack_existing:true});
+   }
+   if(result.saved){
+     eventEditing={...(eventEditing||{}),id:result.id};
+     const photo=$('evImage')?.files?.[0];
+     if(photo)await uploadEventImage(result.id,photo);
    }
   }
   else if(a==='create_phone')result=await request('create_phone',{date:val('fdate'),time:val('ftime'),guests:Number(val('fguests')),customer_name:val('fname'),phone:val('fphone'),email:val('femail')});
