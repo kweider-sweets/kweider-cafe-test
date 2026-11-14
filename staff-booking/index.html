@@ -279,13 +279,15 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 
 .events-card .bookings-actions{display:flex;flex-wrap:wrap;gap:7px}
 @media(max-width:760px){.events-card .bookings-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.events-card .bookings-actions #addEvent{grid-column:1/-1}}
+.explicit-date{display:inline-block;margin-top:6px;color:#563d2d;font-size:12px;font-weight:750;direction:ltr;font-variant-numeric:tabular-nums}
+#date{font-family:Arial,Helvetica,sans-serif;font-variant-numeric:tabular-nums}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
 <main>
 <section class="login card" id="login"><h2>Staff Sign In / دخول الموظفين</h2><p class="muted">Private access · Accounts assigned by management only</p><form id="loginForm"><div class="field"><label for="email">Email / البريد الإلكتروني</label><input id="email" autocomplete="username" type="email" required></div><div class="field"><label for="password">Password / كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div><button class="btn primary" type="submit">Sign In / دخول</button><button class="btn" id="registerBtn" type="button" style="width:100%;margin-top:9px">First-time staff setup / تفعيل حساب الموظف</button><p class="muted" style="margin-top:11px;font-size:12px">First-time setup requires an approved staff email, a password of at least 12 characters, and email verification. No access is granted before verification.</p></form></section>
 <section id="app" class="hidden">
-<div class="head"><div><h2>Booking Operations / إدارة الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small><div id="clockStrip" class="clock-strip" role="status">London time / وقت لندن: —</div><div id="dateWarning" class="date-warning hidden" role="status"></div></div><div class="row head-actions"><input type="date" id="date" lang="en-GB" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div><div class="alert-controls"><button type="button" class="btn primary" id="enableAlerts">🔔 Enable sound / تفعيل التنبيه</button><button type="button" class="btn" id="testBookingSound">Test booking / تجربة الحجز</button><button type="button" class="btn" id="testNoteSound">Test messages / تجربة الرسائل</button><span id="alertMode" class="alert-mode">Sound off · الصوت غير مفعل</span><small class="alert-mode">Page must remain open · يلزم إبقاء الصفحة مفتوحة</small></div><div id="bookingAlert" class="booking-alert hidden" role="alert" aria-live="assertive"></div><div id="noteAlert" class="note-alert hidden" role="alert" aria-live="assertive"></div><div class="quick-links"><button type="button" class="btn" id="toTimes">الأوقات · Times ↓</button><button type="button" class="btn" id="toBookings">الحجوزات · Bookings ↓</button></div></div>
+<div class="head"><div><h2>Booking Operations / إدارة الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small><div id="clockStrip" class="clock-strip" role="status">London time / وقت لندن: —</div><div id="dateWarning" class="date-warning hidden" role="status"></div><span id="explicitDate" class="explicit-date" aria-live="polite">Date / التاريخ: —</span></div><div class="row head-actions"><input type="date" id="date" lang="en-GB" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div><div class="alert-controls"><button type="button" class="btn primary" id="enableAlerts">🔔 Enable sound / تفعيل التنبيه</button><button type="button" class="btn" id="testBookingSound">Test booking / تجربة الحجز</button><button type="button" class="btn" id="testNoteSound">Test messages / تجربة الرسائل</button><span id="alertMode" class="alert-mode">Sound off · الصوت غير مفعل</span><small class="alert-mode">Page must remain open · يلزم إبقاء الصفحة مفتوحة</small></div><div id="bookingAlert" class="booking-alert hidden" role="alert" aria-live="assertive"></div><div id="noteAlert" class="note-alert hidden" role="alert" aria-live="assertive"></div><div class="quick-links"><button type="button" class="btn" id="toTimes">الأوقات · Times ↓</button><button type="button" class="btn" id="toBookings">الحجوزات · Bookings ↓</button></div></div>
 <div class="calendar-panel card"><div class="calendar-header"><h2>Reservation calendar / تقويم الحجوزات</h2><div class="calendar-nav"><button type="button" class="btn" id="monthPrev">‹</button><b id="monthLabel">—</b><button type="button" class="btn" id="monthNext">›</button><button type="button" class="btn" id="monthToday">Today / اليوم</button></div></div><div class="calendar-key">🟨 Yellow: upcoming confirmed bookings · الأصفر للحجوزات القادمة | Grey: past dates · الرمادي للأيام الماضية</div><div class="calendar-weekdays"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div class="calendar-days" id="calendarDays" aria-label="Booking days"></div></div><section class="card events-card" id="eventsSection">
   <div class="row"><h2 class="grow">Special Events & Tarab Nights / المناسبات وسهرات الطرب</h2><div class="bookings-actions"><button class="btn primary" type="button" id="activeEvents">Upcoming / القادمة</button><button class="btn" type="button" id="archivedEvents">Archive / الأرشيف</button><button type="button" class="btn manager" id="addEvent">+ Add Event / إضافة مناسبة</button></div></div>
   <p class="muted events-hint">Manager publishes guest-facing messages; drafts remain private. / المدير يتحكم برسائل الزبائن، والمسودات لا تظهر على الموقع.</p>
@@ -309,7 +311,8 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 (()=>{'use strict';
 const API='https://zybamugtuzootaovodut.supabase.co/functions/v1/booking-staff-api';
 const $=id=>document.getElementById(id);
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const latinDigits=v=>String(v??'').replace(/[٠-٩]/g,ch=>'0123456789'['٠١٢٣٤٥٦٧٨٩'.indexOf(ch)]).replace(/[۰-۹]/g,ch=>'0123456789'['۰۱۲۳۴۵۶۷۸۹'.indexOf(ch)]);
+const esc=v=>latinDigits(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let serverClockOffset=0,clockVerified=false;
 const londonParts=(d=new Date(Date.now()+serverClockOffset))=>Object.fromEntries(new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d).map(x=>[x.type,x.value]));
 const today=()=>{const p=londonParts();return p.year+'-'+p.month+'-'+p.day};
@@ -321,7 +324,7 @@ const fmtTime=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/L
 const fmtDate=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',day:'2-digit',month:'short',year:'numeric'}).format(new Date(v)):'';
 const money=v=>'£'+Number(v||0).toFixed(2);
 let token=sessionStorage.getItem('kb_staff_token')||'',user=null,data=null,selected=null,dlgAction=null;
-let bookingView='active',eventView='active',availabilityPartySize=1;
+let bookingView='active',eventView='active',availabilityPartySize=1,lastObservedLondonDate=today();
 let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),knownNoteIds=new Set(),alertedStarts=new Set(),monitorTimer=null,checkingMonitor=false,lastNoticeDay=null;
 const AUDIO_CONTEXT=window.AudioContext||window.webkitAudioContext;
 // These are two original browser-generated tones (no external audio files).
@@ -362,8 +365,15 @@ function notifyNote(note){
 }
 
 function tickClock(){
+ const nowDay=today();
+ if(nowDay!==lastObservedLondonDate){
+   const auto=$('date').value===lastObservedLondonDate;
+   lastObservedLondonDate=nowDay;
+   if(auto&&user){$('date').value=nowDay;monthView=nowDay.slice(0,7);load();loadCalendar();loadEvents()}
+ }
  $('clockStrip').textContent='London / لندن: '+londonClock()+(clockVerified?' ✓ server synced / من الخادم':' · checking clock / التحقق من الوقت');
  const day=$('date').value;
+ $('explicitDate').textContent='Selected date / التاريخ المحدد: '+dateLabel(day)+' (Europe/London)';
  if(day!==today()){
   $('dateWarning').classList.remove('hidden');
   $('dateWarning').textContent='⚠ Selected / التاريخ المختار: '+dateLabel(day)+' · Not today / ليس اليوم';
