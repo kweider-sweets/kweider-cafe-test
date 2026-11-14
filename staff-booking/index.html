@@ -256,6 +256,7 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
  .alert-controls #testBookingSound,.alert-controls #testNoteSound{width:100%;white-space:normal;min-height:42px}
  .alert-controls #enableAlerts{grid-column:1/-1}
 }
+#unreadNotes,#noteAlert{cursor:pointer}#staffNotes{scroll-margin-top:14px}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
@@ -583,7 +584,6 @@ async function loadNotes(){
  if(!token||!user)return;
  const day=$('date').value;
  $('notesDate').textContent=dateLabel(day);
- if(lastNoticeDay===day){$('unreadNotes').classList.add('hidden');$('noteAlert').classList.add('hidden')}
  try{
   const r=await request('day_notes',{date:day});
   if($('date').value!==day)return;
@@ -867,6 +867,11 @@ $('date').onchange=()=>{const day=$('date').value;if(!/^\d{4}-\d{2}-\d{2}$/.test
 $('reload').onclick=async()=>{await load();await loadCalendar();await monitorBookings()};
 $('search').oninput=renderRows;
 $('notesForm').onsubmit=submitNote;
+$('unreadNotes').onclick=()=>{if(lastNoticeDay){$('date').value=lastNoticeDay;monthView=lastNoticeDay.slice(0,7);load();loadCalendar();loadEvents();}
+ $('staffNotes').scrollIntoView({behavior:'smooth',block:'start'});
+ $('unreadNotes').classList.add('hidden');$('noteAlert').classList.add('hidden');loadNotes();
+};
+$('noteAlert').onclick=()=>$('unreadNotes').click();
 $('enableAlerts').onclick=async()=>{await enableSound();await monitorBookings()};
 $('testBookingSound').onclick=async()=>{if(!alertsEnabled)await enableSound();else playTone('booking')};
 $('testNoteSound').onclick=async()=>{if(!alertsEnabled)await enableSound();playTone('message')};
