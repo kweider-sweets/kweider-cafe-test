@@ -190,14 +190,34 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 #notesForm textarea{resize:vertical;min-height:72px}
 .notes-actions{margin-top:8px}
 @media(max-width:760px){.staff-notes{padding:13px 12px}.notes-list{max-height:none}.notes-actions #sendNote{width:100%}.note-head small{margin-inline-start:0;width:100%}}
+
+.events-card{margin:12px 0}
+.events-hint{font-size:12px;margin:8px 0 13px}
+.events-list{display:grid;gap:10px}
+.event-card{border:1px solid var(--edge);padding:12px;border-radius:10px;background:#fdfaf6}
+.event-card.private{border-inline-start:5px solid #ab5c60;background:#fcf1f1}
+.event-card.tarab{border-inline-start:5px solid #8c68b6;background:#f7f0ff}
+.event-card p{margin:7px 0;line-height:1.5;overflow-wrap:anywhere}
+.event-card .btn{margin-top:8px}
+.calendar-days .day.has-tarab:not(.is-past){background:#e5d5f3;border-color:#9975c0;color:#4d256c}
+.calendar-days .day.has-private:not(.is-past){background:#f5d5d6;border-color:#b87578;color:#652b31}
+.event-checkbox{display:flex;align-items:flex-start;gap:10px;margin:12px 0;color:var(--ink);font-size:13px}
+.event-checkbox input{width:18px;height:18px;flex-shrink:0}
+#dialogBody .field{margin-bottom:11px}
+#dialogBody textarea{font-size:13px}
+@media(max-width:760px){.events-card{padding:13px 12px}.event-card{padding:10px}.event-card .row .btn{width:100%}}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
 <main>
-<section class="login card" id="login"><h2>Staff Sign In / دخول الموظفين</h2><p class="muted">Private access · Accounts assigned by management only</p><form id="loginForm"><div class="field"><label for="email">Email / البريد الإلكتروني</label><input id="email" autocomplete="username" type="email" required></div><div class="field"><label for="password">Password / كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div><button class="btn primary" type="submit">Sign In / دخول</button><button class="btn" id="registerBtn" type="button" style="width:100%;margin-top:9px">First-time manager setup / تفعيل حساب المدير</button><p class="muted" style="margin-top:11px;font-size:12px">First-time setup requires the approved manager email, a password of at least 12 characters, and email verification. No access is granted before verification.</p></form></section>
+<section class="login card" id="login"><h2>Staff Sign In / دخول الموظفين</h2><p class="muted">Private access · Accounts assigned by management only</p><form id="loginForm"><div class="field"><label for="email">Email / البريد الإلكتروني</label><input id="email" autocomplete="username" type="email" required></div><div class="field"><label for="password">Password / كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div><button class="btn primary" type="submit">Sign In / دخول</button><button class="btn" id="registerBtn" type="button" style="width:100%;margin-top:9px">First-time staff setup / تفعيل حساب الموظف</button><p class="muted" style="margin-top:11px;font-size:12px">First-time setup requires an approved staff email, a password of at least 12 characters, and email verification. No access is granted before verification.</p></form></section>
 <section id="app" class="hidden">
 <div class="head"><div><h2>Booking Operations / إدارة الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small><div id="clockStrip" class="clock-strip" role="status">London time / وقت لندن: —</div><div id="dateWarning" class="date-warning hidden" role="status"></div></div><div class="row head-actions"><input type="date" id="date" lang="en-GB" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div><div class="alert-controls"><button type="button" class="btn primary" id="enableAlerts">🔔 Enable sound / تفعيل التنبيه</button><span id="alertMode" class="alert-mode">Sound off · الصوت غير مفعل</span><small class="alert-mode">Page must remain open · يلزم إبقاء الصفحة مفتوحة</small></div><div id="bookingAlert" class="booking-alert hidden" role="alert" aria-live="assertive"></div><div class="quick-links"><button type="button" class="btn" id="toTimes">الأوقات · Times ↓</button><button type="button" class="btn" id="toBookings">الحجوزات · Bookings ↓</button></div></div>
-<div class="calendar-panel card"><div class="calendar-header"><h2>Reservation calendar / تقويم الحجوزات</h2><div class="calendar-nav"><button type="button" class="btn" id="monthPrev">‹</button><b id="monthLabel">—</b><button type="button" class="btn" id="monthNext">›</button><button type="button" class="btn" id="monthToday">Today / اليوم</button></div></div><div class="calendar-key">🟨 Yellow: upcoming confirmed bookings · الأصفر للحجوزات القادمة | Grey: past dates · الرمادي للأيام الماضية</div><div class="calendar-weekdays"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div class="calendar-days" id="calendarDays" aria-label="Booking days"></div></div><div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong></div></div>
+<div class="calendar-panel card"><div class="calendar-header"><h2>Reservation calendar / تقويم الحجوزات</h2><div class="calendar-nav"><button type="button" class="btn" id="monthPrev">‹</button><b id="monthLabel">—</b><button type="button" class="btn" id="monthNext">›</button><button type="button" class="btn" id="monthToday">Today / اليوم</button></div></div><div class="calendar-key">🟨 Yellow: upcoming confirmed bookings · الأصفر للحجوزات القادمة | Grey: past dates · الرمادي للأيام الماضية</div><div class="calendar-weekdays"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div class="calendar-days" id="calendarDays" aria-label="Booking days"></div></div><section class="card events-card" id="eventsSection">
+  <div class="row"><h2 class="grow">Special Events & Tarab Nights / المناسبات وسهرات الطرب</h2><button type="button" class="btn manager" id="addEvent">+ Add Event / إضافة مناسبة</button></div>
+  <p class="muted events-hint">Manager publishes guest-facing messages; drafts remain private. / المدير يتحكم برسائل الزبائن، والمسودات لا تظهر على الموقع.</p>
+  <div id="eventsList" class="events-list"></div>
+ </section><div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong></div></div>
 <div class="card capacity-card" id="capacitySection"><div class="row capacity-heading"><h2 class="grow">Capacity by time / المقاعد حسب الوقت</h2><small>90 min guests + 30 min cleaning</small></div><div class="capacity-summary"><span>All times · كل الأوقات</span><span id="slotCount" class="pill">—</span><button type="button" class="btn" id="toggleTimes" aria-expanded="true" aria-controls="capacityTable">إخفاء الجدول · Hide</button></div><div class="capacity-tablewrap" id="capacityTable"><table class="capacity-table" aria-label="Capacity by time"><thead><tr><th>Time<br>الوقت</th><th>Booked<br>محجوز</th><th>Held<br>مؤقت</th><th>Available<br>متاح</th><th>Status<br>الحالة</th></tr></thead><tbody id="timeline"></tbody></table></div><div id="overrideChips" class="overrides"></div>
 <div class="row manager management-actions"><button class="btn" id="addOverride">Close / Limit · إغلاق أو تحديد السعة</button><button class="btn" id="auditBtn">Activity log / سجل التغييرات</button></div></div>
 <div class="split panel"><div class="card bookings-panel" id="bookingsPanel"><div class="row bookings-title" style="margin-bottom:12px"><h2 class="grow">Bookings / الحجوزات</h2><input type="search" id="search" placeholder="Search name, phone, reference / بحث"></div><div class="tablewrap"><table class="table"><thead><tr><th>Time / الوقت</th><th>Guest / الزبون</th><th>Covers</th><th>Arrival</th><th>Payment</th><th>Reference</th></tr></thead><tbody id="bookingRows"></tbody></table></div></div>
@@ -228,7 +248,7 @@ const fmtTime=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/L
 const fmtDate=v=>v?new Intl.DateTimeFormat('en-GB-u-nu-latn',{timeZone:'Europe/London',day:'2-digit',month:'short',year:'numeric'}).format(new Date(v)):'';
 const money=v=>'£'+Number(v||0).toFixed(2);
 let token=sessionStorage.getItem('kb_staff_token')||'',user=null,data=null,selected=null,dlgAction=null;
-let monthView=today().slice(0,7),calendarCounts={},alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),alertedStarts=new Set(),monitorTimer=null;
+let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),alertedStarts=new Set(),monitorTimer=null;
 const AUDIO_CONTEXT=window.AudioContext||window.webkitAudioContext;
 function playAlert(){
  if(!alertsEnabled||!audioCtx)return;
@@ -282,6 +302,87 @@ async function loadCalendar(){
   calendarCounts=Object.fromEntries((r.days||[]).map(x=>[x.day,x]));renderCalendar();
  }catch(e){console.warn('Calendar unavailable',e);$('calendarDays').textContent='Calendar unavailable / تعذر تحميل التقويم'}
 }
+
+async function loadEvents(){
+ if(!token||!user)return;
+ const month=monthView;
+ try{
+  const result=await request('list_events',{month});
+  if(month!==monthView)return;
+  eventRows=result.events||[];renderEvents();renderCalendar();
+ }catch(e){console.warn('Events unavailable',e);$('eventsList').textContent='Events unavailable / تعذر تحميل المناسبات'}
+}
+function renderEvents(){
+ const monthEvents=eventRows.filter(x=>x.date.slice(0,7)===monthView);
+ $('eventsList').innerHTML=monthEvents.map(e=>{
+  const c=e.kind==='TARAB'?'tarab':'private';
+  const editing=editor()?'<button type="button" class="btn" data-event-edit="'+esc(e.id)+'">Edit / تعديل</button>'+
+    '<button type="button" class="btn warn" data-event-cancel="'+esc(e.id)+'">Cancel / إلغاء المناسبة</button>':'';
+  return '<article class="event-card '+c+'"><div class="row"><strong>'+esc(e.title_en)+' · '+esc(e.title_ar)+'</strong>'+
+    '<span class="pill">'+esc(e.kind)+' · '+esc(e.status)+'</span></div>'+
+    '<p>'+esc(e.date)+' · '+esc(e.start)+'–'+esc(e.end)+' (London)</p>'+
+    '<p>'+esc(e.message_en)+'</p><p dir="rtl">'+esc(e.message_ar)+'</p>'+
+    (e.kind==='PRIVATE'&&e.block_regular_booking?'<small>Regular booking blocked during this window / الحجوزات العادية مغلقة أثناء المناسبة</small>':'')+
+    (e.kind==='TARAB'&&e.booking_url?'<small>Event booking: '+esc(e.booking_url)+'</small>':'')+
+    '<div class="row">'+editing+'</div></article>';
+ }).join('')||'<p class="muted">No special events this month / لا توجد مناسبات خلال هذا الشهر</p>';
+ $('eventsList').querySelectorAll('[data-event-edit]').forEach(btn=>btn.onclick=()=>openEventDialog(eventRows.find(x=>x.id===btn.dataset.eventEdit)));
+ $('eventsList').querySelectorAll('[data-event-cancel]').forEach(btn=>btn.onclick=async()=>{
+  if(!editor()||!confirm('Cancel this event and reopen its private booking restriction? / إلغاء المناسبة وإعادة فتح الفترات المغلقة الخاصة بها؟'))return;
+  try{await request('cancel_event',{id:btn.dataset.eventCancel});await loadEvents();await loadCalendar();await load();}
+  catch(err){alert('Unable to cancel event / تعذر إلغاء المناسبة: '+err.message)}
+ });
+}
+function openEventDialog(event=null){
+ if(!editor())return;
+ eventEditing=event;dlgAction='special_event';
+ const k=event?.kind||'PRIVATE';
+ const temp=k==='TARAB'
+  ?{title_en:'Diwan KWEIDER — Tarab Night',title_ar:'ديوان قويدر — سهرة طرب',
+    message_en:'Join us for a special evening of live Arabic music at Diwan KWEIDER. Reserve your place and enjoy a memorable night.',
+    message_ar:'ندعوكم لأمسية طرب مميزة في ديوان قويدر. احجز مكانك واستمتع بأجواء لا تُنسى.'}
+  :{title_en:'Private Event',title_ar:'مناسبة خاصة',
+    message_en:"We're hosting a private event during these hours. We'd love to welcome you at another available time.",
+    message_ar:'نستضيف مناسبة خاصة خلال هذه الساعات، ويسعدنا استقبالكم في وقت آخر يناسبكم.'};
+ const v=(name,defaultValue='')=>esc(event?.[name]??temp[name]??defaultValue);
+ $('dialogBody').innerHTML='<h2>'+ (event?'Edit Event / تعديل المناسبة':'New Special Event / مناسبة جديدة')+'</h2>'+
+  '<div class="formgrid">'+
+  field('evDate','Date / التاريخ',event?.date||$('date').value,'date')+
+  field('evStart','From / من',event?.start||'18:00','time')+
+  field('evEnd','To / حتى',event?.end||'22:00','time')+
+  '<div class="field"><label for="evKind">Event type / النوع</label><select id="evKind"><option value="PRIVATE">Private Event / مناسبة خاصة</option><option value="TARAB">Tarab Night / سهرة طرب</option></select></div>'+
+  '<div class="field"><label for="evStatus">Publish status / حالة النشر</label><select id="evStatus"><option value="DRAFT">Draft / مسودة</option><option value="PUBLISHED">Published / منشور</option></select></div>'+
+  '</div>'+
+  field('evTitleEn','Title (English) / العنوان بالإنجليزية',v('title_en'))+
+  field('evTitleAr','Title (Arabic) / العنوان بالعربية',v('title_ar'))+
+  '<div class="field"><label for="evMessageEn">Customer message / رسالة الزبون بالإنجليزية</label><textarea id="evMessageEn" rows="3" maxlength="900">'+v('message_en')+'</textarea></div>'+
+  '<div class="field"><label for="evMessageAr">رسالة الزبون بالعربية</label><textarea id="evMessageAr" rows="3" maxlength="900" dir="rtl">'+v('message_ar')+'</textarea></div>'+
+  '<div class="formgrid">'+field('evCtaEn','Button English / الزر بالإنجليزية',v('cta_en','Book the event'))+
+  field('evCtaAr','Button Arabic / الزر بالعربية',v('cta_ar','احجز السهرة'))+'</div>'+
+  field('evLink','Tarab booking URL / رابط حجز السهرة',v('booking_url'),'url','placeholder="https://events.kweidersweets.co.uk/..."')+
+  '<label class="event-checkbox"><input type="checkbox" id="evBlock"> Block normal table bookings during this private event / إغلاق الحجوزات العادية أثناء المناسبة الخاصة</label>'+
+  '<p class="muted">Tarab booking URL must be the real event reservation page on events.kweidersweets.co.uk. Nothing appears to customers until Published.</p>';
+ $('evKind').value=k;$('evStatus').value=event?.status||'DRAFT';$('evBlock').checked=event?.block_regular_booking===true;
+ $('evKind').onchange=()=>{
+  const tarab=$('evKind').value==='TARAB';
+  $('evBlock').disabled=tarab;if(tarab)$('evBlock').checked=false;
+  if(!eventEditing){
+   const preset=tarab?{
+    title_en:'Diwan KWEIDER — Tarab Night',title_ar:'ديوان قويدر — سهرة طرب',
+    message_en:'Join us for a special evening of live Arabic music at Diwan KWEIDER. Reserve your place and enjoy a memorable night.',
+    message_ar:'ندعوكم لأمسية طرب مميزة في ديوان قويدر. احجز مكانك واستمتع بأجواء لا تُنسى.'
+   }:{
+    title_en:'Private Event',title_ar:'مناسبة خاصة',
+    message_en:"We're hosting a private event during these hours. We'd love to welcome you at another available time.",
+    message_ar:'نستضيف مناسبة خاصة خلال هذه الساعات، ويسعدنا استقبالكم في وقت آخر يناسبكم.'
+   };
+   ['title_en','title_ar','message_en','message_ar'].forEach((name)=>{$({title_en:'evTitleEn',title_ar:'evTitleAr',message_en:'evMessageEn',message_ar:'evMessageAr'}[name]).value=preset[name]});
+  }
+ };
+ $('evKind').onchange?.call(null);
+ $('dialogSave').classList.remove('hidden');$('dialogSave').textContent='Save event / حفظ المناسبة';$('dialog').showModal();
+}
+
 function renderCalendar(){
  const [y,m]=monthView.split('-').map(Number);
  const first=new Date(Date.UTC(y,m-1,1)),length=new Date(Date.UTC(y,m,0)).getUTCDate(),gap=(first.getUTCDay()+6)%7;
@@ -290,7 +391,9 @@ function renderCalendar(){
  for(let n=1;n<=length;n++){
   const day=monthView+'-'+String(n).padStart(2,'0'),count=Number(calendarCounts[day]?.bookings||0);
   const past=day<today(),highlight=!past&&count>0;
-  html+='<button type="button" class="day'+(past?' is-past':'')+(highlight?' has-booking':'')+(day===$('date').value?' selected':'')+(day===today()?' is-today':'')+'" data-day="'+day+'" aria-label="'+dateLabel(day)+' '+count+' confirmed bookings"><strong>'+n+'</strong><small>'+(count?'● '+count:'—')+'</small></button>';
+  const specials=eventRows.filter(e=>e.date===day&&e.status==='PUBLISHED');
+  const eventKind=specials.some(e=>e.kind==='TARAB')?'tarab':specials.some(e=>e.kind==='PRIVATE')?'private':'';
+  html+='<button type="button" class="day'+(past?' is-past':'')+(highlight?' has-booking':'')+(!past&&eventKind?' has-'+eventKind:'')+(day===$('date').value?' selected':'')+(day===today()?' is-today':'')+'" data-day="'+day+'" aria-label="'+dateLabel(day)+' '+count+' confirmed bookings"><strong>'+n+'</strong><small>'+(count?'● '+count:'—')+'</small></button>';
  }
  $('calendarDays').innerHTML=html;
  $('calendarDays').querySelectorAll('[data-day]').forEach(b=>b.onclick=async()=>{
@@ -306,7 +409,7 @@ function renderCalendar(){
 }
 function changeMonth(shift){
  const [y,m]=monthView.split('-').map(Number),d=new Date(Date.UTC(y,m-1+shift,1));
- monthView=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');loadCalendar();
+ monthView=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');loadCalendar();loadEvents();
 }
 async function monitorBookings(){
  if(!token||document.hidden||!user)return;
@@ -366,7 +469,7 @@ async function submitNote(event){
  }catch(e){alert('Could not save the note / تعذر حفظ الملاحظة: '+e.message)}
  finally{$('sendNote').disabled=false}
 }
-const editor=()=>user&&['manager','assistant'].includes(user.role);
+const editor=()=>user?.role==='manager';
 const alertMsg=(msg,bad=false)=>{$('message').textContent=msg;$('message').className=bad?'bad':'';if(bad)console.warn(msg)};
 async function request(action,payload={}){
  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},cache:'no-store',body:JSON.stringify({action,...payload})});
@@ -378,7 +481,7 @@ async function enter(){
  const r=await request('me');user=r.staff;$('login').classList.add('hidden');$('app').classList.remove('hidden');
  $('sessionTools').innerHTML='<span class="pill">'+esc(user.name)+' · '+esc(user.role)+'</span><button id="signout" class="btn">Sign Out</button>';
  $('signout').onclick=logout;document.querySelectorAll('.manager').forEach(x=>x.classList.toggle('hidden',!editor()));
- tickClock();await load();await loadCalendar();await loadNotes();initializeMonitor();
+ tickClock();await load();await loadCalendar();await loadEvents();await loadNotes();initializeMonitor();
 }
 async function load(){
  if(!token)return;const date=$('date').value;try{
@@ -478,7 +581,18 @@ async function saveDialog(){
  try{
   $('dialogSave').disabled=true;let result;
   if(['create_phone','edit'].includes(a)&&!validOperationTime(val('fdate'),val('ftime')))return;
-  if(a==='create_phone')result=await request('create_phone',{date:val('fdate'),time:val('ftime'),guests:Number(val('fguests')),customer_name:val('fname'),phone:val('fphone'),email:val('femail')});
+  if(a==='special_event'){
+   const v={id:eventEditing?.id||'',date:val('evDate'),start:val('evStart'),end:val('evEnd'),
+    kind:val('evKind'),status:val('evStatus'),title_en:val('evTitleEn'),title_ar:val('evTitleAr'),
+    message_en:val('evMessageEn'),message_ar:val('evMessageAr'),
+    cta_en:val('evCtaEn'),cta_ar:val('evCtaAr'),booking_url:val('evLink'),block_regular_booking:$('evBlock').checked};
+   result=await request('save_event',v);
+   if(result.requires_ack){
+     if(!confirm('Existing confirmed bookings: '+result.confirmed_bookings+'. They will NOT be cancelled. Continue / توجد حجوزات مؤكدة لن تلغى. متابعة؟'))return;
+     result=await request('save_event',{...v,ack_existing:true});
+   }
+  }
+  else if(a==='create_phone')result=await request('create_phone',{date:val('fdate'),time:val('ftime'),guests:Number(val('fguests')),customer_name:val('fname'),phone:val('fphone'),email:val('femail')});
   else if(a==='edit')result=await request('edit',{booking_id:selected.id,date:val('fdate'),time:val('ftime'),guests:Number(val('fguests'))});
   else if(a==='cancel')result=await request('cancel',{booking_id:selected.id,reason:val('freason')});
   else if(a==='override'){
@@ -494,13 +608,13 @@ async function saveDialog(){
   }
   if(result?.accepted===false)throw Error(result.reason||'No capacity');
   if(result?.financial_review_required)alert('Booking cancelled. Payment or refund must be reviewed separately in Shopify.');
-  $('dialog').close();alertMsg('Saved / تم الحفظ');await load();await loadCalendar();
+  $('dialog').close();alertMsg('Saved / تم الحفظ');await load();await loadCalendar();await loadEvents();
  }catch(e){alertMsg(e.message,true);alert('Unable to save: '+e.message)}
  finally{$('dialogSave').disabled=false}
 }
 $('registerBtn').onclick=async()=>{
  const email=$('email').value.trim(),password=$('password').value;
- if(!email){alert('Enter your approved manager email first / أدخل البريد المعتمد');return}
+ if(!email){alert('Enter your approved staff email / أدخل البريد المعتمد للموظف');return}
  if(password.length<12){alert('Choose a password with at least 12 characters / اختر كلمة مرور 12 حرفاً على الأقل');return}
  if(!confirm('Create an account for '+email+'? You will need to confirm this email before access.'))return;
  $('registerBtn').disabled=true;
@@ -545,7 +659,7 @@ $('toggleTimes').onclick=()=>{
 };
 $('date').value=today();
 $('date').onchange=()=>{const day=$('date').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(day)){alert('Check the date / تأكد من التاريخ');return}
-  monthView=day.slice(0,7);tickClock();load();loadCalendar();
+  monthView=day.slice(0,7);tickClock();load();loadCalendar();loadEvents();
 };
 $('reload').onclick=async()=>{await load();await loadCalendar();await monitorBookings()};
 $('search').oninput=renderRows;
@@ -553,9 +667,10 @@ $('notesForm').onsubmit=submitNote;
 $('enableAlerts').onclick=async()=>{await enableSound();await monitorBookings()};
 $('monthPrev').onclick=()=>changeMonth(-1);
 $('monthNext').onclick=()=>changeMonth(1);
-$('monthToday').onclick=()=>{$('date').value=today();monthView=today().slice(0,7);tickClock();load();loadCalendar()};
+$('monthToday').onclick=()=>{$('date').value=today();monthView=today().slice(0,7);tickClock();load();loadCalendar();loadEvents()};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user){tickClock();monitorBookings();load();loadCalendar()}});
 setInterval(()=>{if(user)tickClock()},30000);
+$('addEvent').onclick=()=>openEventDialog();
 $('addPhone').onclick=()=>openDialog('create_phone');$('addOverride').onclick=()=>openDialog('override');$('auditBtn').onclick=()=>openDialog('audit');
 $('dialogClose').onclick=()=>$('dialog').close();$('dialogSave').onclick=saveDialog;
 if(token)enter().catch(()=>logout());
