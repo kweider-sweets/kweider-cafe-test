@@ -289,17 +289,48 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
 #noteAlert{position:sticky;top:4px;z-index:30;cursor:pointer;box-shadow:0 4px 16px #3a245c33}
 #unreadNotes{cursor:pointer}
 @media(max-width:760px){#noteAlert{font-size:13px}}
+
+/* Operations dashboard: prioritize daily work and keep existing IDs and logic intact */
+#app{display:flex;flex-direction:column;gap:14px}
+#app.hidden{display:none!important}
+#app>.head{order:0}
+#app>.kpi{order:1}
+#app>.split{order:2}
+#app>#staffNotes{order:3}
+#app>#capacitySection{order:4}
+#app>.calendar-panel{order:5}
+#app>#eventsSection{order:6}
+#app>#message{order:7}
+#app>#kitchenPrint{order:8}
+#calendarBody.hidden,#eventsBody.hidden{display:none!important}
+.collapse-toggle{font-size:12px;min-height:34px;padding:7px 10px}
+.sync-status{font-size:12px;color:#655a53;margin-top:4px;font-variant-numeric:tabular-nums}
+.sync-status.issue{color:#971f2d;font-weight:750}
+.idle-lock-overlay{position:fixed;inset:0;z-index:9999;background:#2c1b20ed;display:flex;align-items:center;justify-content:center;padding:18px}
+.idle-lock-overlay.hidden{display:none!important}
+.idle-lock-panel{width:min(430px,100%);background:#FAF6F0;padding:26px;border-radius:15px;box-shadow:0 10px 35px #0005;text-align:center}
+.idle-lock-panel h2{color:#53131c;margin:0 0 12px}
+.idle-lock-panel input{width:100%;margin:12px 0;padding:12px;border:1px solid #bbb;border-radius:8px}
+.idle-lock-panel button{width:100%}
+.idle-lock-note{font-size:12px;color:#655a53;margin-top:9px}
+#mfaSetupDialog{width:min(460px,calc(100vw - 28px));padding:22px;border:1px solid #d9ccbe;border-radius:14px;background:#FAF6F0;color:#27171a}
+#mfaSetupDialog::backdrop{background:#1e1418be}
+#mfaQr{display:block;max-width:210px;max-height:210px;margin:12px auto}
+#mfaSecret{display:block;overflow-wrap:anywhere;padding:10px;background:#fff;border-radius:8px;direction:ltr;font-size:12px}
+#mfaSetupDialog input{display:block;width:100%;padding:12px;border:1px solid #bbb;border-radius:8px;margin:10px 0}
+#mfaSetupDialog .row{justify-content:space-between}
+@media(max-width:760px){#app{gap:10px}.calendar-nav{flex-wrap:wrap}.collapse-toggle{width:auto}}
 </style></head>
 <body>
 <header><div><h1>KWEIDER · Booking Manager</h1><small>إدارة حجوزات الطاولات · Staff only</small></div><div class="row" id="sessionTools"></div></header>
 <main>
 <section class="login card" id="login"><h2>Staff Sign In / دخول الموظفين</h2><p class="muted">Private access · Accounts assigned by management only</p><form id="loginForm"><div class="field"><label for="email">Email / البريد الإلكتروني</label><input id="email" autocomplete="username" type="email" required></div><div class="field"><label for="password">Password / كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div><button class="btn primary" type="submit">Sign In / دخول</button><button class="btn" id="registerBtn" type="button" style="width:100%;margin-top:9px">First-time staff setup / تفعيل حساب الموظف</button><p class="muted" style="margin-top:11px;font-size:12px">First-time setup requires an approved staff email, a password of at least 12 characters, and email verification. No access is granted before verification.</p></form></section>
 <section id="app" class="hidden">
-<div class="head"><div><h2>Booking Operations / إدارة الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small><div id="clockStrip" class="clock-strip" role="status">London time / وقت لندن: —</div><div id="dateWarning" class="date-warning hidden" role="status"></div><span id="explicitDate" class="explicit-date" aria-live="polite">Date / التاريخ: —</span></div><div class="row head-actions"><input type="date" id="date" lang="en-GB" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div><div class="alert-controls"><button type="button" class="btn primary" id="enableAlerts">🔔 Enable sound / تفعيل التنبيه</button><button type="button" class="btn" id="testBookingSound">Test booking / تجربة الحجز</button><button type="button" class="btn" id="testNoteSound">Test messages / تجربة الرسائل</button><span id="alertMode" class="alert-mode">Sound off · الصوت غير مفعل</span><small class="alert-mode">Page must remain open · يلزم إبقاء الصفحة مفتوحة</small><span id="realtimeStatus" class="alert-mode">Connecting… / جاري الاتصال</span></div><div id="bookingAlert" class="booking-alert hidden" role="alert" aria-live="assertive"></div><div id="noteAlert" class="note-alert hidden" role="alert" aria-live="assertive"></div><div class="quick-links"><button type="button" class="btn" id="toTimes">الأوقات · Times ↓</button><button type="button" class="btn" id="toBookings">الحجوزات · Bookings ↓</button></div></div>
-<div class="calendar-panel card"><div class="calendar-header"><h2>Reservation calendar / تقويم الحجوزات</h2><div class="calendar-nav"><button type="button" class="btn" id="monthPrev">‹</button><b id="monthLabel">—</b><button type="button" class="btn" id="monthNext">›</button><button type="button" class="btn" id="monthToday">Today / اليوم</button></div></div><div class="calendar-key">🟨 Yellow: upcoming confirmed bookings · الأصفر للحجوزات القادمة | Grey: past dates · الرمادي للأيام الماضية</div><div class="calendar-weekdays"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div class="calendar-days" id="calendarDays" aria-label="Booking days"></div></div><section class="card events-card" id="eventsSection">
-  <div class="row"><h2 class="grow">Special Events & Tarab Nights / المناسبات وسهرات الطرب</h2><div class="bookings-actions"><button class="btn primary" type="button" id="activeEvents">Upcoming / القادمة</button><button class="btn" type="button" id="archivedEvents">Archive / الأرشيف</button><button type="button" class="btn manager" id="addEvent">+ Add Event / إضافة مناسبة</button></div></div>
-  <p class="muted events-hint">Manager publishes guest-facing messages; drafts remain private. / المدير يتحكم برسائل الزبائن، والمسودات لا تظهر على الموقع.</p>
-  <div id="eventsList" class="events-list"></div>
+<div class="head"><div><h2>Booking Operations / إدارة الحجوزات</h2><small>90 min guest time + 30 min cleaning · 120 min occupancy</small><div id="syncStamp" class="sync-status" role="status">Checking bookings / فحص الحجوزات…</div><div id="monitorStamp" class="sync-status" role="status">Alerts: waiting / التنبيهات: بانتظار الاتصال</div><div id="clockStrip" class="clock-strip" role="status">London time / وقت لندن: —</div><div id="dateWarning" class="date-warning hidden" role="status"></div><span id="explicitDate" class="explicit-date" aria-live="polite">Date / التاريخ: —</span></div><div class="row head-actions"><input type="date" id="date" lang="en-GB" aria-label="Booking date"><button id="reload" class="btn">↻ Refresh</button><button class="btn primary manager" id="addPhone">+ Phone booking / حجز هاتفي</button></div><div class="alert-controls"><button type="button" class="btn primary" id="enableAlerts">🔔 Enable sound / تفعيل التنبيه</button><button type="button" class="btn" id="testBookingSound">Test booking / تجربة الحجز</button><button type="button" class="btn" id="testNoteSound">Test messages / تجربة الرسائل</button><span id="alertMode" class="alert-mode">Sound off · الصوت غير مفعل</span><small class="alert-mode">Page must remain open · يلزم إبقاء الصفحة مفتوحة</small><span id="realtimeStatus" class="alert-mode">Connecting… / جاري الاتصال</span></div><div id="bookingAlert" class="booking-alert hidden" role="alert" aria-live="assertive"></div><div id="noteAlert" class="note-alert hidden" role="alert" aria-live="assertive"></div><div class="quick-links"><button type="button" class="btn" id="toTimes">الأوقات · Times ↓</button><button type="button" class="btn" id="toBookings">الحجوزات · Bookings ↓</button></div></div>
+<div class="calendar-panel card"><div class="calendar-header"><h2>Reservation calendar / تقويم الحجوزات</h2><div class="calendar-nav"><button type="button" class="btn" id="monthPrev">‹</button><b id="monthLabel">—</b><button type="button" class="btn" id="monthNext">›</button><button type="button" class="btn" id="monthToday">Today / اليوم</button><button type="button" id="toggleCalendar" class="btn collapse-toggle" aria-expanded="false" aria-controls="calendarBody">Show calendar / عرض التقويم</button></div></div><div id="calendarBody" class="hidden"><div class="calendar-key">🟨 Yellow: upcoming confirmed bookings · الأصفر للحجوزات القادمة | Grey: past dates · الرمادي للأيام الماضية</div><div class="calendar-weekdays"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div class="calendar-days" id="calendarDays" aria-label="Booking days"></div></div></div><section class="card events-card" id="eventsSection">
+  <div class="row"><h2 class="grow">Special Events & Tarab Nights / المناسبات وسهرات الطرب</h2><div class="bookings-actions"><button class="btn primary" type="button" id="activeEvents">Upcoming / القادمة</button><button class="btn" type="button" id="archivedEvents">Archive / الأرشيف</button><button type="button" class="btn manager" id="addEvent">+ Add Event / إضافة مناسبة</button><button type="button" id="toggleEvents" class="btn collapse-toggle" aria-expanded="false" aria-controls="eventsBody">Show events / عرض المناسبات</button></div></div>
+  <div id="eventsBody" class="hidden"><p class="muted events-hint">Manager publishes guest-facing messages; drafts remain private. / المدير يتحكم برسائل الزبائن، والمسودات لا تظهر على الموقع.</p>
+  <div id="eventsList" class="events-list"></div></div>
  </section><div class="kpi"><div class="card"><span>Confirmed bookings / الحجوزات</span><strong id="kBookings">—</strong></div><div class="card"><span>People booked / الأشخاص</span><strong id="kPeople">—</strong></div><div class="card"><span>Active holds / حجوزات مؤقتة</span><strong id="kHolds">—</strong></div><div class="card"><span>Max capacity / السعة</span><strong id="kCapacity">—</strong><button type="button" class="btn manager" id="quickCapacity">Adjust / تعديل السعة</button></div></div>
 <div class="card capacity-card" id="capacitySection"><div class="row capacity-heading"><h2 class="grow">Capacity by time / المقاعد حسب الوقت</h2><small>90 min guests + 30 min cleaning</small></div><div class="capacity-summary"><span>Availability for / التوافر لعدد:</span><select id="availabilityParty" aria-label="Number of guests for availability"><option value="1">1 guest</option><option value="2">2 guests</option><option value="4">4 guests</option><option value="6">6 guests</option><option value="10">10 guests</option><option value="20">20 guests</option><option value="40">40 guests</option></select><span>All times · كل الأوقات</span><span id="slotCount" class="pill">—</span><button type="button" class="btn" id="toggleTimes" aria-expanded="true" aria-controls="capacityTable">إخفاء الجدول · Hide</button></div><div class="capacity-tablewrap" id="capacityTable"><table class="capacity-table" aria-label="Capacity by time"><thead><tr><th>Time<br>الوقت</th><th>Booked<br>محجوز</th><th>Held<br>مؤقت</th><th>Available<br>متاح</th><th>Status<br>الحالة</th></tr></thead><tbody id="timeline"></tbody></table></div><div id="overrideChips" class="overrides"></div>
 <div class="row manager management-actions"><button class="btn" id="addOverride">Set capacity by date & time / تحديد السعة حسب التاريخ والوقت</button><button class="btn" id="auditBtn">Activity log / سجل التغييرات</button></div></div>
@@ -312,6 +343,8 @@ main,header,#app,.card,.split,.head,.row,.capacity-card,.bookings-panel{min-widt
  <form id="notesForm"><label for="noteMessage">Write a note / اكتب ملاحظة</label><textarea id="noteMessage" rows="2" maxlength="600" required placeholder="Message for the team / رسالة لفريق العمل"></textarea><div class="row notes-actions"><small class="grow">Internal staff notes only · ملاحظات داخلية للموظفين</small><button type="submit" class="btn primary" id="sendNote">Post note / إرسال الملاحظة</button></div></form>
  </section><div id="message" role="status" aria-live="polite"></div><section id="kitchenPrint" class="kitchen-print" aria-hidden="true"></section>
 </section>
+<div id="idleLockScreen" class="idle-lock-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="idleLockTitle"><div class="idle-lock-panel"><h2 id="idleLockTitle">Screen locked / الشاشة مقفلة</h2><p>Enter your password to unlock. Staff notifications keep checking while the page is visible.<br>أدخل كلمة المرور لفتح الشاشة؛ يستمر فحص التنبيهات طالما الصفحة ظاهرة.</p><form id="idleUnlockForm"><input type="password" id="idleUnlockPassword" autocomplete="current-password" aria-label="Password" placeholder="Password / كلمة المرور" required><button type="submit" class="btn primary" id="idleUnlockButton">Unlock / فتح الشاشة</button></form><p id="idleUnlockError" class="idle-lock-note" role="alert"></p><button class="btn" type="button" id="idleSignout">Sign out / تسجيل خروج</button><div class="idle-lock-note">Security screen lock · قفل شاشة محلي</div></div></div>
+<dialog id="mfaSetupDialog" aria-labelledby="mfaSetupTitle"><h2 id="mfaSetupTitle">Enable two-step verification / تفعيل التحقق بخطوتين</h2><p>Scan this QR code with an authenticator app. Keep the secret private.<br>امسح الرمز بتطبيق المصادقة واحتفظ بالمفتاح سرياً.</p><img id="mfaQr" alt="TOTP QR code"><code id="mfaSecret"></code><label for="mfaSetupCode">6-digit code / الرمز المكون من 6 أرقام</label><input id="mfaSetupCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000"><p id="mfaSetupError" role="alert"></p><div class="row"><button type="button" class="btn" id="mfaCancel">Cancel / إلغاء</button><button type="button" class="btn primary" id="mfaVerify">Verify & enable / تحقق وتفعيل</button></div></dialog>
 <dialog id="dialog"><div id="dialogBody"></div><div class="dialog-actions"><button class="btn" id="dialogClose" type="button">Cancel / إلغاء</button><button class="btn primary" id="dialogSave" type="button">Save / حفظ</button></div></dialog>
 <div class="footer">KWEIDER LIMITED · Protected staff portal · Europe/London time</div>
 </main>
@@ -370,6 +403,18 @@ async function ensureFreshSession(){
 }
 
 let bookingView='active',eventView='active',availabilityPartySize=1,lastObservedLondonDate=today();
+const IDLE_LOCK_MS=15*60*1000;let lastActivityAt=Date.now(),screenLocked=false,mfaPendingFactorId=null;
+const refreshActivity=()=>{if(!screenLocked)lastActivityAt=Date.now()};
+function lockStaffScreen(){
+ if(!user||screenLocked)return;
+ screenLocked=true;$('idleUnlockError').textContent='';$('idleUnlockPassword').value='';
+ $('idleLockScreen').classList.remove('hidden');$('idleUnlockPassword').focus();
+}
+function unlockStaffScreen(){screenLocked=false;lastActivityAt=Date.now();$('idleUnlockPassword').value='';$('idleLockScreen').classList.add('hidden')}
+function toggleCollapsible(toggleId,bodyId,openLabel,closedLabel){
+ const panel=$(bodyId),open=panel.classList.contains('hidden');
+ panel.classList.toggle('hidden',!open);$(toggleId).setAttribute('aria-expanded',String(open));$(toggleId).textContent=open?openLabel:closedLabel;
+}
 let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),knownNoteIds=new Set(),alertedStarts=new Set(),monitorTimer=null,checkingMonitor=false,lastNoticeDay=null,pendingUnreadNote=null,lastAlertNoteId=null,rtClient=null,rtChannel=null,rtGeneration=0,rtConnected=false;
 const AUDIO_CONTEXT=window.AudioContext||window.webkitAudioContext;
 // These are two original browser-generated tones (no external audio files).
@@ -699,6 +744,7 @@ async function monitorBookings(){
  checkingMonitor=true;
  try{
   const r=await request('monitor'),items=r.recent||[];
+  $('monitorStamp').classList.remove('issue');$('monitorStamp').textContent='Alerts checked / آخر فحص للتنبيهات: '+fmtTime(r.server_utc||new Date());
   if(r.server_utc){const t=Date.parse(r.server_utc);if(Number.isFinite(t)){serverClockOffset=t-Date.now();clockVerified=true;tickClock()}}
   const fresh=new Set(items.map(x=>String(x.id)));
   if(monitorStarted){
@@ -731,7 +777,7 @@ async function monitorBookings(){
    alertedStarts.add(String(due.id));
    notifyBooking('Arriving within 15 minutes / وصول خلال 15 دقيقة: '+due.reference+' · '+due.guests+' guests · '+fmtTime(due.start_at));
   }
- }catch(e){console.warn('Monitor unavailable',e)}
+ }catch(e){$('monitorStamp').classList.add('issue');$('monitorStamp').textContent='Alerts check failed / تعذر فحص التنبيهات';console.warn('Monitor unavailable',e)}
  finally{checkingMonitor=false}
 }
 function initializeMonitor(){
@@ -796,6 +842,68 @@ async function uploadEventImage(eventId,file){
  if(!res.ok||out.ok!==true)throw Error('Image upload failed / تعذر رفع الصورة: '+(out.error||'UPLOAD_FAILED'));
 }
 
+
+/* Supabase GoTrue MFA TOTP: enrollment is voluntary until the factor is verified,
+   after which the server requires an AAL2 session on every staff API call. */
+async function mfaAuthRequest(path,method='GET',body=null,bearer=token){
+ const res=await fetch(RT_BASE+'/auth/v1'+path,{
+  method,headers:{apikey:RT_KEY,Authorization:'Bearer '+bearer,...(body?{'Content-Type':'application/json'}:{})},
+  ...(body?{body:JSON.stringify(body)}:{}),cache:'no-store'
+ });
+ const out=await res.json().catch(()=>({}));
+ if(!res.ok)throw Error(out.msg||out.message||out.error_description||out.error||'MFA_REQUEST_FAILED');
+ return out;
+}
+async function completeMfaSignIn(auth){
+ const factors=await mfaAuthRequest('/factors','GET',null,auth.access_token);
+ const totp=Array.isArray(factors.totp)?factors.totp:(Array.isArray(factors.all)?factors.all.filter(x=>x.factor_type==='totp'):[]);
+ const factor=totp.find(x=>x.status==='verified');
+ if(!factor?.id)throw Error('VERIFIED_FACTOR_MISSING');
+ const code=prompt('Enter the 6-digit code from your authenticator app. / أدخل رمز المصادقة المكون من 6 أرقام');
+ if(!code||!/^\d{6}$/.test(code.trim()))throw Error('MFA_CODE_REQUIRED');
+ const uri='/factors/'+encodeURIComponent(factor.id);
+ const challenge=await mfaAuthRequest(uri+'/challenge','POST',{},auth.access_token);
+ const verified=await mfaAuthRequest(uri+'/verify','POST',{challenge_id:challenge.id,code:code.trim()},auth.access_token);
+ if(!verified.access_token||!verified.refresh_token)throw Error('MFA_SESSION_MISSING');
+ return {...auth,...verified,mfa_required:false};
+}
+async function startMfaEnrollment(){
+ if(!user||user.mfa_enabled)return;
+ try{
+  await ensureFreshSession();
+  const factor=await mfaAuthRequest('/factors','POST',{factor_type:'totp',friendly_name:'KWEIDER Booking Manager'});
+  if(!factor?.id||!factor?.totp?.secret||!factor?.totp?.qr_code)throw Error('MFA_ENROLL_INCOMPLETE');
+  mfaPendingFactorId=String(factor.id);
+  const svg=String(factor.totp.qr_code);
+  $('mfaQr').src=svg.startsWith('data:image/svg+xml')?svg:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  $('mfaSecret').textContent=String(factor.totp.secret);
+  $('mfaSetupCode').value='';$('mfaSetupError').textContent='';
+  $('mfaSetupDialog').showModal();
+ }catch(err){alert('Could not start 2FA setup / تعذر بدء التحقق بخطوتين: '+err.message)}
+}
+$('mfaSetupDialog').addEventListener('close',()=>{$('mfaSecret').textContent='';$('mfaQr').removeAttribute('src');mfaPendingFactorId=null});
+$('mfaCancel').onclick=()=>$('mfaSetupDialog').close();
+$('mfaVerify').onclick=async()=>{
+ const code=$('mfaSetupCode').value.trim(),btn=$('mfaVerify');
+ if(!mfaPendingFactorId||!/^\d{6}$/.test(code)){$('mfaSetupError').textContent='Enter 6 digits / أدخل 6 أرقام';return}
+ btn.disabled=true;$('mfaSetupError').textContent='';
+ try{
+  await ensureFreshSession();
+  const uri='/factors/'+encodeURIComponent(mfaPendingFactorId);
+  const challenge=await mfaAuthRequest(uri+'/challenge','POST',{});
+  const verified=await mfaAuthRequest(uri+'/verify','POST',{challenge_id:challenge.id,code});
+  if(!verified.access_token||!verified.refresh_token)throw Error('MFA_SESSION_MISSING');
+  saveStaffSession(verified);
+  if(rtClient)await rtClient.realtime.setAuth(token);
+  user.mfa_enabled=true;$('mfaSetupDialog').close();
+  if($('mfaEnrollButton')){
+   const label=document.createElement('span');label.className='pill';label.textContent='2FA active / مفعل';
+   $('mfaEnrollButton').replaceWith(label);
+  }
+  alert('Two-step verification is active / تم تفعيل التحقق بخطوتين');
+ }catch(err){$('mfaSetupError').textContent='Verification failed / تعذر التحقق: '+String(err.message||'MFA')}
+ finally{btn.disabled=false}
+};
 const alertMsg=(msg,bad=false)=>{$('message').textContent=msg;$('message').className=bad?'bad':'';if(bad)console.warn(msg)};
 async function request(action,payload={}){
  const isAuthAction=action==='login'||action==='register';
@@ -809,11 +917,15 @@ async function request(action,payload={}){
  if(!r.ok||out.ok!==true)throw Error(out.error||'REQUEST_FAILED');
  return out;
 }
-function logout(){stopRealtime();token='';refreshToken='';tokenExpiresAt=0;user=null;data=null;monitorStarted=false;knownIds.clear();knownNoteIds.clear();checkingMonitor=false;pendingUnreadNote=null;lastAlertNoteId=null;if(monitorTimer){clearInterval(monitorTimer);monitorTimer=null}sessionStorage.removeItem('kb_staff_token');sessionStorage.removeItem('kb_staff_refresh_token');sessionStorage.removeItem('kb_staff_expires_at');$('login').classList.remove('hidden');$('app').classList.add('hidden');$('sessionTools').innerHTML='';}
+function logout(){stopRealtime();token='';refreshToken='';tokenExpiresAt=0;user=null;data=null;monitorStarted=false;knownIds.clear();knownNoteIds.clear();checkingMonitor=false;pendingUnreadNote=null;lastAlertNoteId=null;if(monitorTimer){clearInterval(monitorTimer);monitorTimer=null}sessionStorage.removeItem('kb_staff_token');sessionStorage.removeItem('kb_staff_refresh_token');sessionStorage.removeItem('kb_staff_expires_at');unlockStaffScreen();$('login').classList.remove('hidden');$('app').classList.add('hidden');$('sessionTools').innerHTML='';}
 async function enter(){
  const r=await request('me');user=r.staff;$('login').classList.add('hidden');$('app').classList.remove('hidden');
- $('sessionTools').innerHTML='<span class="pill">'+esc(user.name)+' · '+esc(user.role)+'</span><button id="signout" class="btn">Sign Out</button>';
- $('signout').onclick=logout;document.querySelectorAll('.manager').forEach(x=>x.classList.toggle('hidden',!editor()));
+ $('sessionTools').innerHTML='<span class="pill">'+esc(user.name)+' · '+esc(user.role)+'</span>'+
+ (user.mfa_enabled?'<span class="pill">2FA active / مفعل</span>':'<button type="button" id="mfaEnrollButton" class="btn">Enable 2FA / تفعيل حماية إضافية</button>')+
+ '<button type="button" id="manualScreenLock" class="btn">Lock / قفل</button><button id="signout" class="btn">Sign Out</button>';
+ $('signout').onclick=logout;$('manualScreenLock').onclick=lockStaffScreen;
+ if($('mfaEnrollButton'))$('mfaEnrollButton').onclick=startMfaEnrollment;
+ document.querySelectorAll('.manager').forEach(x=>x.classList.toggle('hidden',!editor()));
  tickClock();initializeMonitor();startRealtime();await Promise.all([load(),loadCalendar(),loadEvents(),loadNotes()]);
 }
 async function load(){
@@ -823,12 +935,13 @@ async function load(){
   $('kBookings').textContent=active.length;$('kPeople').textContent=active.reduce((n,b)=>n+Number(b.guests),0);
   $('kHolds').textContent=Number(r.holds?.covers||0)+' covers';$('kCapacity').textContent=r.settings?.capacity||40;
   renderTimeline();renderOverrides();renderRows();tickClock();loadNotes();
+   $('syncStamp').classList.remove('issue');$('syncStamp').textContent='Data refreshed / تحديث البيانات: '+fmtTime(new Date(Date.now()+serverClockOffset));
   if(selected){selected=r.bookings.find(b=>b.id===selected.id)||null;
     if(!selected||isArchivedBooking(selected)!==(bookingView==='archive'))collapseDetail();
     else renderDetail();
   }
   alertMsg(''); 
- }catch(e){alertMsg('Could not load bookings: '+e.message,true)}
+ }catch(e){$('syncStamp').classList.add('issue');$('syncStamp').textContent='Update failed / فشل التحديث';alertMsg('Could not load bookings: '+e.message,true)}
  finally{$('reload').disabled=false}
 }
 function renderTimeline(){
@@ -866,6 +979,7 @@ function renderOverrides(){
  });
 }
 function arrival(b){return b.attendance==='ARRIVED'?'Arrived / وصل':b.attendance==='DEPARTED'?'Departed / غادر':'Expected / منتظر'}
+function bookingOccupancyMinutes(b){const start=Date.parse(b.start_at),end=Date.parse(b.end_at);return Number.isFinite(start)&&Number.isFinite(end)&&end>start?Math.round((end-start)/60000):null;}
 function isArchivedBooking(b){
  const end=Date.parse(b.end_at),current=Date.now()+serverClockOffset;
  return b.status!=='CONFIRMED'||(Number.isFinite(end)&&end<=current);
@@ -879,7 +993,7 @@ function renderRows(){
  );
  $('bookingsViewCount').textContent=filtered.length+' / '+(bookingView==='archive'?'Archived':'Current');
  $('bookingRows').innerHTML=filtered.map(b=>'<tr class="booking-entry" data-id="'+esc(b.id)+'" tabindex="0" role="button" aria-pressed="'+(selected?.id===b.id)+'" aria-label="Open booking '+esc(b.reference)+'">'+
- '<td data-label="Time / الوقت"><b>'+fmtTime(b.start_at)+'</b><small class="mobile-booking-subtitle">90 + 30 min</small></td>'+
+ '<td data-label="Time / الوقت"><b>'+fmtTime(b.start_at)+'</b><small class="mobile-booking-subtitle">'+esc(bookingOccupancyMinutes(b)===120?'90 + 30 min':String(bookingOccupancyMinutes(b)??'—')+' min')+'</small></td>'+
  '<td data-label="Guest / الزبون"><b>'+esc(b.customer_name||'—')+'</b><br><small>'+esc(b.source)+'</small></td>'+
  '<td data-label="Guests / الأشخاص">'+Number(b.guests)+'</td>'+
  '<td data-label="Arrival / الحضور"><span class="pill '+(b.attendance==='ARRIVED'?'arrived':b.status!=='CONFIRMED'?'closed':'')+'">'+esc(b.status==='CONFIRMED'?arrival(b):b.status)+'</span></td>'+
@@ -916,8 +1030,8 @@ function renderDetail(){
  detailRow('Reference / رقم الحجز',b.reference)+detailRow('Guest / الاسم',b.customer_name)+
  detailRow('Phone / الهاتف',b.phone)+detailRow('Email',b.email)+
  detailRow('Date / التاريخ',fmtDate(b.start_at))+detailRow('Arrival / الوصول',fmtTime(b.start_at))+
- detailRow('Guest stay / جلسة الزبون','90 minutes')+detailRow('Cleaning / التنظيف','30 minutes')+
- detailRow('Total occupancy / الإشغال','120 minutes')+detailRow('Covers / الأشخاص',b.guests)+
+ (bookingOccupancyMinutes(b)===120?detailRow('Guest stay / جلسة الزبون','90 minutes')+detailRow('Cleaning / التنظيف','30 minutes'):detailRow('Historical booking / حجز سابق','Original stored period preserved / الفترة الأصلية محفوظة'))+
+ detailRow('Total occupancy / الإشغال',bookingOccupancyMinutes(b)===null?'—':bookingOccupancyMinutes(b)+' minutes')+detailRow('Covers / الأشخاص',b.guests)+
  detailRow('Attendance / الحضور',arrival(b))+
  detailRow('Payment / حالة الدفع',b.payment_status)+detailRow('Paid / المدفوع',money(b.amount_paid))+
  detailRow('Menu total / مجموع الطلب',money(b.menu_total))+detailRow('Remaining / المتبقي',money(b.remaining_amount))+
@@ -926,7 +1040,8 @@ function renderDetail(){
  '<div class="row" style="margin-top:16px">'+
  (b.status==='CONFIRMED'&&b.attendance==='PENDING'?'<button class="btn primary" id="arrive">✓ Check in / وصول</button>':'')+
  (b.status==='CONFIRMED'&&b.attendance==='ARRIVED'?'<button class="btn primary" id="depart">✓ Check out / مغادرة</button>':'')+
- (editor()&&b.status==='CONFIRMED'?'<button class="btn" id="edit">Edit / تعديل</button><button class="btn warn" id="cancelBooking">Cancel booking</button>':'')+
+ (editor()&&b.status==='CONFIRMED'&&b.source==='PHONE'&&Number(b.amount_paid||0)===0?'<button class="btn" id="edit">Edit / تعديل</button><button class="btn warn" id="cancelBooking">Cancel booking</button>':'')+
+ (editor()&&b.status==='CONFIRMED'&&(b.source!=='PHONE'||Number(b.amount_paid||0)>0)?'<span class="pill">Online / paid booking: financial review required · يرجى مراجعة المدفوعات</span>':'')+
  '</div>';
  if($('closeDetail'))$('closeDetail').onclick=collapseDetail;
  if($('arrive'))$('arrive').onclick=()=>doAttendance('ARRIVED');
@@ -1034,7 +1149,7 @@ $('loginForm').onsubmit=async e=>{
  e.preventDefault();const btn=$('loginForm').querySelector('button');btn.disabled=true;
  try{
    let r;
-   try{r=await request('login',{email:$('email').value,password:$('password').value});}
+   try{r=await request('login',{email:$('email').value,password:$('password').value});if(r.mfa_required)r=await completeMfaSignIn(r);}
    catch(err){
      // A confirmed, pre-approved email can claim the pre-assigned role once.
      if(err.message!=='ACCOUNT_NOT_ACTIVATED')throw err;
@@ -1049,14 +1164,33 @@ $('loginForm').onsubmit=async e=>{
      r=await request('me');
      r.access_token=token;r.refresh_token=t.refresh_token;r.expires_in=t.expires_in;
    }
-   saveStaffSession(r);$('password').value='';await enter();
+   saveStaffSession(r);$('password').value='';lastActivityAt=Date.now();await enter();
  }catch(err){alert('Sign in failed: '+err.message);logout()}
  finally{btn.disabled=false}
 };
 
 const jumpTo=id=>$(id)?.scrollIntoView({behavior:'smooth',block:'start'});
-$('toTimes').onclick=()=>jumpTo('capacitySection');
+$('toggleCalendar').onclick=()=>toggleCollapsible('toggleCalendar','calendarBody','Hide calendar / إخفاء التقويم','Show calendar / عرض التقويم');
+$('toggleEvents').onclick=()=>toggleCollapsible('toggleEvents','eventsBody','Hide events / إخفاء المناسبات','Show events / عرض المناسبات');
+$('toTimes').onclick=()=>{jumpTo('capacitySection');if($('capacityTable').classList.contains('hidden'))$('toggleTimes').click();};
 $('toBookings').onclick=()=>jumpTo('bookingsPanel');
+$('idleSignout').onclick=logout;
+$('idleUnlockForm').onsubmit=async e=>{
+ e.preventDefault();if(!screenLocked)return;
+ const password=$('idleUnlockPassword').value,btn=$('idleUnlockButton');
+ btn.disabled=true;$('idleUnlockError').textContent='';
+ try{
+  let result=await request('login',{email:user.email,password});
+  if(result.mfa_required)result=await completeMfaSignIn(result);
+  saveStaffSession(result);
+  if(rtClient)await rtClient.realtime.setAuth(token);
+  unlockStaffScreen();await load();await monitorBookings();
+ }catch(err){$('idleUnlockPassword').value='';$('idleUnlockError').textContent='Unlock failed / فشل فتح الشاشة: '+String(err.message||'AUTH');}
+ finally{btn.disabled=false}
+};
+['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,refreshActivity,{passive:true}));
+setInterval(()=>{if(user&&!screenLocked&&Date.now()-lastActivityAt>IDLE_LOCK_MS)lockStaffScreen()},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user&&!screenLocked&&Date.now()-lastActivityAt>IDLE_LOCK_MS)lockStaffScreen()});
 $('toggleTimes').onclick=()=>{
  const panel=$('capacityTable'),closed=panel.classList.toggle('hidden');
  $('toggleTimes').setAttribute('aria-expanded',String(!closed));
