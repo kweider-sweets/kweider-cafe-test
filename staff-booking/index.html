@@ -370,7 +370,7 @@ async function ensureFreshSession(){
 }
 
 let bookingView='active',eventView='active',availabilityPartySize=1,lastObservedLondonDate=today();
-let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),knownNoteIds=new Set(),alertedStarts=new Set(),monitorTimer=null,checkingMonitor=false,lastNoticeDay=null,pendingUnreadNote=null,lastAlertNoteId=null,rtClient=null,rtChannel=null,rtGeneration=0,rtConnected=false;
+let monthView=today().slice(0,7),calendarCounts={},eventRows=[],eventEditing=null,alertsEnabled=false,audioCtx=null,monitorStarted=false,knownIds=new Set(),knownNoteIds=new Set(),alertedStarts=new Set(),monitorTimer=null,checkingMonitor=false,lastNoticeDay=null,pendingUnreadNote=null,lastAlertNoteId=null,rtClient=null,rtChannel=null,rtGeneration=0,rtConnected=false,rtRetryTimer=null,rtRetryDelay=3000;
 const AUDIO_CONTEXT=window.AudioContext||window.webkitAudioContext;
 // These are two original browser-generated tones (no external audio files).
 // Browser output gain cannot override iPad system volume or silent-mode restrictions.
@@ -651,10 +651,23 @@ function setRealtimeStatus(active){
  rtConnected=active;
  const el=$('realtimeStatus');
  if(!el)return;
- el.textContent=active?'● Live / اتصال فوري':'○ Reconnecting · backup active / إعادة اتصال · الفحص الاحتياطي';
+ el.textContent=active?'● Channel connected / القناة متصلة':'○ Reconnecting · backup active / إعادة اتصال · الفحص الاحتياطي';
  el.classList.toggle('live-connected',active);
 }
+function cancelRealtimeRetry(){
+ if(rtRetryTimer!==null){clearTimeout(rtRetryTimer);rtRetryTimer=null}
+}
+function scheduleRealtimeRetry(){
+ if(rtRetryTimer!==null||!user||document.hidden)return;
+ const delay=rtRetryDelay;
+ rtRetryDelay=Math.min(30000,rtRetryDelay*2);
+ rtRetryTimer=setTimeout(()=>{
+  rtRetryTimer=null;
+  if(user&&!rtConnected&&!document.hidden)startRealtime();
+ },delay);
+}
 async function stopRealtime(){
+ cancelRealtimeRetry();rtRetryDelay=3000;
  ++rtGeneration;
  const previousClient=rtClient,previousChannel=rtChannel;
  rtClient=null;rtChannel=null;setRealtimeStatus(false);
@@ -663,6 +676,7 @@ async function stopRealtime(){
  }
 }
 async function startRealtime(){
+ cancelRealtimeRetry();
  const generation=++rtGeneration;
  const previousClient=rtClient,previousChannel=rtChannel;
  rtClient=null;rtChannel=null;setRealtimeStatus(false);
@@ -672,6 +686,8 @@ async function startRealtime(){
   await ensureFreshSession();
   if(generation!==rtGeneration||!token)return;
   const client=window.supabase.createClient(RT_BASE,RT_KEY,{
+   // Give Realtime's heartbeat the current staff JWT, not an empty Auth session.
+   accessToken:async()=>token||null,
    auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
   });
   rtClient=client;
@@ -686,12 +702,20 @@ async function startRealtime(){
    if(!/^[0-9]+$/.test(id)||!/^[0-9a-f-]{36}$/i.test(author)||author===String(user.id))return;
    notifyNote({id,author_id:author,author_name:String(payload.author_name||'Staff'),day:String(payload.day||today())});
    monitorBookings(); // reconcile with persisted unread records
-  }).subscribe(status=>{
+  }).subscribe((status,error)=>{
    if(generation!==rtGeneration)return;
-   if(status==='SUBSCRIBED'){setRealtimeStatus(true);monitorBookings()}
-   else if(['CLOSED','CHANNEL_ERROR','TIMED_OUT'].includes(status))setRealtimeStatus(false);
+   if(status==='SUBSCRIBED'){
+    rtRetryDelay=3000;cancelRealtimeRetry();setRealtimeStatus(true);monitorBookings();
+   }else if(['CLOSED','CHANNEL_ERROR','TIMED_OUT'].includes(status)){
+    setRealtimeStatus(false);
+    if(error)console.warn('Realtime channel',status,error);
+    scheduleRealtimeRetry();
+   }
   });
- }catch(e){console.warn('Realtime unavailable; polling fallback remains',e);setRealtimeStatus(false)}
+ }catch(e){
+  console.warn('Realtime unavailable; polling fallback remains',e);
+  setRealtimeStatus(false);scheduleRealtimeRetry();
+ }
 }
 
 async function monitorBookings(){
