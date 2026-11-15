@@ -842,6 +842,68 @@ async function uploadEventImage(eventId,file){
  if(!res.ok||out.ok!==true)throw Error('Image upload failed / تعذر رفع الصورة: '+(out.error||'UPLOAD_FAILED'));
 }
 
+
+/* Supabase GoTrue MFA TOTP: enrollment is voluntary until the factor is verified,
+   after which the server requires an AAL2 session on every staff API call. */
+async function mfaAuthRequest(path,method='GET',body=null,bearer=token){
+ const res=await fetch(RT_BASE+'/auth/v1'+path,{
+  method,headers:{apikey:RT_KEY,Authorization:'Bearer '+bearer,...(body?{'Content-Type':'application/json'}:{})},
+  ...(body?{body:JSON.stringify(body)}:{}),cache:'no-store'
+ });
+ const out=await res.json().catch(()=>({}));
+ if(!res.ok)throw Error(out.msg||out.message||out.error_description||out.error||'MFA_REQUEST_FAILED');
+ return out;
+}
+async function completeMfaSignIn(auth){
+ const factors=await mfaAuthRequest('/factors','GET',null,auth.access_token);
+ const totp=Array.isArray(factors.totp)?factors.totp:(Array.isArray(factors.all)?factors.all.filter(x=>x.factor_type==='totp'):[]);
+ const factor=totp.find(x=>x.status==='verified');
+ if(!factor?.id)throw Error('VERIFIED_FACTOR_MISSING');
+ const code=prompt('Enter the 6-digit code from your authenticator app. / أدخل رمز المصادقة المكون من 6 أرقام');
+ if(!code||!/^\d{6}$/.test(code.trim()))throw Error('MFA_CODE_REQUIRED');
+ const uri='/factors/'+encodeURIComponent(factor.id);
+ const challenge=await mfaAuthRequest(uri+'/challenge','POST',{},auth.access_token);
+ const verified=await mfaAuthRequest(uri+'/verify','POST',{challenge_id:challenge.id,code:code.trim()},auth.access_token);
+ if(!verified.access_token||!verified.refresh_token)throw Error('MFA_SESSION_MISSING');
+ return {...auth,...verified,mfa_required:false};
+}
+async function startMfaEnrollment(){
+ if(!user||user.mfa_enabled)return;
+ try{
+  await ensureFreshSession();
+  const factor=await mfaAuthRequest('/factors','POST',{factor_type:'totp',friendly_name:'KWEIDER Booking Manager'});
+  if(!factor?.id||!factor?.totp?.secret||!factor?.totp?.qr_code)throw Error('MFA_ENROLL_INCOMPLETE');
+  mfaPendingFactorId=String(factor.id);
+  const svg=String(factor.totp.qr_code);
+  $('mfaQr').src=svg.startsWith('data:image/svg+xml')?svg:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  $('mfaSecret').textContent=String(factor.totp.secret);
+  $('mfaSetupCode').value='';$('mfaSetupError').textContent='';
+  $('mfaSetupDialog').showModal();
+ }catch(err){alert('Could not start 2FA setup / تعذر بدء التحقق بخطوتين: '+err.message)}
+}
+$('mfaSetupDialog').addEventListener('close',()=>{$('mfaSecret').textContent='';$('mfaQr').removeAttribute('src');mfaPendingFactorId=null});
+$('mfaCancel').onclick=()=>$('mfaSetupDialog').close();
+$('mfaVerify').onclick=async()=>{
+ const code=$('mfaSetupCode').value.trim(),btn=$('mfaVerify');
+ if(!mfaPendingFactorId||!/^\d{6}$/.test(code)){$('mfaSetupError').textContent='Enter 6 digits / أدخل 6 أرقام';return}
+ btn.disabled=true;$('mfaSetupError').textContent='';
+ try{
+  await ensureFreshSession();
+  const uri='/factors/'+encodeURIComponent(mfaPendingFactorId);
+  const challenge=await mfaAuthRequest(uri+'/challenge','POST',{});
+  const verified=await mfaAuthRequest(uri+'/verify','POST',{challenge_id:challenge.id,code});
+  if(!verified.access_token||!verified.refresh_token)throw Error('MFA_SESSION_MISSING');
+  saveStaffSession(verified);
+  if(rtClient)await rtClient.realtime.setAuth(token);
+  user.mfa_enabled=true;$('mfaSetupDialog').close();
+  if($('mfaEnrollButton')){
+   const label=document.createElement('span');label.className='pill';label.textContent='2FA active / مفعل';
+   $('mfaEnrollButton').replaceWith(label);
+  }
+  alert('Two-step verification is active / تم تفعيل التحقق بخطوتين');
+ }catch(err){$('mfaSetupError').textContent='Verification failed / تعذر التحقق: '+String(err.message||'MFA')}
+ finally{btn.disabled=false}
+};
 const alertMsg=(msg,bad=false)=>{$('message').textContent=msg;$('message').className=bad?'bad':'';if(bad)console.warn(msg)};
 async function request(action,payload={}){
  const isAuthAction=action==='login'||action==='register';
@@ -1087,7 +1149,7 @@ $('loginForm').onsubmit=async e=>{
  e.preventDefault();const btn=$('loginForm').querySelector('button');btn.disabled=true;
  try{
    let r;
-   try{r=await request('login',{email:$('email').value,password:$('password').value});}
+   try{r=await request('login',{email:$('email').value,password:$('password').value});if(r.mfa_required)r=await completeMfaSignIn(r);}
    catch(err){
      // A confirmed, pre-approved email can claim the pre-assigned role once.
      if(err.message!=='ACCOUNT_NOT_ACTIVATED')throw err;
@@ -1102,7 +1164,7 @@ $('loginForm').onsubmit=async e=>{
      r=await request('me');
      r.access_token=token;r.refresh_token=t.refresh_token;r.expires_in=t.expires_in;
    }
-   saveStaffSession(r);$('password').value='';await enter();
+   saveStaffSession(r);$('password').value='';lastActivityAt=Date.now();await enter();
  }catch(err){alert('Sign in failed: '+err.message);logout()}
  finally{btn.disabled=false}
 };
@@ -1112,6 +1174,23 @@ $('toggleCalendar').onclick=()=>toggleCollapsible('toggleCalendar','calendarBody
 $('toggleEvents').onclick=()=>toggleCollapsible('toggleEvents','eventsBody','Hide events / إخفاء المناسبات','Show events / عرض المناسبات');
 $('toTimes').onclick=()=>{jumpTo('capacitySection');if($('capacityTable').classList.contains('hidden'))$('toggleTimes').click();};
 $('toBookings').onclick=()=>jumpTo('bookingsPanel');
+$('idleSignout').onclick=logout;
+$('idleUnlockForm').onsubmit=async e=>{
+ e.preventDefault();if(!screenLocked)return;
+ const password=$('idleUnlockPassword').value,btn=$('idleUnlockButton');
+ btn.disabled=true;$('idleUnlockError').textContent='';
+ try{
+  let result=await request('login',{email:user.email,password});
+  if(result.mfa_required)result=await completeMfaSignIn(result);
+  saveStaffSession(result);
+  if(rtClient)await rtClient.realtime.setAuth(token);
+  unlockStaffScreen();await load();await monitorBookings();
+ }catch(err){$('idleUnlockPassword').value='';$('idleUnlockError').textContent='Unlock failed / فشل فتح الشاشة: '+String(err.message||'AUTH');}
+ finally{btn.disabled=false}
+};
+['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,refreshActivity,{passive:true}));
+setInterval(()=>{if(user&&!screenLocked&&Date.now()-lastActivityAt>IDLE_LOCK_MS)lockStaffScreen()},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user&&!screenLocked&&Date.now()-lastActivityAt>IDLE_LOCK_MS)lockStaffScreen()});
 $('toggleTimes').onclick=()=>{
  const panel=$('capacityTable'),closed=panel.classList.toggle('hidden');
  $('toggleTimes').setAttribute('aria-expanded',String(!closed));
