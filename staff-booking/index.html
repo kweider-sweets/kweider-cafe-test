@@ -866,6 +866,15 @@ function renderOverrides(){
  });
 }
 function arrival(b){return b.attendance==='ARRIVED'?'Arrived / وصل':b.attendance==='DEPARTED'?'Departed / غادر':'Expected / منتظر'}
+function bookingOccupancyMinutes(b){
+ const start=Date.parse(b.start_at),end=Date.parse(b.end_at);
+ if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start)return null;
+ return Math.round((end-start)/60000);
+}
+function bookingOccupancyLabel(b){
+ const minutes=bookingOccupancyMinutes(b);
+ return minutes===120?'90 + 30 min':minutes===null?'—':'Stored '+minutes+' min / مسجل '+minutes+' دقيقة';
+}
 function isArchivedBooking(b){
  const end=Date.parse(b.end_at),current=Date.now()+serverClockOffset;
  return b.status!=='CONFIRMED'||(Number.isFinite(end)&&end<=current);
@@ -879,7 +888,7 @@ function renderRows(){
  );
  $('bookingsViewCount').textContent=filtered.length+' / '+(bookingView==='archive'?'Archived':'Current');
  $('bookingRows').innerHTML=filtered.map(b=>'<tr class="booking-entry" data-id="'+esc(b.id)+'" tabindex="0" role="button" aria-pressed="'+(selected?.id===b.id)+'" aria-label="Open booking '+esc(b.reference)+'">'+
- '<td data-label="Time / الوقت"><b>'+fmtTime(b.start_at)+'</b><small class="mobile-booking-subtitle">90 + 30 min</small></td>'+
+ '<td data-label="Time / الوقت"><b>'+fmtTime(b.start_at)+'</b><small class="mobile-booking-subtitle">'+esc(bookingOccupancyLabel(b))+'</small></td>'+
  '<td data-label="Guest / الزبون"><b>'+esc(b.customer_name||'—')+'</b><br><small>'+esc(b.source)+'</small></td>'+
  '<td data-label="Guests / الأشخاص">'+Number(b.guests)+'</td>'+
  '<td data-label="Arrival / الحضور"><span class="pill '+(b.attendance==='ARRIVED'?'arrived':b.status!=='CONFIRMED'?'closed':'')+'">'+esc(b.status==='CONFIRMED'?arrival(b):b.status)+'</span></td>'+
@@ -916,8 +925,10 @@ function renderDetail(){
  detailRow('Reference / رقم الحجز',b.reference)+detailRow('Guest / الاسم',b.customer_name)+
  detailRow('Phone / الهاتف',b.phone)+detailRow('Email',b.email)+
  detailRow('Date / التاريخ',fmtDate(b.start_at))+detailRow('Arrival / الوصول',fmtTime(b.start_at))+
- detailRow('Guest stay / جلسة الزبون','90 minutes')+detailRow('Cleaning / التنظيف','30 minutes')+
- detailRow('Total occupancy / الإشغال','120 minutes')+detailRow('Covers / الأشخاص',b.guests)+
+ (bookingOccupancyMinutes(b)===120?
+  detailRow('Guest stay / جلسة الزبون','90 minutes')+detailRow('Cleaning / التنظيف','30 minutes'):
+  detailRow('Historical booking / حجز سابق','Original stored timing preserved / حُفظ التوقيت الأصلي'))+
+ detailRow('Stored occupancy / الإشغال المسجل',bookingOccupancyMinutes(b)===null?'—':bookingOccupancyMinutes(b)+' minutes')+detailRow('Covers / الأشخاص',b.guests)+
  detailRow('Attendance / الحضور',arrival(b))+
  detailRow('Payment / حالة الدفع',b.payment_status)+detailRow('Paid / المدفوع',money(b.amount_paid))+
  detailRow('Menu total / مجموع الطلب',money(b.menu_total))+detailRow('Remaining / المتبقي',money(b.remaining_amount))+
